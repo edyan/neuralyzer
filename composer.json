@@ -1,6 +1,6 @@
 {
-    "name": "inetprocess/anon",
-    "description": "Library for Data anonymization",
+    "name": "inetprocess/neuralyzer",
+    "description": "Library and CLI for Data anonymization",
     "type": "library",
     "keywords": ["anonymization"],
     "authors": [
