@@ -14,7 +14,7 @@ class AnonRunCommandTest extends ConfigurationDB
 
     /**
      * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |You must define the database name with --db|
+     * @expectedExceptionMessageRegExp |Database name is required (--db)|
      */
     public function testExecuteNoDB()
     {

@@ -103,8 +103,9 @@ class AnonRunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $db = $input->getOption('db');
+        // Throw an exception immediately if we dont have the required DB parameter
         if (empty($db)) {
-            throw new \InvalidArgumentException('You must define the database name with --db');
+            throw new \InvalidArgumentException('Database name is required (--db)');
         }
 
         $password = $input->getOption('password');
