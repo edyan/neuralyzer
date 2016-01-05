@@ -15,7 +15,7 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Console\Commands;
+namespace Inet\Neuralyzer\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -128,10 +128,10 @@ class AnonRunCommand extends Command
 
 
         // Anon READER
-        $reader = new \Inet\Anon\Configuration\Reader($input->getOption('config'));
+        $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
         // Now work on the DB
-        $anon = new \Inet\Anon\Anonymizer\DB($pdo);
+        $anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
         $anon->setConfiguration($reader);
 
         // Get tables
@@ -147,7 +147,6 @@ class AnonRunCommand extends Command
 
             $bar = new ProgressBar($output, $total);
             $output->writeln("<info>Anonymizing $table</info>");
-            //echo "$total rows for $table" . PHP_EOL;
             $queries = $anon->processEntity($table, function ($line) use ($bar) {
                 $bar->advance();
             }, $input->getOption('pretend'), $input->getOption('sql'));

@@ -1,8 +1,8 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Guesser;
+use Inet\Neuralyzer\Guesser;
 
 class GuesserTest extends \PHPUnit_Framework_TestCase
 {
@@ -11,11 +11,11 @@ class GuesserTest extends \PHPUnit_Framework_TestCase
     {
         $guesser = new Guesser;
         $this->assertInstanceOf(
-            'Inet\Anon\GuesserInterface',
+            'Inet\Neuralyzer\GuesserInterface',
             $guesser
         );
         $this->assertInstanceOf(
-            'Inet\Anon\Guesser',
+            'Inet\Neuralyzer\Guesser',
             $guesser
         );
     }
@@ -56,7 +56,7 @@ class GuesserTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonGuesserException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonGuesserException
      */
     public function testMapColWrongType()
     {

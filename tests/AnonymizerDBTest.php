@@ -1,16 +1,16 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Anonymizer\DB;
-use Inet\Anon\Configuration\Reader;
+use Inet\Neuralyzer\Anonymizer\DB;
+use Inet\Neuralyzer\Configuration\Reader;
 
 class AnonymizerDBTest extends ConfigurationDB
 {
     public $i = 0;
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonException
      * @expectedExceptionMessageRegExp |Can't find a primary key for 'guestbook'|
      */
     public function testWithoutPrimary()
@@ -34,7 +34,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |No entities found. Have you loaded a configuration file ?|
      */
     public function testWithPrimaryNoConf()
@@ -49,7 +49,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |No configuration for that entity.*|
      */
     public function testWithPrimaryConfWrongTable()

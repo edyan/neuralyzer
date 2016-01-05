@@ -1,10 +1,10 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Configuration\Writer;
-use Inet\Anon\Configuration\Reader;
-use Inet\Anon\Guesser;
+use Inet\Neuralyzer\Configuration\Writer;
+use Inet\Neuralyzer\Configuration\Reader;
+use Inet\Neuralyzer\Guesser;
 
 class ConfigWriterTest extends ConfigurationDB
 {
@@ -12,7 +12,7 @@ class ConfigWriterTest extends ConfigurationDB
     private $ignoredTables = array('guestbook');
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |Not able to work with guestbook, it has no primary key.|
      */
     public function testGenerateConfNoPrimary()
@@ -24,7 +24,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfNoTable()
@@ -37,7 +37,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |All tables or fields have been ignored|
      */
     public function testGenerateConfIgnoreAllFields()
@@ -51,7 +51,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfIgnoreAllTables()
@@ -125,7 +125,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |/doesntexist is not writeable.|
      */
     public function testGenerateConfNotWriteable()

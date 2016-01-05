@@ -1,9 +1,9 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Console\Application;
-use Inet\Anon\Console\Commands\AnonRunCommand as Command;
+use Inet\Neuralyzer\Console\Application;
+use Inet\Neuralyzer\Console\Commands\AnonRunCommand as Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;

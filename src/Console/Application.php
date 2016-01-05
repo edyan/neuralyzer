@@ -15,7 +15,7 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Console;
+namespace Inet\Neuralyzer\Console;
 
 use Symfony\Component\Console\Application as BaseApplication;
 
@@ -32,8 +32,8 @@ class Application extends BaseApplication
     public function getDefaultCommands()
     {
         $commands = parent::getDefaultCommands();
-        $commands[] = new \Inet\Anon\Console\Commands\AnonRunCommand();
-        $commands[] = new \Inet\Anon\Console\Commands\ConfigGenerateCommand();
+        $commands[] = new \Inet\Neuralyzer\Console\Commands\AnonRunCommand();
+        $commands[] = new \Inet\Neuralyzer\Console\Commands\ConfigGenerateCommand();
 
         return $commands;
     }

@@ -17,7 +17,7 @@
 
 namespace Inet\Anon;
 
-use Inet\Anon\Exception\InetAnonGuesserException;
+use Inet\Neuralyzer\Exception\InetAnonGuesserException;
 
 /**
  * Guesser to map field type to Faker Class

@@ -15,9 +15,9 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Anonymizer;
+namespace Inet\Neuralyzer\Anonymizer;
 
-use Inet\Anon\Exception\InetAnonException;
+use Inet\Neuralyzer\Exception\InetAnonException;
 
 /**
  * DB Anonymizer

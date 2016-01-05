@@ -15,9 +15,9 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Configuration;
+namespace Inet\Neuralyzer\Configuration;
 
-use Inet\Anon\Exception\InetAnonConfigurationException;
+use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -103,11 +103,11 @@ class Writer
      * Generate the configuration by reading tables + cols
      *
      * @param \PDO                        $pdo
-     * @param \Inet\Anon\GuesserInterface $guesser
+     * @param \Inet\Neuralyzer\GuesserInterface $guesser
      *
      * @return array
      */
-    public function generateConfFromDB(\PDO $pdo, \Inet\Anon\GuesserInterface $guesser)
+    public function generateConfFromDB(\PDO $pdo, \Inet\Neuralyzer\GuesserInterface $guesser)
     {
 
         // First step : get the list of tables
@@ -273,11 +273,11 @@ class Writer
      *
      * @param string                      $table
      * @param array                       $cols
-     * @param \Inet\Anon\GuesserInterface $guesser
+     * @param \Inet\Neuralyzer\GuesserInterface $guesser
      *
      * @return array
      */
-    protected function guessColsAnonType($table, array $cols, \Inet\Anon\GuesserInterface $guesser)
+    protected function guessColsAnonType($table, array $cols, \Inet\Neuralyzer\GuesserInterface $guesser)
     {
         $mapping = array();
         foreach ($cols as $colProps) {

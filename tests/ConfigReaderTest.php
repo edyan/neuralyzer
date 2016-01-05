@@ -1,8 +1,8 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Configuration\Reader;
+use Inet\Neuralyzer\Configuration\Reader;
 
 class ConfigReaderTest extends \PHPUnit_Framework_TestCase
 {

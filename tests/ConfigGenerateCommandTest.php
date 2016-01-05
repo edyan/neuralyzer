@@ -1,10 +1,10 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Console\Application;
-use Inet\Anon\Console\Commands\AnonRunCommand as Command;
-use Inet\Anon\Configuration\Reader;
+use Inet\Neuralyzer\Console\Application;
+use Inet\Neuralyzer\Console\Commands\AnonRunCommand as Command;
+use Inet\Neuralyzer\Configuration\Reader;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
@@ -92,7 +92,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testExecuteProtectTable()

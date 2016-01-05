@@ -1,6 +1,6 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
 class ConfigurationDB extends \PHPUnit_Extensions_Database_TestCase
 {

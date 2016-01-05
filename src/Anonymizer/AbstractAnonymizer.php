@@ -15,10 +15,10 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Anonymizer;
+namespace Inet\Neuralyzer\Anonymizer;
 
-use Inet\Anon\Configuration\Reader;
-use Inet\Anon\Exception\InetAnonConfigurationException;
+use Inet\Neuralyzer\Configuration\Reader;
+use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
 
 /**
  * Abstract Anonymizer

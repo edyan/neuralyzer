@@ -87,15 +87,15 @@ The library is made to be integrated with any Tool such as a CLI tool. It contai
 The writer is helpful to generate a yaml file that contains all tables and fields from a DB. A basic usage could be the following:
 ```php
 // You need to instanciate a \PDO Object first
-$writer = new Inet\Anon\Configuration\Writer;
-$data = $writer->generateConfFromDB($pdo, new Inet\Anon\Guesser);
+$writer = new Inet\Neuralyzer\Configuration\Writer;
+$data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
 $writer->save($data, 'anon.yaml');
 ```
 
 If you need, you can protect some cols (with regexp) or tables:
 ```php
 // You need to instanciate a \PDO Object first
-$writer = new Inet\Anon\Configuration\Writer;
+$writer = new Inet\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
 // define cols to protect (must be prefixed with the table name)
 $writer->setProtectedCols(array(
@@ -113,7 +113,7 @@ $writer->setIgnoredTables(array(
     'email_cache',
 ));
 // Write the configuration
-$data = $writer->generateConfFromDB($pdo, new Inet\Anon\Guesser);
+$data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
 $writer->save($data, 'anon.yaml');
 ```
 
@@ -122,7 +122,7 @@ The configuration Reader is the exact opposite of the Writer. Its main job is to
 of the yaml file is correct. Example:
 ```yaml
 // will throw an exception
-$reader = new Inet\Anon\Configuration\Reader('sugarcli_anon.yaml');
+$reader = new Inet\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
 $tables = $reader->getEntities();
 ```
 
@@ -135,7 +135,7 @@ It can be extended very easily as it has to be injected to the Writer.
 ### DB Anonymizer
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
-$anon = new Inet\Anon\Anonymizer\DB($sugarPDO);
+$anon = new Inet\Neuralyzer\Anonymizer\DB($sugarPDO);
 $anon->setConfiguration($reader);
 
 ```

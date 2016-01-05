@@ -15,7 +15,7 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Console\Commands;
+namespace Inet\Neuralyzer\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -130,7 +130,7 @@ class ConfigGenerateCommand extends Command
             throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
 
-        $writer = new \Inet\Anon\Configuration\Writer;
+        $writer = new \Inet\Neuralyzer\Configuration\Writer;
         $ignoreFields = $input->getOption('ignore-field');
         $writer->protectCols($input->getOption('protect'));
         // Override the protection if fields are defined
@@ -139,7 +139,7 @@ class ConfigGenerateCommand extends Command
             $writer->setProtectedCols($ignoreFields);
         }
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($pdo, new \Inet\Anon\Guesser);
+        $data = $writer->generateConfFromDB($pdo, new \Inet\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to ' . $input->getOption('file') . '</comment>');

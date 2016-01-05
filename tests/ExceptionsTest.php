@@ -1,36 +1,36 @@
 <?php
 
-namespace Inet\Anon\Tests;
+namespace Inet\Neuralyzer\Tests;
 
-use Inet\Anon\Guesser;
+use Inet\Neuralyzer\Guesser;
 
 class ExceptionsTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
      * @expectedExceptionMessageRegExp |test|
      */
     public function testInetInetAnonConfigurationException()
     {
-        throw new \Inet\Anon\Exception\InetAnonConfigurationException('test');
+        throw new \Inet\Neuralyzer\Exception\InetAnonConfigurationException('test');
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonGuesserException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonGuesserException
      * @expectedExceptionMessageRegExp |test|
      */
     public function testInetAnonGuesserException()
     {
-        throw new \Inet\Anon\Exception\InetAnonGuesserException('test');
+        throw new \Inet\Neuralyzer\Exception\InetAnonGuesserException('test');
     }
 
     /**
-     * @expectedException Inet\Anon\Exception\InetAnonException
+     * @expectedException Inet\Neuralyzer\Exception\InetAnonException
      * @expectedExceptionMessageRegExp |test|
      */
     public function testInetAnonException()
     {
-        throw new \Inet\Anon\Exception\InetAnonException('test');
+        throw new \Inet\Neuralyzer\Exception\InetAnonException('test');
     }
 }

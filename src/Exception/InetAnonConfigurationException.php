@@ -15,7 +15,7 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon\Exception;
+namespace Inet\Neuralyzer\Exception;
 
 /**
  * Exception
