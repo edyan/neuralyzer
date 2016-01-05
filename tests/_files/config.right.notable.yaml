@@ -1,0 +1,7 @@
+guesser_version: 1.0.0b
+entities:
+    accounts:
+        cols:
+            user: { method: sentence, params: [8] }
+            content: { method: sentence, params: [20] }
+            created: { method: datetime, params: [8] }

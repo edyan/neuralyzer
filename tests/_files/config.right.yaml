@@ -1,0 +1,7 @@
+guesser_version: 1.0.0b
+entities:
+    guestbook:
+        cols:
+            user: { method: sentence, params: [8] }
+            content: { method: sentence, params: [20] }
+            created: { method: date, params: ['Y-m-d', 'now'] }

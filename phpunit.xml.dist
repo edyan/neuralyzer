@@ -1,0 +1,24 @@
+<phpunit
+  bootstrap="vendor/autoload.php"
+  colors="true"
+  >
+  <php>
+    <env name='DB_USER' value='' />
+    <env name='DB_PASSWORD' value='' />
+    <env name='DB_HOST' value='' />
+    <env name='DB_NAME' value='' />
+
+    <!-- E_ALL & ~E_STRICT = 30719 -->
+    <ini name="error_reporting" value="30719"/>
+  </php>
+  <testsuites>
+    <testsuite name="Inet">
+        <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+ <filter>
+    <whitelist processUncoveredFilesFromWhitelist="true">
+      <directory suffix=".php">src</directory>
+    </whitelist>
+  </filter>
+</phpunit>

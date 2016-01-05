@@ -1,0 +1,11 @@
+# Editor files.
+.*.sw*
+*~
+
+# Composer
+/composer.lock
+/vendor/
+
+#PHPUnit/Phing
+/phpunit.xml
+/reports/

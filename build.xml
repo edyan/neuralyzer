@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<project name="build" default="mainloop">
+    <property name="directories" value="src" />
+    <property name="excludeDirs" value="Inet/Tests/**" />
+    <property name="mainPhingDir" value="reports/phing-reports" />
+
+    <property name="pkgPHPVersions" value="5.3 -> 7.0" />
+    <property name="pkgCopyright" value="2005-2015 iNet Process" />
+    <property name="pkgName" value="inetprocess/neuralyzer" />
+    <property name="pkgLicense" value="GNU General Public License v2.0" />
+    <property name="pkgLink" value="http://www.inetprocess.com" />
+
+    <target name="mainloop">
+        <!-- Deleting old reports and creating an empty folder -->
+        <delete dir="${mainPhingDir}" failonerror="false" />
+        <mkdir dir="${mainPhingDir}" />
+        <!-- Folder by Folder, launch the PHP Checks -->
+        <foreach list="${directories}" param="directory" target="phpcheck" />
+    </target>
+
+
+    <!-- PHP Code checking -->
+    <target name="phpcheck">
+        <reflexive>
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+            </fileset>
+            <filterchain>
+                <replaceregexp>
+                    <regexp pattern=" \* PHP Version (.*)" replace=" * PHP Version ${pkgPHPVersions}"/>
+                    <regexp pattern=" \* @copyright (.*)"  replace=" * @copyright ${pkgCopyright}"/>
+                    <regexp pattern=" \* @package (.*)"    replace=" * @package ${pkgName}"/>
+                    <regexp pattern=" \* @license (.*)"    replace=" * @license ${pkgLicense}"/>
+                    <regexp pattern=" \* @link (.*)"       replace=" * @link ${pkgLink}"/>
+                </replaceregexp>
+            </filterchain>
+        </reflexive>
+
+        <!-- Define the directory where we'll put our reports -->
+        <php function="str_replace" returnProperty="reportsSubDir">
+            <param value="/"/>
+            <param value="--"/>
+            <param value="${directory}"/>
+        </php>
+        <property name="reportsDir" value="${mainPhingDir}/${reportsSubDir}" />
+
+
+        <!-- Deleting old reports and creating an empty folder -->
+        <delete dir="${reportsDir}" failonerror="false" />
+        <mkdir dir="${reportsDir}" />
+
+        <!-- Executing phpCodeSniffer -->
+        <phpcodesniffer
+          standard="PSR2"
+          showSniffs="true"
+          showWarnings="true"
+          haltonerror="false"
+          docGenerator="HTML"
+          docFile="${mainPhingDir}/phpcs-coding-standards.html"
+          tabWidth="4">
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+            </fileset>
+            <formatter type="csv" usefile="true" outfile="${reportsDir}/phpcs.csv"/>
+            <formatter type="full" usefile="true" outfile="${reportsDir}/phpcs-full.txt"/>
+        </phpcodesniffer>
+
+        <!-- Executing phpCopyPasteDetector -->
+        <phpcpd>
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+           </fileset>
+           <formatter type="pmd" outfile="${reportsDir}/phpcpd.xml"/>
+        </phpcpd>
+
+        <!-- Executing phploc -->
+        <phploc
+          countTests="true"
+          reportType="txt"
+          reportDirectory="${reportsDir}"
+          reportName="phploc">
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+            </fileset>
+        </phploc>
+
+        <!-- Executing phpMessDetector -->
+        <phpmd>
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+            </fileset>
+            <formatter type="html" outfile="${reportsDir}/pmd.html"/>
+        </phpmd>
+
+
+        <!-- Executing phpdepend -->
+        <phpdepend>
+            <fileset dir="${directory}" excludes="${excludeDirs}">
+                <include name="**/*.php"/>
+            </fileset>
+            <logger type="jdepend-xml" outfile="${reportsDir}/phpdepend-jdepend.xml"/>
+            <analyzer type="coderank-mode" value="method"/>
+         </phpdepend>
+
+        <!-- Executing phpdoc2 -->
+        <delete dir="${reportsDir}/apidocs" failonerror="false" />
+        <mkdir dir="${reportsDir}/apidocs" />
+        <phpdoc2 title="API Documentation"
+          destdir="${reportsDir}/apidocs"
+          template="responsive-twig">
+           <fileset dir="${directory}" excludes="${excludeDirs}">
+              <include name="**/*.php" />
+           </fileset>
+        </phpdoc2>
+
+        <!-- Executing phpLint -->
+        <phplint
+            tofile="${reportsDir}/phplint.txt">
+          <fileset dir="${directory}" excludes="${excludeDirs}">
+            <include name="**/*.php"/>
+          </fileset>
+        </phplint>
+  </target>
+</project>

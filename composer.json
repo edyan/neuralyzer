@@ -1,0 +1,46 @@
+{
+    "name": "inetprocess/anon",
+    "description": "Library for Data anonymization",
+    "type": "library",
+    "keywords": ["anonymization"],
+    "authors": [
+        {
+            "name": "Emmanuel Dyan",
+            "email": "emmanuel.dyan@inetprocess.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/inetprocess/sugarcrm"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "fzaninotto/faker": "@stable",
+        "symfony/console": "^2.8",
+        "symfony/yaml": "~2",
+        "symfony/config": "~2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0",
+        "phpunit/dbunit": "~1.3",
+        "inetprocess/sugarcrm": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Inet\\Anon\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Inet\\Anon\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "5.3.29"
+        }
+    }
+}
