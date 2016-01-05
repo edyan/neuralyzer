@@ -130,6 +130,6 @@ class AnonymizerDBTest extends ConfigurationDB
         $data = $data[0];
         $this->assertEquals(19, strlen($data['created']));
         $this->assertNotEquals('joe', $data['user']);
-        $this->assertGreaterThan('Hello buddy!', $data['content']);
+        $this->assertNotEquals('Hello buddy!', $data['content']);
     }
 }

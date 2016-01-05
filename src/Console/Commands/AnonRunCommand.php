@@ -109,7 +109,7 @@ class AnonRunCommand extends Command
         }
 
         $password = $input->getOption('password');
-        if (empty($password)) {
+        if (is_null($password)) {
             $helper = $this->getHelper('question');
             $question = new Question('Password: ');
             $question->setHidden(true);
