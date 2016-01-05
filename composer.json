@@ -11,12 +11,6 @@
     ],
     "license": "GPL-2.0",
     "minimum-stability": "stable",
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/inetprocess/sugarcrm"
-        }
-    ],
     "require": {
         "php": ">=5.3",
         "fzaninotto/faker": "@stable",

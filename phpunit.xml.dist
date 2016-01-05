@@ -3,10 +3,10 @@
   colors="true"
   >
   <php>
-    <env name='DB_USER' value='' />
+    <env name='DB_USER' value='root' />
     <env name='DB_PASSWORD' value='' />
-    <env name='DB_HOST' value='' />
-    <env name='DB_NAME' value='' />
+    <env name='DB_HOST' value='127.0.0.1' />
+    <env name='DB_NAME' value='test_db' />
 
     <!-- E_ALL & ~E_STRICT = 30719 -->
     <ini name="error_reporting" value="30719"/>
