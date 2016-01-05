@@ -30,12 +30,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Inet\\Anon\\": "src/"
+            "Inet\\Neuralyzer\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Inet\\Anon\\Tests\\": "tests/"
+            "Inet\\Neuralyzer\\Tests\\": "tests/"
         }
     },
     "config": {

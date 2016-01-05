@@ -15,7 +15,7 @@
  * @link http://www.inetprocess.com
  */
 
-namespace Inet\Anon;
+namespace Inet\Neuralyzer;
 
 use Inet\Neuralyzer\Exception\InetAnonGuesserException;
 
