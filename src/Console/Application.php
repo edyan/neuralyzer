@@ -27,7 +27,7 @@ class Application extends BaseApplication
     /**
      * Init commands
      *
-     * @return array
+     * @return Command[] An array of default Command instances
      */
     public function getDefaultCommands()
     {

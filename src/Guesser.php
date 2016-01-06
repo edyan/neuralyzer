@@ -27,13 +27,13 @@ class Guesser implements GuesserInterface
 
     /**
      * Returns the version of your guesser
-     * @return    string
+     *
+     * @return string
      */
     public function getVersion()
     {
         return '1.0.0b';
     }
-
 
     /**
      * Returns an array of fieldName => Faker class

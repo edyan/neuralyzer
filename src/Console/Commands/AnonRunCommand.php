@@ -88,7 +88,7 @@ class AnonRunCommand extends Command
                  'sql',
                  null,
                  InputOption::VALUE_NONE,
-                 "Display the SQL"
+                 'Display the SQL'
              );
     }
 
@@ -127,7 +127,6 @@ class AnonRunCommand extends Command
             throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
 
-
         // Anon READER
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
@@ -155,7 +154,7 @@ class AnonRunCommand extends Command
             $output->writeln(PHP_EOL);
 
             if ($input->getOption('sql')) {
-                $output->writeln("<comment>Queries:</comment>");
+                $output->writeln('<comment>Queries:</comment>');
                 $output->writeln(implode(PHP_EOL, $queries));
                 $output->writeln(PHP_EOL);
             }

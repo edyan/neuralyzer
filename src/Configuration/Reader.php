@@ -44,7 +44,7 @@ class Reader
     /**
      * Configuration file name
      *
-     * @var string
+     * @var string|array
      */
     protected $configFilePath;
 
@@ -58,7 +58,7 @@ class Reader
     /**
      * Constructor
      *
-     * @param string $configFile
+     * @param string $configFileName
      * @param array  $configDirectories
      */
     public function __construct($configFileName, array $configDirectories = array('.'))

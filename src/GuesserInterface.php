@@ -50,7 +50,8 @@ interface GuesserInterface
 
     /**
      * Returns the Guesser version
-     * @return    string
+     *
+     * @return string
      */
     public function getVersion();
 }

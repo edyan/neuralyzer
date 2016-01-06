@@ -102,7 +102,7 @@ class Writer
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param \PDO                        $pdo
+     * @param \PDO                              $pdo
      * @param \Inet\Neuralyzer\GuesserInterface $guesser
      *
      * @return array
@@ -271,8 +271,8 @@ class Writer
     /**
      * Guess the cols with the guesser
      *
-     * @param string                      $table
-     * @param array                       $cols
+     * @param string                            $table
+     * @param array                             $cols
      * @param \Inet\Neuralyzer\GuesserInterface $guesser
      *
      * @return array
