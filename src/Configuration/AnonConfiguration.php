@@ -28,17 +28,21 @@ class AnonConfiguration implements ConfigurationInterface
     /**
      * Validate the configuration
      *
+     * The config structure is something like :
+     * ## Root
+     * entities:
+     *    ## Can be repeated : the name of the table, is an array
+     *    accounts:
+     *        cols:
+     *            ## Can be repeated : the name of the field, is an array
+     *            name:
+     *                method: words # Required: name of the method
+     *                params: [8] # Optional: parameters (an array)
+     *
      * @return TreeBuilder
      */
     public function getConfigTreeBuilder()
     {
-        // The config structure is something like :
-        // entities:  # Root
-        //    accounts: # Can be repeated : the name of the table, is an array
-        //        cols:
-        //            name: # Can be repeated : the name of the field, is an array
-        //                method: words # Required: name of the method
-        //                params: [8] # Optional: parameters (an array)
 
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('config');

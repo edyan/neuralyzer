@@ -147,7 +147,7 @@ class AnonRunCommand extends Command
 
             $bar = new ProgressBar($output, $total);
             $output->writeln("<info>Anonymizing $table</info>");
-            $queries = $anon->processEntity($table, function ($line) use ($bar) {
+            $queries = $anon->processEntity($table, function () use ($bar) {
                 $bar->advance();
             }, $input->getOption('pretend'), $input->getOption('sql'));
 
