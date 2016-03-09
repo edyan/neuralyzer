@@ -120,7 +120,7 @@ class DB extends AbstractAnonymizer
         $fields = array();
         $values = array();
         foreach ($data as $field => $value) {
-            $fields[] = "$field = :$field";
+            $fields[] = "$field = IF($field  IS NOT NULL, :$field, NULL)";
             $values[":$field"] = $value;
         }
 
@@ -142,7 +142,7 @@ class DB extends AbstractAnonymizer
     {
         $fieldsVals = array();
         foreach ($data as $field => $value) {
-            $fieldsVals[] = "$field = '" . addslashes($value) . "'";
+            $fieldsVals[] = "$field = IF($field IS NOT NULL, '" . addslashes($value) . "', NULL)";
         }
 
         $sql = "UPDATE $table SET " . implode(', ', $fieldsVals) . " WHERE $where";

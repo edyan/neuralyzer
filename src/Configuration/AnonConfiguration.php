@@ -61,7 +61,7 @@ class AnonConfiguration implements ConfigurationInterface
                                     ->children()
                                         ->scalarNode('method')->isRequired()->end()
                                         ->arrayNode('params')
-                                            ->requiresAtLeastOneElement()->prototype('scalar')->end()
+                                            ->requiresAtLeastOneElement()->prototype('variable')->end()
                                         ->end()
                                     ->end()
                                 ->end()
