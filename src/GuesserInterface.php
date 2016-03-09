@@ -46,7 +46,7 @@ interface GuesserInterface
      *
      * @return array
      */
-    public function mapCol($table, $name, $type);
+    public function mapCol($table, $name, $type, $len);
 
     /**
      * Returns the Guesser version

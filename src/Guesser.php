@@ -107,6 +107,10 @@ class Guesser implements GuesserInterface
                 'method' => 'sentence',
                 'params' => array(20),
             ),
+            'blob' => array(
+                'method' => 'sentence',
+                'params' => array(20),
+            ),
             'longtext' => array(
                 'method' => 'sentence',
                 'params' => array(70),
@@ -149,6 +153,10 @@ class Guesser implements GuesserInterface
                 'params' => array(15),
             ),
             // Decimal
+            'float' => array(
+                'method' => 'randomFloat',
+                'params' => array(2, 0, 999999),
+            ),
             'decimal' => array(
                 'method' => 'randomFloat',
                 'params' => array(2, 0, 999999),
@@ -170,7 +178,7 @@ class Guesser implements GuesserInterface
      *
      * @return array
      */
-    public function mapCol($table, $name, $type)
+    public function mapCol($table, $name, $type, $len)
     {
         // Try to find by colsName
         $colsName = $this->getColsNameMapping();
@@ -179,6 +187,14 @@ class Guesser implements GuesserInterface
             if (!empty($matches)) {
                 return $params;
             }
+        }
+
+        // Hardcoded types
+        if ($type === 'enum') {
+            return array(
+                'method' => 'randomElement',
+                'params' => explode(',', $len),
+            );
         }
 
         // Try to find by fieldType

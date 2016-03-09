@@ -281,7 +281,12 @@ class Writer
     {
         $mapping = array();
         foreach ($cols as $colProps) {
-            $mapping[$colProps['name']] = $guesser->mapCol($table, $colProps['name'], $colProps['type']);
+            $mapping[$colProps['name']] = $guesser->mapCol(
+                $table,
+                $colProps['name'],
+                $colProps['type'],
+                $colProps['len']
+            );
         }
 
         return $mapping;
