@@ -193,7 +193,7 @@ class Guesser implements GuesserInterface
         if ($type === 'enum') {
             return array(
                 'method' => 'randomElement',
-                'params' => array(explode("','", substr($len, 1, -1)))
+                'params' => array(array(explode("','", substr($len, 1, -1))))
             );
         }
 
