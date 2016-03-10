@@ -64,8 +64,8 @@ class GuesserTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($mapping['method'], 'randomElement');
         $this->assertArrayHasKey('params', $mapping);
         $this->assertArrayHasKey(0, $mapping['params']);
-        $this->assertInternalType('array', $mapping['params'][0]);
-        $this->assertEquals('a,b,c', implode(',', $mapping['params'][0]));
+        $this->assertInternalType('array', $mapping['params'][0][0]);
+        $this->assertEquals('a,b,c', implode(',', $mapping['params'][0][0]));
 
         // check the version
         $version = $guesser->getVersion();
