@@ -49,7 +49,30 @@ class AnonRunCommandTest extends ConfigurationDB
         ));
     }
 
-    public function testExecute()
+    /**
+     * @expectedException InvalidArgumentException
+     * @expectedExceptionMessage Could not count records in table 'accounts' defined in your config
+     */
+    public function testExecuteWrongTablePasswordOnCLI()
+    {
+        $this->createPrimary();
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('run');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute(array(
+            'command' => $command->getName(),
+            '--db' => getenv('DB_NAME'),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => getenv('DB_PASSWORD'),
+            '--config' => __DIR__ . '/_files/config.right.notable.yaml'
+        ));
+    }
+
+    public function testExecuteRightTablePassPrompted()
     {
         $this->createPrimary();
         $application = new Application();

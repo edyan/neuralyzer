@@ -30,6 +30,24 @@ class ConfigReaderTest extends \PHPUnit_Framework_TestCase
         $values = $reader->getConfigValues();
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);
+        $this->assertArrayHasKey('guestbook', $values['entities']);
+        $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
+
+        $entities = $reader->getEntities();
+        $this->assertInternalType('array', $entities);
+        $this->assertContains('guestbook', $entities);
+
+        return $reader;
+    }
+
+    public function testReadConfigurationRightConfWithEmpty()
+    {
+        $reader = new Reader('_files/config.right.deleteone.yaml', array(dirname(__FILE__)));
+        $values = $reader->getConfigValues();
+        $this->assertInternalType('array', $values);
+        $this->assertArrayHasKey('entities', $values);
+        $this->assertArrayHasKey('guestbook', $values['entities']);
+        $this->assertArrayHasKey('empty', $values['entities']['guestbook']);
 
         $entities = $reader->getEntities();
         $this->assertInternalType('array', $entities);

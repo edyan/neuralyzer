@@ -9,9 +9,11 @@ inetprocess/neuralyzer
 =====
 
 ## Summary
-This project is a library and a command line tool that anonymizes (for now, but as it uses PDO,
+This project is a library and a command line tool that **anonymizes** (for now, but as it uses PDO,
 it's easy to implement other DBs) a MySQL database. It uses [Faker](https://github.com/fzaninotto/Faker) to generate
 the data and replace the rows in tables.
+
+It is also able to **empty** tables with a `WHERE` critera.
 
 ## CLI
 The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
@@ -26,7 +28,7 @@ Options:
       --host=HOST                  Host [default: "127.0.0.1"]
   -d, --db=DB                      Database Name
   -u, --user=USER                  User Name [default: "manu"]
-  -p, --password=PASSWORD          Password (or it'll be prompted)
+  -p, --password=PASSWORD          Password (or prompted)
   -f, --file=FILE                  File [default: "anon.yml"]
       --protect                    Protect IDs and other fields
       --ignore-table=IGNORE-TABLE  Table to ignore. Can be repeated (multiple values allowed)
@@ -53,6 +55,22 @@ entities:
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
 ```
 
+You can update the file to change its configuration. For example, if you need to empty the books table do:
+```yaml
+guesser_version: 1.0.0b
+entities:
+    authors:
+        cols:
+            first_name: { method: firstName }
+            last_name: { method: lastName }
+    books:
+        empty: true
+        where: "name LIKE 'Bad Book%'"
+```
+
+**Warning**: You can't anonymize and empty at the same time.
+
+
 ### Run the anonymizer
 To run the anonymizer, the command is simply "run" and expects:
 ```bash
@@ -60,9 +78,9 @@ Options:
       --host=HOST          Host [default: "127.0.0.1"]
   -d, --db=DB              Database Name
   -u, --user=USER          User Name [default: "manu"]
-  -p, --password=PASSWORD  Password (or it'll be prompted)
+  -p, --password=PASSWORD  Password (or prompted)
   -c, --config=CONFIG      Configuration File [default: "anon.yml"]
-      --pretend            Don't run the queries
+      --pretend            Do not run the queries
       --sql                Display the SQL
 ```
 #### Example
@@ -93,6 +111,7 @@ The library is made to be integrated with any Tool such as a CLI tool. It contai
 ### Configuration Writer
 The writer is helpful to generate a yaml file that contains all tables and fields from a DB. A basic usage could be the following:
 ```php
+<?php
 // You need to instanciate a \PDO Object first
 $writer = new Inet\Neuralyzer\Configuration\Writer;
 $data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
@@ -101,6 +120,7 @@ $writer->save($data, 'anon.yaml');
 
 If you need, you can protect some cols (with regexp) or tables:
 ```php
+<?php
 // You need to instanciate a \PDO Object first
 $writer = new Inet\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
@@ -142,7 +162,8 @@ It can be extended very easily as it has to be injected to the Writer.
 ### DB Anonymizer
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
-$anon = new Inet\Neuralyzer\Anonymizer\DB($sugarPDO);
+<?php
+$anon = new Inet\Neuralyzer\Anonymizer\DB($pdo);
 $anon->setConfiguration($reader);
 
 ```
@@ -157,3 +178,26 @@ Parameters:
 * Callback (callable / optional) to use a progressbar for example
 * Pretend : SQL Queries won't be executed
 * returnResult: SQL Queries will be returned
+
+
+Full Example:
+```php
+<?php
+$reader = new Inet\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
+$anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
+$anon->setConfiguration($reader);
+
+// Get tables
+$tables = $reader->getEntities();
+foreach ($tables as $table) {
+    $result = $pdo->query("SELECT COUNT(1) FROM $table");
+    $data = $result->fetchAll(\PDO::FETCH_COLUMN);
+    $total = (int)$data[0];
+    if ($total === 0) {
+        $output->writeln("<info>$table is empty</info>");
+        continue;
+    }
+
+    $queries = $anon->processEntity($table);
+}
+```

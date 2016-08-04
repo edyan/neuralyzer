@@ -26,10 +26,13 @@ class ConfigurationDB extends \PHPUnit_Extensions_Database_TestCase
 
     public function setUp()
     {
+        $db = getenv('DB_NAME');
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
         $create = <<<QUERY
-            DROP TABLE IF EXISTS `guestbook`;
+            DROP DATABASE $db;
+            CREATE DATABASE $db;
+            USE $db;
             CREATE TABLE `guestbook` (
               `id` int(10) UNSIGNED NOT NULL,
               `content` text NULL,

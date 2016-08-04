@@ -72,7 +72,7 @@ class AnonRunCommand extends Command
                  'password',
                  'p',
                  InputOption::VALUE_REQUIRED,
-                 "Password (or it'll be prompted)"
+                 "Password (or prompted)"
              )->addOption(
                  'config',
                  'c',
@@ -123,6 +123,7 @@ class AnonRunCommand extends Command
                 $input->getOption('user'),
                 $password
             );
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         } catch (\Exception $e) {
             throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
@@ -137,7 +138,12 @@ class AnonRunCommand extends Command
         // Get tables
         $tables = $reader->getEntities();
         foreach ($tables as $table) {
-            $result = $pdo->query("SELECT COUNT(1) FROM $table");
+            try {
+                $result = $pdo->query("SELECT COUNT(1) FROM $table");
+            } catch (\Exception $e) {
+                throw new \InvalidArgumentException("Could not count records in table '$table' defined in your config");
+            }
+
             $data = $result->fetchAll(\PDO::FETCH_COLUMN);
             $total = (int)$data[0];
             if ($total === 0) {

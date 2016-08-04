@@ -26,6 +26,16 @@ use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
 abstract class AbstractAnonymizer
 {
     /**
+     * Constant to define the type of action for that table
+     */
+    const TRUNCATE_TABLE = 1;
+
+    /**
+     * Constant to define the type of action for that table
+     */
+    const UPDATE_TABLE = 2;
+
+    /**
      * Contain the configuration object
      *
      * @var Reader
@@ -62,6 +72,43 @@ abstract class AbstractAnonymizer
     }
 
     /**
+     * Evaluate, from the configuration if I have to update or Truncate the table
+     *
+     * @param string $entity
+     *
+     * @return int
+     */
+    public function whatToDoWithEntity($entity)
+    {
+        $this->checkEntityIsInConfig($entity);
+
+        $entityConfig = $this->configEntites[$entity];
+        if (array_key_exists('empty', $entityConfig) && $entityConfig['empty'] === true) {
+            return self::TRUNCATE_TABLE;
+        }
+
+        return self::UPDATE_TABLE;
+    }
+
+    /**
+     * Returns the 'where' parameter for an entity in config (or empty)
+     *
+     * @param string $entity
+     *
+     * @return string
+     */
+    public function getWhereConditionInConfig($entity)
+    {
+        $this->checkEntityIsInConfig($entity);
+
+        if (!array_key_exists('where', $this->configEntites[$entity])) {
+            return '';
+        }
+
+        return $this->configEntites[$entity]['where'];
+    }
+
+    /**
      * Generate fake data for an entity and return it as an Array
      *
      * @param string $entity
@@ -70,12 +117,7 @@ abstract class AbstractAnonymizer
      */
     public function generateFakeData($entity)
     {
-        if (empty($this->configEntites)) {
-            throw new InetAnonConfigurationException('No entities found. Have you loaded a configuration file ?');
-        }
-        if (!array_key_exists($entity, $this->configEntites)) {
-            throw new InetAnonConfigurationException("No configuration for that entity ($entity)");
-        }
+        $this->checkEntityIsInConfig($entity);
 
         $faker = \Faker\Factory::create();
 
@@ -88,5 +130,22 @@ abstract class AbstractAnonymizer
         }
 
         return $entity;
+    }
+
+    /**
+     * Make sure that entity is defined in the configuration
+     *
+     * @param string $entity
+     *
+     * @throws InetAnonConfigurationException
+     */
+    private function checkEntityIsInConfig($entity)
+    {
+        if (empty($this->configEntites)) {
+            throw new InetAnonConfigurationException('No entities found. Have you loaded a configuration file ?');
+        }
+        if (!array_key_exists($entity, $this->configEntites)) {
+            throw new InetAnonConfigurationException("No configuration for that entity ($entity)");
+        }
     }
 }

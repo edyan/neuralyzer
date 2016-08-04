@@ -65,7 +65,24 @@ class AnonymizerDBTest extends ConfigurationDB
         $db->processEntity('guestbook');
     }
 
-    public function testWithPrimaryConfRightTablePretendPlusResult()
+    /**
+     * @expectedException \PDOException
+     * @expectedExceptionMessageRegExp |Query Error : SQLSTATE\[42S22\]: Column not found.*|
+     */
+    public function testWithPrimaryConfWrongWhere()
+    {
+        $conn = $this->getConnection();
+        $pdo = $conn->getConnection();
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.right.deletebadwhere.yaml', array(dirname(__FILE__)));
+
+        $db = new Db($pdo);
+        $db->setConfiguration($reader);
+        $db->processEntity('guestbook', null, false);
+    }
+
+    public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
     {
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
@@ -80,6 +97,26 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
+        // check no data changed
+        $queryTable = $conn->createDataSet(array('guestbook'));
+        $this->assertDataSetsEqual($this->getDataSet(), $queryTable);
+    }
+
+    public function testWithPrimaryConfRightTableDeletePretendPlusResult()
+    {
+        $conn = $this->getConnection();
+        $pdo = $conn->getConnection();
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.right.deleteone.yaml', array(dirname(__FILE__)));
+
+        $db = new Db($pdo);
+        $db->setConfiguration($reader);
+        $queries = $db->processEntity('guestbook', null, true, true);
+        // Check I have the queries returned
+        $this->assertInternalType('array', $queries);
+        $this->assertNotEmpty($queries);
+        $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
         // check no data changed
         $queryTable = $conn->createDataSet(array('guestbook'));
         $this->assertDataSetsEqual($this->getDataSet(), $queryTable);
@@ -131,5 +168,57 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertEquals(19, strlen($data['created']));
         $this->assertNotEquals('joe', $data['user']);
         $this->assertNotEquals('Hello buddy!', $data['content']);
+    }
+
+    public function testWithPrimaryConfRightTableDeleteOne()
+    {
+        $conn = $this->getConnection();
+        $pdo = $conn->getConnection();
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.right.deleteone.yaml', array(dirname(__FILE__)));
+
+        $db = new Db($pdo);
+        $db->setConfiguration($reader);
+        $queries = $db->processEntity('guestbook', null, false, true);
+        $this->assertInternalType('array', $queries);
+        $this->assertNotEmpty($queries);
+        $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
+
+        // check that I have only one record remaining
+        $result = $pdo->query("SELECT * FROM `guestbook`");
+        $data = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertInternalType('array', $data);
+        $this->assertEquals(1, count($data));
+        $this->assertArrayHasKey(0, $data);
+
+        // Make sure joe has disappeared
+        $data = $data[0];
+        $this->assertEquals(19, strlen($data['created']));
+        $this->assertNotEquals('joe', $data['user']);
+        $this->assertNotEquals('Hello buddy!', $data['content']);
+    }
+
+
+    public function testWithPrimaryConfRightTableDeleteAll()
+    {
+        $conn = $this->getConnection();
+        $pdo = $conn->getConnection();
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.right.deleteall.yaml', array(dirname(__FILE__)));
+
+        $db = new Db($pdo);
+        $db->setConfiguration($reader);
+        $queries = $db->processEntity('guestbook', null, false, true);
+        $this->assertInternalType('array', $queries);
+        $this->assertNotEmpty($queries);
+        $this->assertEquals('DELETE FROM guestbook', $queries[0]);
+
+        // check that I have only one record remaining
+        $result = $pdo->query("SELECT * FROM `guestbook`");
+        $data = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertInternalType('array', $data);
+        $this->assertEmpty($data);
     }
 }
