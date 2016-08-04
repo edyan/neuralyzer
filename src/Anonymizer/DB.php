@@ -139,6 +139,7 @@ class DB extends AbstractAnonymizer
      *
      * @param string $table
      * @param string $where
+     * @param bool   $pretend
      */
     private function runDelete($table, $where, $pretend)
     {
@@ -150,7 +151,7 @@ class DB extends AbstractAnonymizer
         }
 
         try {
-            $res = $this->pdo->query($sql);
+            $this->pdo->query($sql);
         } catch (\Exception $e) {
             throw new \PDOException('Query Error : ' . $e->getMessage());
         }

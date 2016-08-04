@@ -72,7 +72,7 @@ class AnonRunCommand extends Command
                  'password',
                  'p',
                  InputOption::VALUE_REQUIRED,
-                 "Password (or prompted)"
+                 'Password (or prompted)'
              )->addOption(
                  'config',
                  'c',
