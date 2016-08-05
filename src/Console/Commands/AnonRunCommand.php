@@ -136,7 +136,6 @@ class AnonRunCommand extends Command
         $anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
         $anon->setConfiguration($reader);
 
-
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
         // Get tables

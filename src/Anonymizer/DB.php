@@ -38,7 +38,6 @@ class DB extends AbstractAnonymizer
      */
     private $preparedStmt;
 
-
     /**
      * Constructor
      *
@@ -131,10 +130,10 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Update with PDO
      *
-     * @param string $table    Name of the table
-     * @param array  $data     Array of fields => value to update the table
+     * @param string $table      Name of the table
+     * @param array  $data       Array of fields => value to update the table
      * @param string $primaryKey
-     * @param string $val      Primary Key's Value
+     * @param string $val        Primary Key's Value
      */
     private function runUpdate($table, array $data, $primaryKey, $val)
     {
@@ -151,14 +150,17 @@ class DB extends AbstractAnonymizer
 
     /**
      * Prepare the statement if asked
-     * @param  string $table
-     * @param  string $primaryKey
-     * @param  array  $fields
+     *
+     * @param string $table
+     * @param string $primaryKey
+     * @param array  $fieldNames
+     *
      * @return \PDOStatement
      */
-    private function prepareStmt($table, $primaryKey, array $fieldsName)
+    private function prepareStmt($table, $primaryKey, array $fieldNames)
     {
-        foreach ($fieldsName as $field) {
+        $fields = array();
+        foreach ($fieldNames as $field) {
             $fields[] = "$field = IF($field IS NOT NULL, :$field, NULL)";
         }
         $sql = "UPDATE $table SET " . implode(', ', $fields) . " WHERE $primaryKey = :$primaryKey";
