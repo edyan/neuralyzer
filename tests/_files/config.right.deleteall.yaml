@@ -1,4 +1,4 @@
 guesser_version: 1.0.0b
 entities:
     guestbook:
-        empty: true
+        delete: true

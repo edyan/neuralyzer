@@ -1,8 +1,6 @@
 guesser_version: 1.0.0b
 entities:
-    guestbook:
-        delete: true
-        delete_where: "user = 'joe'"
+    guestook:
         cols:
             user: { method: sentence, params: [8] }
             content: { method: sentence, params: [20] }

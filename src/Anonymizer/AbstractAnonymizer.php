@@ -83,15 +83,21 @@ abstract class AbstractAnonymizer
         $this->checkEntityIsInConfig($entity);
 
         $entityConfig = $this->configEntites[$entity];
-        if (array_key_exists('empty', $entityConfig) && $entityConfig['empty'] === true) {
-            return self::TRUNCATE_TABLE;
+
+        $actions = '';
+        if (array_key_exists('delete', $entityConfig) && $entityConfig['delete'] === true) {
+            $actions |= self::TRUNCATE_TABLE;
         }
 
-        return self::UPDATE_TABLE;
+        if (array_key_exists('cols', $entityConfig)) {
+            $actions |= self::UPDATE_TABLE;
+        }
+
+        return $actions;
     }
 
     /**
-     * Returns the 'where' parameter for an entity in config (or empty)
+     * Returns the 'delete_where' parameter for an entity in config (or empty)
      *
      * @param string $entity
      *
@@ -101,11 +107,11 @@ abstract class AbstractAnonymizer
     {
         $this->checkEntityIsInConfig($entity);
 
-        if (!array_key_exists('where', $this->configEntites[$entity])) {
+        if (!array_key_exists('delete_where', $this->configEntites[$entity])) {
             return '';
         }
 
-        return $this->configEntites[$entity]['where'];
+        return $this->configEntites[$entity]['delete_where'];
     }
 
     /**

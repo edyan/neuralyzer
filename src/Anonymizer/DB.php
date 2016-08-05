@@ -29,7 +29,15 @@ class DB extends AbstractAnonymizer
      *
      * @var \PDO
      */
-    protected $pdo;
+    private $pdo;
+
+    /**
+     * Prepared statement is stored for the update, to make the queries faster
+     *
+     * @var \PDOStatement
+     */
+    private $preparedStmt;
+
 
     /**
      * Constructor
@@ -54,36 +62,43 @@ class DB extends AbstractAnonymizer
      */
     public function processEntity($table, $callback = null, $pretend = true, $returnResult = false)
     {
-        $key = $this->getPrimaryKey($table);
+        $queries = array();
+        $actionsOnThatEntity = $this->whatToDoWithEntity($table);
 
-        if ($this->whatToDoWithEntity($table) === self::TRUNCATE_TABLE) {
+        if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
             $where = $this->getWhereConditionInConfig($table);
             $query = $this->runDelete($table, $where, $pretend);
-
-            return ($returnResult === true ? array($query) : '');
+            ($returnResult === true ? array_push($queries, $query) : '');
         }
 
-        // I need to read line by line if I have to update the table
-        // to make sure I do update by update (slower but no other choice for now)
-        $res = $this->pdo->query("SELECT $key FROM $table");
+        if ($actionsOnThatEntity & self::UPDATE_TABLE) {
+            // I need to read line by line if I have to update the table
+            // to make sure I do update by update (slower but no other choice for now)
+            $i = 0;
+            $this->preparedStmt = null;
 
-        $res->setFetchMode(\PDO::FETCH_ASSOC);
-        $i = 0;
-        $queries = array();
-        while ($row = $res->fetch()) {
-            $val = $row['id'];
+            $key = $this->getPrimaryKey($table);
+            $res = $this->pdo->query("SELECT $key FROM $table");
+            $res->setFetchMode(\PDO::FETCH_ASSOC);
 
-            $data = $this->generateFakeData($table);
+            $this->pdo->beginTransaction();
 
-            if ($pretend === false) {
-                $this->runUpdate($table, $data, "$key = '$val'");
+            while ($row = $res->fetch()) {
+                $val = $row['id'];
+                $data = $this->generateFakeData($table);
+
+                if ($pretend === false) {
+                    $this->runUpdate($table, $data, $key, $val);
+                }
+                ($returnResult === true ? array_push($queries, $this->buildUpdateSQL($table, $data, "$key = '$val'")) : '');
+
+                if (!is_null($callback)) {
+                    $callback(++$i);
+                }
             }
 
-            ($returnResult === true ? array_push($queries, $this->buildUpdateSQL($table, $data, "$key = '$val'")) : '');
-
-            if (!is_null($callback)) {
-                $callback(++$i);
-            }
+            // Commit, even if I am in pretend (that will do ... nothing)
+            $this->pdo->commit();
         }
 
         return $queries;
@@ -116,22 +131,38 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Update with PDO
      *
-     * @param string $table
-     * @param array  $data
-     * @param string $where
+     * @param string $table    Name of the table
+     * @param array  $data     Array of fields => value to update the table
+     * @param string $primaryKey
+     * @param string $val      Primary Key's Value
      */
-    private function runUpdate($table, array $data, $where)
+    private function runUpdate($table, array $data, $primaryKey, $val)
     {
-        $fields = array();
-        $values = array();
-        foreach ($data as $field => $value) {
-            $fields[] = "$field = IF($field  IS NOT NULL, :$field, NULL)";
-            $values[":$field"] = $value;
+        if (is_null($this->preparedStmt)) {
+            $this->prepareStmt($table, $primaryKey, array_keys($data));
         }
 
-        $sql = "UPDATE $table SET " . implode(', ', $fields) . " WHERE $where";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($values);
+        $values = array(":$primaryKey" => $val);
+        foreach ($data as $field => $value) {
+            $values[":$field"] = $value;
+        }
+        $this->preparedStmt->execute($values);
+    }
+
+    /**
+     * Prepare the statement if asked
+     * @param  string $table
+     * @param  string $primaryKey
+     * @param  array  $fields
+     * @return \PDOStatement
+     */
+    private function prepareStmt($table, $primaryKey, array $fieldsName)
+    {
+        foreach ($fieldsName as $field) {
+            $fields[] = "$field = IF($field IS NOT NULL, :$field, NULL)";
+        }
+        $sql = "UPDATE $table SET " . implode(', ', $fields) . " WHERE $primaryKey = :$primaryKey";
+        $this->preparedStmt = $this->pdo->prepare($sql);
     }
 
     /**

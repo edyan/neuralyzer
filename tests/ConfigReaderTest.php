@@ -47,7 +47,8 @@ class ConfigReaderTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
-        $this->assertArrayHasKey('empty', $values['entities']['guestbook']);
+        $this->assertArrayHasKey('delete', $values['entities']['guestbook']);
+        $this->assertArrayHasKey('delete_where', $values['entities']['guestbook']);
 
         $entities = $reader->getEntities();
         $this->assertInternalType('array', $entities);

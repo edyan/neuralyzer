@@ -17,7 +17,10 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
+        $reader = new Reader('_files/config.right.yaml', array(dirname(__FILE__)));
+
         $db = new Db($pdo);
+        $db->setConfiguration($reader);
         $db->processEntity('guestbook');
     }
 
@@ -29,7 +32,10 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
+        $reader = new Reader('_files/config.right.badtablename.yaml', array(dirname(__FILE__)));
+
         $db = new Db($pdo);
+        $db->setConfiguration($reader);
         $db->processEntity('guestook');
     }
 
@@ -46,7 +52,6 @@ class AnonymizerDBTest extends ConfigurationDB
         $db = new Db($pdo);
         $db->processEntity('guestbook');
     }
-
 
     /**
      * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
@@ -193,10 +198,13 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertArrayHasKey(0, $data);
 
         // Make sure joe has disappeared
+        // And that nancy is not nancy anymore
         $data = $data[0];
         $this->assertEquals(19, strlen($data['created']));
         $this->assertNotEquals('joe', $data['user']);
+        $this->assertNotEquals('nancy', $data['user']);
         $this->assertNotEquals('Hello buddy!', $data['content']);
+        $this->assertNotEquals('I like it!', $data['content']);
     }
 
 

@@ -1,5 +1,5 @@
 guesser_version: 1.0.0b
 entities:
     guestbook:
-        empty: true
-        where: "youzer = 'joe'"
+        delete: true
+        delete_where: "youzer = 'joe'"

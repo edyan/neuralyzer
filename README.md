@@ -13,7 +13,7 @@ This project is a library and a command line tool that **anonymizes** (for now, 
 it's easy to implement other DBs) a MySQL database. It uses [Faker](https://github.com/fzaninotto/Faker) to generate
 the data and replace the rows in tables.
 
-It is also able to **empty** tables with a `WHERE` critera.
+It is also able to `DELETE FROM` tables with a `WHERE` critera (see the config parameters `delete` and `delete_from`).
 
 ## CLI
 The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
@@ -55,7 +55,7 @@ entities:
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
 ```
 
-You can update the file to change its configuration. For example, if you need to empty the books table do:
+You can update the file to change its configuration. For example, if you need to remove data while anonymizing, do:
 ```yaml
 guesser_version: 1.0.0b
 entities:
@@ -64,11 +64,24 @@ entities:
             first_name: { method: firstName }
             last_name: { method: lastName }
     books:
-        empty: true
-        where: "name LIKE 'Bad Book%'"
+        delete: true
+        delete_where: "name LIKE 'Bad Book%'"
+        cols:
+            name: { method: sentence, params: [8] }
 ```
 
-**Warning**: You can't anonymize and empty at the same time.
+**INFO**: You can also use delete in standalone, without anonymizing anything. That will delete everything in books:
+```yaml
+guesser_version: 1.0.0b
+entities:
+    authors:
+        cols:
+            first_name: { method: firstName }
+            last_name: { method: lastName }
+    books:
+        delete: true
+```
+
 
 
 ### Run the anonymizer
@@ -99,6 +112,8 @@ UPDATE authors SET first_name = 'Sasha', last_name = 'Denesik' WHERE id = '2'
 
 ....
 ```
+
+**WARNING**: On a huge table, `--sql` will produce a HUGE output. Use it for debugging purpose.
 
 
 ## Library

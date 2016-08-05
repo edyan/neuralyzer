@@ -23,6 +23,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * Command to launch an anonymization based on a config file
@@ -135,6 +136,9 @@ class AnonRunCommand extends Command
         $anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
         $anon->setConfiguration($reader);
 
+
+        $stopwatch = new Stopwatch();
+        $stopwatch->start('Neuralyzer');
         // Get tables
         $tables = $reader->getEntities();
         foreach ($tables as $table) {
@@ -152,6 +156,7 @@ class AnonRunCommand extends Command
             }
 
             $bar = new ProgressBar($output, $total);
+            $bar->setRedrawFrequency($total > 100 ? 100 : 0);
             $output->writeln("<info>Anonymizing $table</info>");
             $queries = $anon->processEntity($table, function () use ($bar) {
                 $bar->advance();
@@ -165,5 +170,13 @@ class AnonRunCommand extends Command
                 $output->writeln(PHP_EOL);
             }
         }
+
+        // Get memory and execution time information
+        $event = $stopwatch->stop('Neuralyzer');
+        $memory = round($event->getMemory() / 1024 / 1024, 2);
+        $time = round($event->getDuration() / 1000, 2);
+        $time = ($time > 180 ? round($time / 60, 2) . 'mins' : "$time sec");
+
+        $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
     }
 }
