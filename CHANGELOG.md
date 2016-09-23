@@ -1,5 +1,9 @@
 Changelog
 =========
+v0.11
+----
+* Added a guesser for `timestamp` and fixed the guesser of `time`
+
 v0.10
 ----
 * `empty` has been renamed to `delete` and `where` to `delete_where`
