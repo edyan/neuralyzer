@@ -128,8 +128,13 @@ class Guesser implements GuesserInterface
                 'method' => 'date',
                 'params' => array('Y-m-d H:i:s', 'now')
             ),
+            'timestamp' => array(
+                'method' => 'date',
+                'params' => array('Y-m-d H:i:s', 'now')
+            ),
             'time' => array(
-                'method' => 'time',
+                'method' => 'date',
+                'params' => array('H:i:s', 'now')
             ),
             // Integer
             'tinyint' => array(
