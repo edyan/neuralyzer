@@ -83,7 +83,7 @@ class DB extends AbstractAnonymizer
             $this->pdo->beginTransaction();
 
             while ($row = $res->fetch()) {
-                $val = $row['id'];
+                $val = $row[$key];
                 $data = $this->generateFakeData($table);
 
                 if ($pretend === false) {
