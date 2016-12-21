@@ -1,5 +1,10 @@
 Changelog
 =========
+v0.12
+----
+* Fixed an issue when the primary key is not named `id`
+
+
 v0.11
 ----
 * Added a guesser for `timestamp` and fixed the guesser of `time`
