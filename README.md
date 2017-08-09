@@ -1,11 +1,11 @@
-[![Build Status](https://travis-ci.org/inetprocess/neuralyzer.svg?branch=master)](https://travis-ci.org/inetprocess/neuralyzer)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/?branch=master)
-[![Build Status](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/badges/build.png?b=master)](https://scrutinizer-ci.com/g/inetprocess/neuralyzer/build-status/master)
+[![Build Status](https://travis-ci.org/edyan/neuralyzer.svg?branch=master)](https://travis-ci.org/edyan/neuralyzer)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/build.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/build-status/master)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/8ccf2e5e-3797-4d7a-8aa1-23a24e6bba5c/mini.png)](https://insight.sensiolabs.com/projects/c04e15ab-fff2-4aad-9c8e-7d3d4eba7a04)
 
 
-inetprocess/neuralyzer
+edyan/neuralyzer
 =====
 
 ## Summary
