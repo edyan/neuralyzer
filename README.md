@@ -15,6 +15,11 @@ the data and replace the rows in tables.
 
 It is also able to `DELETE FROM` tables with a `WHERE` critera (see the config parameters `delete` and `delete_from`).
 
+## Installation
+```bash
+composer install edyan/neuralyzer
+```
+
 ## CLI
 The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
 ```bash
