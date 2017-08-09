@@ -1,12 +1,12 @@
 {
-    "name": "inetprocess/neuralyzer",
+    "name": "edyan/neuralyzer",
     "description": "Library and CLI for Data anonymization",
     "type": "library",
     "keywords": ["anonymization"],
     "authors": [
         {
             "name": "Emmanuel Dyan",
-            "email": "emmanuel.dyan@inetprocess.com"
+            "email": "emmanueldyan@gmail.com"
         }
     ],
     "license": "GPL-2.0",
