@@ -80,6 +80,10 @@ class AnonRunCommandTest extends ConfigurationDB
 
     public function testExecuteFieldTooLong()
     {
+        // Change the SQL Mode as travis does not have the same than us
+        $sqlMode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+        self::$pdo->query("SET @@global.sql_mode = '$sqlMode'");
+
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());
