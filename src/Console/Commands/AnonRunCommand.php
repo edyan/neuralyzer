@@ -55,7 +55,7 @@ class AnonRunCommand extends Command
     private $pdo;
 
     /**
-     * @var InputInterface
+     * @var OutputInterface
      */
     private $output;
 
