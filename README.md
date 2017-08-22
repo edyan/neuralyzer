@@ -145,20 +145,20 @@ If you need, you can protect some cols (with regexp) or tables:
 $writer = new Inet\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
 // define cols to protect (must be prefixed with the table name)
-$writer->setProtectedCols(array(
+$writer->setProtectedCols([
     '.*\.id',
     '.*\..*_id',
     '.*\.date_modified',
     '.*\.date_entered',
     '.*\.date_created',
     '.*\.deleted',
-));
+]);
 // Define tables to ignore, also with regexp
-$writer->setIgnoredTables(array(
+$writer->setIgnoredTables([
     'acl_.*',
     'config',
     'email_cache',
-));
+]);
 // Write the configuration
 $data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
 $writer->save($data, 'anon.yaml');
