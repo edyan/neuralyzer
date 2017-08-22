@@ -1,5 +1,4 @@
 sudo: false
-dist: precise
 
 language: php
 
@@ -8,13 +7,8 @@ php:
   - 7.1
 
 before_script:
-  - composer self-update
   - composer install --no-interaction --prefer-source
   - mysql -e 'create database test_db;'
 
 script:
   - vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=coverage.clover
-
-after_script:
-  - test "5.6" == "${TRAVIS_PHP_VERSION}" && wget https://scrutinizer-ci.com/ocular.phar
-  - test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover coverage.clover
