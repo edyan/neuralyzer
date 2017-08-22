@@ -126,28 +126,7 @@ class AnonRunCommand extends Command
     {
         $this->input = $input;
         $this->output = $output;
-
-        $dbName = $input->getOption('db');
-        // Throw an exception immediately if we dont have the required DB parameter
-        if (empty($dbName)) {
-            throw new \InvalidArgumentException('Database name is required (--db)');
-        }
-
-        $password = $input->getOption('password');
-        if (is_null($password)) {
-            $password = $this->askPassword();
-        }
-
-        try {
-            $this->pdo = new \PDO(
-                "mysql:dbname=$dbName;host=" . $input->getOption('host'),
-                $input->getOption('user'),
-                $password
-            );
-            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        } catch (\Exception $e) {
-            throw new \RuntimeException("Can't connect to the database. Check your credentials");
-        }
+        $this->connectToDB();
 
         // Anon READER
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
@@ -214,6 +193,32 @@ class AnonRunCommand extends Command
             $this->output->writeln('<comment>Queries:</comment>');
             $this->output->writeln(implode(PHP_EOL, $queries));
             $this->output->writeln(PHP_EOL);
+        }
+    }
+
+    /**
+     * Initialize a PDO Object
+     */
+    private function connectToDB()
+    {
+        $dbName = $this->input->getOption('db');
+        // Throw an exception immediately if we dont have the required DB parameter
+        if (empty($dbName)) {
+            throw new \InvalidArgumentException('Database name is required (--db)');
+        }
+
+        $password = $this->input->getOption('password');
+        if (is_null($password)) {
+            $password = $this->askPassword();
+        }
+
+        $host = $this->input->getOption('host');
+        $user = $this->input->getOption('user');
+        try {
+            $this->pdo = new \PDO("mysql:dbname=$dbName;host=" . $host, $user, $password);
+            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        } catch (\Exception $e) {
+            throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
     }
 
