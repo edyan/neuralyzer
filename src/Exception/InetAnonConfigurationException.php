@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *

@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -27,14 +27,14 @@ interface GuesserInterface
      *
      * @return array
      */
-    public function getColsNameMapping();
+    public function getColsNameMapping(): array;
 
     /**
      * Retruns an array of fieldType => Faker class
      *
      * @return array
      */
-    public function getColsTypeMapping();
+    public function getColsTypeMapping(): array;
 
     /**
      * Will map cols first by looking for field name then by looking for field type
@@ -43,15 +43,16 @@ interface GuesserInterface
      * @param string $table
      * @param string $name
      * @param string $type
+     * @param string $len
      *
      * @return array
      */
-    public function mapCol($table, $name, $type, $len);
+    public function mapCol(string $table, string $name, string $type, string $len = null): array;
 
     /**
      * Returns the Guesser version
      *
      * @return string
      */
-    public function getVersion();
+    public function getVersion(): string;
 }

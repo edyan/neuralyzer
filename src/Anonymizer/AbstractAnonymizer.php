@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -47,7 +47,7 @@ abstract class AbstractAnonymizer
      *
      * @var array
      */
-    protected $configEntites = array();
+    protected $configEntites = [];
 
     /**
      * Process the entity according to the anonymizer type
@@ -57,7 +57,12 @@ abstract class AbstractAnonymizer
      * @param bool          $pretend
      * @param bool          $returnResult
      */
-    abstract public function processEntity($entity, $callback = null, $pretend = true, $returnResult = false);
+    abstract public function processEntity(
+        string $table,
+        callable $callback = null,
+        bool $pretend = true,
+        bool $returnResult = false
+    );
 
     /**
      * Set the configuration
@@ -78,13 +83,13 @@ abstract class AbstractAnonymizer
      *
      * @return int
      */
-    public function whatToDoWithEntity($entity)
+    public function whatToDoWithEntity(string $entity): int
     {
         $this->checkEntityIsInConfig($entity);
 
         $entityConfig = $this->configEntites[$entity];
 
-        $actions = '';
+        $actions = 0;
         if (array_key_exists('delete', $entityConfig) && $entityConfig['delete'] === true) {
             $actions |= self::TRUNCATE_TABLE;
         }
@@ -103,7 +108,7 @@ abstract class AbstractAnonymizer
      *
      * @return string
      */
-    public function getWhereConditionInConfig($entity)
+    public function getWhereConditionInConfig(string $entity): string
     {
         $this->checkEntityIsInConfig($entity);
 
@@ -121,17 +126,17 @@ abstract class AbstractAnonymizer
      *
      * @return array
      */
-    public function generateFakeData($entity)
+    public function generateFakeData(string $entity): array
     {
         $this->checkEntityIsInConfig($entity);
 
         $faker = \Faker\Factory::create();
 
         $entityCols = $this->configEntites[$entity]['cols'];
-        $entity = array();
+        $entity = [];
         foreach ($entityCols as $colName => $colProps) {
-            $args = empty($colProps['params']) ? array() : $colProps['params'];
-            $data = call_user_func_array(array($faker, $colProps['method']), $args);
+            $args = empty($colProps['params']) ? [] : $colProps['params'];
+            $data = call_user_func_array([$faker, $colProps['method']], $args);
             $entity[$colName] = $data;
         }
 
@@ -145,7 +150,7 @@ abstract class AbstractAnonymizer
      *
      * @throws InetAnonConfigurationException
      */
-    private function checkEntityIsInConfig($entity)
+    private function checkEntityIsInConfig(string $entity)
     {
         if (empty($this->configEntites)) {
             throw new InetAnonConfigurationException('No entities found. Have you loaded a configuration file ?');

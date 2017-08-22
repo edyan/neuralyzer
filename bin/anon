@@ -7,9 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 // Load composer
-require_once(dirname(__DIR__) . '/vendor/autoload.php');
-
-// Set error reporting to avoid messages from sugar code.
+require_once(__DIR__ . '/vendor/autoload.php');
 error_reporting(error_reporting() & ~E_NOTICE & ~E_STRICT);
 
 use Inet\Neuralyzer\Console\Application;

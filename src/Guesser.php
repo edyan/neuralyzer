@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -30,7 +30,7 @@ class Guesser implements GuesserInterface
      *
      * @return string
      */
-    public function getVersion()
+    public function getVersion(): string
     {
         return '1.0.0b';
     }
@@ -40,49 +40,29 @@ class Guesser implements GuesserInterface
      *
      * @return array
      */
-    public function getColsNameMapping()
+    public function getColsNameMapping(): array
     {
         // can contain regexp
-        return array(
+        return [
             // Adress and coordinates
-            '.*\..*street.*' => array(
-                'method' => 'streetAddress',
-            ),
-            '.*\..*postalcode.*' => array(
-                'method' => 'postcode',
-            ),
-            '.*\..*city.*' => array(
-                'method' => 'city',
-            ),
-            '.*\..*state.*' => array(
-                'method' => 'state',
-            ),
-            '.*\..*country.*' => array(
-                'method' => 'country',
-            ),
-            '.*\..*phone.*' => array(
-                'method' => 'phoneNumber',
-            ),
+            '.*\..*street.*'              => ['method' => 'streetAddress'],
+            '.*\..*postalcode.*'          => ['method' => 'postcode'],
+            '.*\..*city.*'                => ['method' => 'city'],
+            '.*\..*state.*'               => ['method' => 'state'],
+            '.*\..*country.*'             => ['method' => 'country'],
+            '.*\..*phone.*'               => ['method' => 'phoneNumber'],
+
             // Internet
-            '.*\.email_address' => array(
-                'method' => 'email',
-            ),
-            '.*\.url' => array(
-                'method' => 'url',
-            ),
+            '.*\.email_address'           => ['method' => 'email'],
+            '.*\.url'                     => ['method' => 'url'],
+
             // Text
-            '.*\.(comments|description)' => array(
-                'method' => 'sentence',
-                'params' => array(20),
-            ),
+            '.*\.(comments|description)'  => ['method' => 'sentence', 'params' => [20]],
+
             // Person
-            '.*\.first_name' => array(
-                'method' => 'firstName',
-            ),
-            '.*\.last_name' => array(
-                'method' => 'lastName',
-            ),
-        );
+            '.*\.first_name'              => ['method' => 'firstName'],
+            '.*\.last_name'               => ['method' => 'lastName'],
+        ];
     }
 
     /**
@@ -90,87 +70,37 @@ class Guesser implements GuesserInterface
      *
      * @return array
      */
-    public function getColsTypeMapping()
+    public function getColsTypeMapping(): array
     {
-        return array(
+        return [
             // Strings
-            'char' => array(
-                'method' => 'sentence',
-                'params' => array(8),
-            ),
-            'varchar' => array(
-                'method' => 'sentence',
-                'params' => array(8),
-            ),
+            'char'      => ['method' => 'sentence', 'params' => [8]],
+            'varchar'   => ['method' => 'sentence', 'params' => [8]],
+
             // Text & Blobs
-            'text' => array(
-                'method' => 'sentence',
-                'params' => array(20),
-            ),
-            'blob' => array(
-                'method' => 'sentence',
-                'params' => array(20),
-            ),
-            'longtext' => array(
-                'method' => 'sentence',
-                'params' => array(70),
-            ),
-            'longblob' => array(
-                'method' => 'sentence',
-                'params' => array(70),
-            ),
+            'text'      => ['method' => 'sentence', 'params' => [20]],
+            'blob'      => ['method' => 'sentence', 'params' => [20]],
+            'longtext'  => ['method' => 'sentence', 'params' => [70]],
+            'longblob'  => ['method' => 'sentence', 'params' => [70]],
+
             // DateTime
-            'date' => array(
-                'method' => 'date',
-                'params' => array('Y-m-d', 'now')
-            ),
-            'datetime' => array(
-                'method' => 'date',
-                'params' => array('Y-m-d H:i:s', 'now')
-            ),
-            'timestamp' => array(
-                'method' => 'date',
-                'params' => array('Y-m-d H:i:s', 'now')
-            ),
-            'time' => array(
-                'method' => 'date',
-                'params' => array('H:i:s', 'now')
-            ),
+            'date'      => ['method' => 'date', 'params' => ['Y-m-d', 'now']],
+            'datetime'  => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
+            'timestamp' => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
+            'time'      => ['method' => 'date', 'params' => ['H:i:s', 'now']],
+
             // Integer
-            'tinyint' => array(
-                'method' => 'randomNumber',
-                'params' => array(2),
-            ),
-            'smallint' => array(
-                'method' => 'randomNumber',
-                'params' => array(4),
-            ),
-            'mediumint' => array(
-                'method' => 'randomNumber',
-                'params' => array(6),
-            ),
-            'int' => array(
-                'method' => 'randomNumber',
-                'params' => array(9),
-            ),
-            'bigint' => array(
-                'method' => 'randomNumber',
-                'params' => array(15),
-            ),
+            'tinyint'   => ['method' => 'randomNumber', 'params' => [2]],
+            'smallint'  => ['method' => 'randomNumber', 'params' => [4]],
+            'mediumint' => ['method' => 'randomNumber', 'params' => [6]],
+            'int'       => ['method' => 'randomNumber', 'params' => [9]],
+            'bigint'    => ['method' => 'randomNumber', 'params' => [15]],
+
             // Decimal
-            'float' => array(
-                'method' => 'randomFloat',
-                'params' => array(2, 0, 999999),
-            ),
-            'decimal' => array(
-                'method' => 'randomFloat',
-                'params' => array(2, 0, 999999),
-            ),
-            'double' => array(
-                'method' => 'randomFloat',
-                'params' => array(2, 0, 999999),
-            ),
-        );
+            'float'     => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'decimal'   => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'double'    => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+        ];
     }
 
     /**
@@ -180,10 +110,11 @@ class Guesser implements GuesserInterface
      * @param string $table
      * @param string $name
      * @param string $type
+     * @param mixed  $len    Used to get options from enum (stored in length)
      *
      * @return array
      */
-    public function mapCol($table, $name, $type, $len)
+    public function mapCol(string $table, string $name, string $type, string $len = null): array
     {
         // Try to find by colsName
         $colsName = $this->getColsNameMapping();
@@ -196,10 +127,10 @@ class Guesser implements GuesserInterface
 
         // Hardcoded types
         if ($type === 'enum') {
-            return array(
+            return [
                 'method' => 'randomElement',
-                'params' => array(array(explode("','", substr($len, 1, -1))))
-            );
+                'params' => [[explode("','", substr($len, 1, -1))]]
+            ];
         }
 
         // Try to find by fieldType

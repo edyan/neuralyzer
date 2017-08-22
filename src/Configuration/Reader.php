@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -53,7 +53,7 @@ class Reader
      *
      * @var array
      */
-    protected $configValues = array();
+    protected $configValues = [];
 
     /**
      * Constructor
@@ -61,7 +61,7 @@ class Reader
      * @param string $configFileName
      * @param array  $configDirectories
      */
-    public function __construct($configFileName, array $configDirectories = array('.'))
+    public function __construct(string $configFileName, array $configDirectories = ['.'])
     {
         $this->configFileName = $configFileName;
         $this->configDirectories = $configDirectories;
@@ -87,7 +87,7 @@ class Reader
      *
      * @return array
      */
-    public function getEntities()
+    public function getEntities(): array
     {
         return array_keys($this->configValues['entities']);
     }
@@ -101,6 +101,6 @@ class Reader
 
         $processor = new Processor();
         $configuration = new AnonConfiguration();
-        $processor->processConfiguration($configuration, array($this->configValues));
+        $processor->processConfiguration($configuration, [$this->configValues]);
     }
 }

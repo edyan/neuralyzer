@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -17,6 +17,7 @@
 
 namespace Inet\Neuralyzer\Configuration;
 
+use Inet\Neuralyzer\GuesserInterface;
 use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -37,30 +38,30 @@ class Writer
      *
      * @var array
      */
-    protected $protectedCols = array('id', 'parent_id');
+    protected $protectedCols = ['id', 'parent_id'];
 
     /**
      * List of tables patterns to ignore
      *
      * @var array
      */
-    protected $ignoredTables = array();
+    protected $ignoredTables = [];
 
     /**
      * Store the tables added to the conf
      *
      * @var array
      */
-    protected $tablesInConf = array();
+    protected $tablesInConf = [];
 
     /**
      * Set Change Id to ask the writer to ignore (or not) the protectedCols
      *
      * @param    bool
      */
-    public function protectCols($value)
+    public function protectCols(bool $protect): Writer
     {
-        $this->protectCols = $value;
+        $this->protectCols = $protect;
 
         return $this;
     }
@@ -70,7 +71,7 @@ class Writer
      *
      * @param array $cols
      */
-    public function setProtectedCols(array $cols)
+    public function setProtectedCols(array $cols): Writer
     {
         $this->protectedCols = $cols;
 
@@ -82,7 +83,7 @@ class Writer
      *
      * @param array $tables
      */
-    public function setIgnoredTables(array $tables)
+    public function setIgnoredTables(array $tables): Writer
     {
         $this->ignoredTables = $tables;
 
@@ -94,7 +95,7 @@ class Writer
      *
      * @return array
      */
-    public function getTablesInConf()
+    public function getTablesInConf(): array
     {
         return $this->tablesInConf;
     }
@@ -103,11 +104,11 @@ class Writer
      * Generate the configuration by reading tables + cols
      *
      * @param \PDO                              $pdo
-     * @param \Inet\Neuralyzer\GuesserInterface $guesser
+     * @param GuesserInterface $guesser
      *
      * @return array
      */
-    public function generateConfFromDB(\PDO $pdo, \Inet\Neuralyzer\GuesserInterface $guesser)
+    public function generateConfFromDB(\PDO $pdo, GuesserInterface $guesser): array
     {
 
         // First step : get the list of tables
@@ -117,7 +118,7 @@ class Writer
         }
 
         // For each table, read the cols and guess the Faker
-        $data = array();
+        $data = [];
         foreach ($tables as $table) {
             $cols = $this->getColsList($pdo, $table);
             // No cols because all are ignored ?
@@ -132,7 +133,7 @@ class Writer
             throw new InetAnonConfigurationException('All tables or fields have been ignored');
         }
 
-        return array('guesser_version' => $guesser->getVersion(), 'entities' => $data);
+        return ['guesser_version' => $guesser->getVersion(), 'entities' => $data];
     }
 
     /**
@@ -141,31 +142,13 @@ class Writer
      * @param array  $data
      * @param string $filename
      */
-    public function save(array $data, $filename)
+    public function save(array $data, string $filename)
     {
         if (!is_writeable(dirname($filename))) {
             throw new InetAnonConfigurationException(dirname($filename) . ' is not writeable.');
         }
 
         file_put_contents($filename, Yaml::dump($data, 4));
-    }
-
-    /**
-     * Check if that table has to be ignored
-     *
-     * @param string $table
-     *
-     * @return bool
-     */
-    protected function ignoreTable($table)
-    {
-        foreach ($this->ignoredTables as $ignoredTable) {
-            if (preg_match("/^$ignoredTable\$/", $table)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -177,7 +160,7 @@ class Writer
      *
      * @return bool
      */
-    protected function ignoreCol($table, $col, $isPrimary)
+    protected function colIgnored(string $table, string $col, bool $isPrimary): bool
     {
         if ($this->protectCols === false) {
             return false;
@@ -199,13 +182,13 @@ class Writer
      *
      * @return array
      */
-    protected function getTablesList(\PDO $pdo)
+    protected function getTablesList(\PDO $pdo): array
     {
         $result = $pdo->query('SHOW TABLES');
 
         $tables = $result->fetchAll(\PDO::FETCH_COLUMN);
         foreach ($tables as $key => $val) {
-            if ($this->ignoreTable($val)) {
+            if ($this->tableIgnored($val)) {
                 unset($tables[$key]);
                 continue;
             }
@@ -224,12 +207,12 @@ class Writer
      *
      * @return array
      */
-    protected function getColsList(\PDO $pdo, $table)
+    protected function getColsList(\PDO $pdo, string $table): array
     {
         $result = $pdo->query("SHOW COLUMNS FROM $table");
 
         $cols = $result->fetchAll(\PDO::FETCH_ASSOC);
-        $colsInfo = array();
+        $colsInfo = [];
 
         $primary = false;
         foreach ($cols as $col) {
@@ -240,7 +223,7 @@ class Writer
             }
 
             // If the col has to be ignored: just leave
-            if ($this->ignoreCol($table, $col['Field'], $isPrimary)) {
+            if ($this->colIgnored($table, $col['Field'], $isPrimary)) {
                 continue;
             }
 
@@ -252,12 +235,12 @@ class Writer
                 $length = $colProps[2];
             }
 
-            $colsInfo[] = array(
+            $colsInfo[] = [
                 'name' => $col['Field'],
                 'type' => $type,
                 'len'  => $length,
                 'id'   => $isPrimary,
-            );
+            ];
         }
 
         // No primary ? Exception !
@@ -273,22 +256,35 @@ class Writer
      *
      * @param string                            $table
      * @param array                             $cols
-     * @param \Inet\Neuralyzer\GuesserInterface $guesser
+     * @param GuesserInterface $guesser
      *
      * @return array
      */
-    protected function guessColsAnonType($table, array $cols, \Inet\Neuralyzer\GuesserInterface $guesser)
+    protected function guessColsAnonType(string $table, array $cols, GuesserInterface $guesser): array
     {
-        $mapping = array();
-        foreach ($cols as $colProps) {
-            $mapping[$colProps['name']] = $guesser->mapCol(
-                $table,
-                $colProps['name'],
-                $colProps['type'],
-                $colProps['len']
-            );
+        $mapping = [];
+        foreach ($cols as $props) {
+            $mapping[$props['name']] = $guesser->mapCol($table, $props['name'], $props['type'], $props['len']);
         }
 
         return $mapping;
+    }
+
+    /**
+     * Check if that table has to be ignored
+     *
+     * @param string $table
+     *
+     * @return bool
+     */
+    protected function tableIgnored(string $table): bool
+    {
+        foreach ($this->ignoredTables as $ignoredTable) {
+            if (preg_match("/^$ignoredTable\$/", $table)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

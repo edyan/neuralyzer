@@ -1,12 +1,12 @@
 <?php
 /**
- * Inet Data Anonymization
+ * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 5.3 -> 7.0
+ * PHP Version 7.0
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2005-2015 iNet Process
+ * @copyright 2017 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
@@ -59,9 +59,13 @@ class DB extends AbstractAnonymizer
      *
      * @return void|array
      */
-    public function processEntity($table, $callback = null, $pretend = true, $returnResult = false)
-    {
-        $queries = array();
+    public function processEntity(
+        string $table,
+        callable $callback = null,
+        bool $pretend = true,
+        bool $returnResult = false
+    ) {
+        $queries = [];
         $actionsOnThatEntity = $this->whatToDoWithEntity($table);
 
         if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
@@ -110,7 +114,7 @@ class DB extends AbstractAnonymizer
      *
      * @return string Field's name
      */
-    protected function getPrimaryKey($table)
+    protected function getPrimaryKey(string $table)
     {
         try {
             $res = $this->pdo->query("SHOW COLUMNS FROM $table WHERE `Key` = 'Pri'");
@@ -135,13 +139,13 @@ class DB extends AbstractAnonymizer
      * @param string $primaryKey
      * @param string $val        Primary Key's Value
      */
-    private function runUpdate($table, array $data, $primaryKey, $val)
+    private function runUpdate(string $table, array $data, string $primaryKey, $val)
     {
         if (is_null($this->preparedStmt)) {
             $this->prepareStmt($table, $primaryKey, array_keys($data));
         }
 
-        $values = array(":$primaryKey" => $val);
+        $values = [":$primaryKey" => $val];
         foreach ($data as $field => $value) {
             $values[":$field"] = $value;
         }
@@ -157,9 +161,9 @@ class DB extends AbstractAnonymizer
      *
      * @return \PDOStatement
      */
-    private function prepareStmt($table, $primaryKey, array $fieldNames)
+    private function prepareStmt(string $table, string $primaryKey, array $fieldNames)
     {
-        $fields = array();
+        $fields = [];
         foreach ($fieldNames as $field) {
             $fields[] = "$field = IF($field IS NOT NULL, :$field, NULL)";
         }
@@ -173,8 +177,10 @@ class DB extends AbstractAnonymizer
      * @param string $table
      * @param string $where
      * @param bool   $pretend
+     *
+     * @return string
      */
-    private function runDelete($table, $where, $pretend)
+    private function runDelete(string $table, string $where, bool $pretend): string
     {
         $where = empty($where) ? '' : " WHERE $where";
         $sql = "DELETE FROM {$table}{$where}";
@@ -201,9 +207,9 @@ class DB extends AbstractAnonymizer
      *
      * @return string
      */
-    private function buildUpdateSQL($table, array $data, $where)
+    private function buildUpdateSQL(string $table, array $data, string $where): string
     {
-        $fieldsVals = array();
+        $fieldsVals = [];
         foreach ($data as $field => $value) {
             $fieldsVals[] = "$field = IF($field IS NOT NULL, '" . addslashes($value) . "', NULL)";
         }

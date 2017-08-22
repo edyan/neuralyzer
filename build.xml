@@ -4,8 +4,8 @@
     <property name="excludeDirs" value="Inet/Tests/**" />
     <property name="mainPhingDir" value="reports/phing-reports" />
 
-    <property name="pkgPHPVersions" value="5.3 -> 7.0" />
-    <property name="pkgCopyright" value="2005-2015 iNet Process" />
+    <property name="pkgPHPVersions" value="7.0" />
+    <property name="pkgCopyright" value="2017 Emmanuel Dyan" />
     <property name="pkgName" value="edyan/neuralyzer" />
     <property name="pkgLicense" value="GNU General Public License v2.0" />
     <property name="pkgLink" value="https://github.com/edyan/neuralyzer" />
