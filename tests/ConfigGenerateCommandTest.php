@@ -23,7 +23,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $command = $application->find('config:generate');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array('command' => $command->getName()));
+        $commandTester->execute(['command' => $command->getName()]);
     }
 
     /**
@@ -39,13 +39,13 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('config:generate');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => 'toto',
-        ));
+        ]);
     }
 
     public function testExecute()
@@ -57,7 +57,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('config:generate');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -66,13 +66,13 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
-        ));
+        ]);
         $this->assertRegExp('|Configuration written to.*|', $commandTester->getDisplay());
         $this->assertFileExists($temp);
 
@@ -104,7 +104,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('config:generate');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -113,14 +113,14 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
-            '--ignore-table' => array('guestbook'),
-        ));
+            '--ignore-table' => ['guestbook'],
+        ]);
     }
 
 
@@ -133,7 +133,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('config:generate');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -142,14 +142,14 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
-            '--ignore-field' => array('.*\.user'),
-        ));
+            '--ignore-field' => ['.*\.user'],
+        ]);
         $this->assertRegExp('|Configuration written to.*|', $commandTester->getDisplay());
         $this->assertFileExists($temp);
 
@@ -176,7 +176,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('config:generate');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -185,14 +185,14 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
             '--protect' => null,
-        ));
+        ]);
         $this->assertRegExp('|Configuration written to.*|', $commandTester->getDisplay());
         $this->assertFileExists($temp);
 

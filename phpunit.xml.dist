@@ -1,7 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <phpunit
-  bootstrap="vendor/autoload.php"
-  colors="true"
-  >
+    bootstrap="vendor/autoload.php"
+    backupGlobals="false"
+    backupStaticAttributes="false"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false"
+    stopOnError="true"
+    stopOnFailure="true"
+    syntaxCheck="true">
   <php>
     <env name='DB_USER' value='root' />
     <env name='DB_PASSWORD' value='' />

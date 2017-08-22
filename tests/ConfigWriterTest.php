@@ -8,8 +8,8 @@ use Inet\Neuralyzer\Guesser;
 
 class ConfigWriterTest extends ConfigurationDB
 {
-    private $protectedCols = array('.*\..*');
-    private $ignoredTables = array('guestbook');
+    private $protectedCols = ['.*\..*'];
+    private $ignoredTables = ['guestbook'];
 
     /**
      * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
@@ -70,7 +70,7 @@ class ConfigWriterTest extends ConfigurationDB
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
         $writer = new Writer;
-        $writer->setProtectedCols(array('.*\..*'));
+        $writer->setProtectedCols(['.*\..*']);
         $writer->protectCols(false);
         $entities = $writer->generateConfFromDB($pdo, new Guesser);
         $this->assertInternalType('array', $entities);
@@ -90,7 +90,7 @@ class ConfigWriterTest extends ConfigurationDB
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
         $writer = new Writer;
-        $writer->setProtectedCols(array('.*\.user'));
+        $writer->setProtectedCols(['.*\.user']);
         $writer->protectCols(true);
         $entities = $writer->generateConfFromDB($pdo, new Guesser);
         $this->assertInternalType('array', $entities);
@@ -134,7 +134,7 @@ class ConfigWriterTest extends ConfigurationDB
         $conn = $this->getConnection();
         $pdo = $conn->getConnection();
         $writer = new Writer;
-        $writer->setProtectedCols(array('.*\.user'));
+        $writer->setProtectedCols(['.*\.user']);
         $writer->protectCols(true);
         $entities = $writer->generateConfFromDB($pdo, new Guesser);
         // save it

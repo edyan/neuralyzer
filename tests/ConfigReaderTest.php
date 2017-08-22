@@ -3,8 +3,9 @@
 namespace Inet\Neuralyzer\Tests;
 
 use Inet\Neuralyzer\Configuration\Reader;
+use PHPUnit\Framework\TestCase;
 
-class ConfigReaderTest extends \PHPUnit_Framework_TestCase
+class ConfigReaderTest extends TestCase
 {
     /**
      * @expectedException InvalidArgumentException
@@ -12,7 +13,7 @@ class ConfigReaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testReadConfigurationWrongFile()
     {
-        new Reader('_files/config.doesntexist.yaml', array(dirname(__FILE__)));
+        new Reader('_files/config.doesntexist.yaml', [__DIR__]);
     }
 
     /**
@@ -21,12 +22,12 @@ class ConfigReaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testReadConfigurationWrongConf()
     {
-        new Reader('_files/config.wrong.yaml', array(dirname(__FILE__)));
+        new Reader('_files/config.wrong.yaml', [__DIR__]);
     }
 
     public function testReadConfigurationRightConf()
     {
-        $reader = new Reader('_files/config.right.yaml', array(dirname(__FILE__)));
+        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
         $values = $reader->getConfigValues();
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);
@@ -42,7 +43,7 @@ class ConfigReaderTest extends \PHPUnit_Framework_TestCase
 
     public function testReadConfigurationRightConfWithEmpty()
     {
-        $reader = new Reader('_files/config.right.deleteone.yaml', array(dirname(__FILE__)));
+        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
         $values = $reader->getConfigValues();
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);

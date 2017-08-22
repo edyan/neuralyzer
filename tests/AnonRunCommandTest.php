@@ -11,7 +11,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class AnonRunCommandTest extends ConfigurationDB
 {
-
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessageRegExp |Database name is required \(--db\)|
@@ -23,7 +22,7 @@ class AnonRunCommandTest extends ConfigurationDB
 
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array('command' => $command->getName()));
+        $commandTester->execute(['command' => $command->getName()]);
     }
 
     /**
@@ -39,14 +38,14 @@ class AnonRunCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => 'toto',
             '--config' => __DIR__ . '/_files/config.right.yaml'
-        ));
+        ]);
     }
 
     /**
@@ -62,26 +61,27 @@ class AnonRunCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.notable.yaml'
-        ));
+        ]);
     }
 
     public function testExecuteRightTablePassPrompted()
     {
         $this->createPrimary();
+
         $application = new Application();
         $application->add(new Command());
 
         // We mock the DialogHelper
         $command = $application->find('run');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -89,13 +89,14 @@ class AnonRunCommandTest extends ConfigurationDB
         $command->getHelperSet()->set($helper, 'question');
 
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--config' => __DIR__ . '/_files/config.right.yaml'
-        ));
+        ]);
+
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
         $this->assertNotRegExp('|.*UPDATE guestbook.*|', $commandTester->getDisplay());
     }
@@ -111,7 +112,7 @@ class AnonRunCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('run');
 
-        $helper = $this->getMock('\Symfony\Component\Console\Helper\QuestionHelper', array('ask'));
+        $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
                ->method('ask')
                ->willReturn(getenv('DB_PASSWORD'));
@@ -119,13 +120,13 @@ class AnonRunCommandTest extends ConfigurationDB
         $command->getHelperSet()->set($helper, 'question');
 
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--config' => __DIR__ . '/_files/config.right.yaml'
-        ));
+        ]);
 
         $this->assertRegExp('|.*guestbook is empty.*|', $commandTester->getDisplay());
     }
@@ -140,7 +141,7 @@ class AnonRunCommandTest extends ConfigurationDB
         // We mock the DialogHelper
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(array(
+        $commandTester->execute([
             'command' => $command->getName(),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
@@ -148,7 +149,7 @@ class AnonRunCommandTest extends ConfigurationDB
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.yaml',
             '--sql' => null
-        ));
+        ]);
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
         $this->assertRegExp('|.*UPDATE guestbook SET.*|', $commandTester->getDisplay());
     }

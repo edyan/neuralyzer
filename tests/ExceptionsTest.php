@@ -3,8 +3,9 @@
 namespace Inet\Neuralyzer\Tests;
 
 use Inet\Neuralyzer\Guesser;
+use PHPUnit\Framework\TestCase;
 
-class ExceptionsTest extends \PHPUnit_Framework_TestCase
+class ExceptionsTest extends TestCase
 {
 
     /**

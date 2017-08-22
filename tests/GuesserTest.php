@@ -3,8 +3,9 @@
 namespace Inet\Neuralyzer\Tests;
 
 use Inet\Neuralyzer\Guesser;
+use PHPUnit\Framework\TestCase;
 
-class GuesserTest extends \PHPUnit_Framework_TestCase
+class GuesserTest extends TestCase
 {
 
     public function testInit()

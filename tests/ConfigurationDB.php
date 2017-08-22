@@ -2,18 +2,22 @@
 
 namespace Inet\Neuralyzer\Tests;
 
-class ConfigurationDB extends \PHPUnit_Extensions_Database_TestCase
+class ConfigurationDB extends \PHPUnit\Framework\TestCase
 {
-    static private $pdo = null;
+    use \PHPUnit\DbUnit\TestCaseTrait;
+
+    static protected $pdo = null;
     private $conn = null;
-    private $i = 0;
+    private $dbName;
+    private $tableName = 'guestbook';
 
     final public function getConnection()
     {
+        $this->dbName = getenv('DB_NAME');
         if ($this->conn === null) {
             if (self::$pdo == null) {
                 self::$pdo = new \PDO(
-                    'mysql:dbname=' . getenv('DB_NAME') . ';host=' . getenv('DB_HOST'),
+                    'mysql:dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
                     getenv('DB_USER'),
                     getenv('DB_PASSWORD')
                 );
@@ -24,60 +28,37 @@ class ConfigurationDB extends \PHPUnit_Extensions_Database_TestCase
         return $this->conn;
     }
 
-    public function setUp()
+    /**
+     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
+     */
+    public function getDataSet()
     {
-        $db = getenv('DB_NAME');
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
         $create = <<<QUERY
-            DROP DATABASE $db;
-            CREATE DATABASE $db;
-            USE $db;
-            CREATE TABLE `guestbook` (
+            DROP DATABASE {$this->dbName}; CREATE DATABASE {$this->dbName}; USE {$this->dbName};
+            CREATE TABLE `{$this->tableName}` (
               `id` int(10) UNSIGNED NOT NULL,
               `content` text NULL,
               `user` varchar(200) NULL,
               `created` datetime NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 QUERY;
-        $pdo->exec($create);
+        self::$pdo->exec($create);
 
-        parent::setUp();
-    }
-
-
-    /**
-     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
-     */
-    public function getDataSet()
-    {
-        return $this->createFlatXmlDataSet(dirname(__FILE__).'/_files/dataset.xml');
-    }
-
-    public function tearDown()
-    {
-        $this->dropTable();
-
-        parent::tearDown();
+        return $this->createMySQLXMLDataSet(__DIR__ . '/_files/dataset.xml');
     }
 
     public function createPrimary()
     {
-        $conn = $this->getConnection();
-        $conn->getConnection()->exec("ALTER TABLE `guestbook` ADD PRIMARY KEY (`id`);");
+        self::$pdo->exec("ALTER TABLE `{$this->tableName}` ADD PRIMARY KEY (`id`);");
     }
 
     public function dropTable()
     {
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
-        $pdo->exec("DROP TABLE IF EXISTS `guestbook`;");
+        self::$pdo->exec("DROP TABLE IF EXISTS `{$this->tableName}`;");
     }
 
     public function truncateTable()
     {
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
-        $pdo->exec("TRUNCATE TABLE `guestbook`;");
+        self::$pdo->exec("TRUNCATE TABLE `{$this->tableName}`;");
     }
 }
