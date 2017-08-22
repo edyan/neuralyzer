@@ -30,13 +30,34 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 class AnonRunCommand extends Command
 {
+    /**
+     * Anonymizer DB Interface
+     * @var Inet\Neuralyzer\Anonymizer\DB
+     */
+    private $anon;
 
     /**
      * Set the command shortcut to be used in configuration
      *
      * @var string
      */
-    protected $command = 'run';
+    private $command = 'run';
+
+    /**
+     * @var InputInterface
+     */
+    private $input;
+
+    /**
+     * PDO Object Initialized
+     * @var \PDO
+     */
+    private $pdo;
+
+    /**
+     * @var InputInterface
+     */
+    private $output;
 
     /**
      * Configure the command
@@ -103,28 +124,27 @@ class AnonRunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $db = $input->getOption('db');
+        $this->input = $input;
+        $this->output = $output;
+
+        $dbName = $input->getOption('db');
         // Throw an exception immediately if we dont have the required DB parameter
-        if (empty($db)) {
+        if (empty($dbName)) {
             throw new \InvalidArgumentException('Database name is required (--db)');
         }
 
         $password = $input->getOption('password');
         if (is_null($password)) {
-            $helper = $this->getHelper('question');
-            $question = new Question('Password: ');
-            $question->setHidden(true);
-            $question->setHiddenFallback(false);
-            $password = $helper->ask($input, $output, $question);
+            $password = $this->askPassword();
         }
 
         try {
-            $pdo = new \PDO(
-                "mysql:dbname=$db;host=" . $input->getOption('host'),
+            $this->pdo = new \PDO(
+                "mysql:dbname=$dbName;host=" . $input->getOption('host'),
                 $input->getOption('user'),
                 $password
             );
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         } catch (\Exception $e) {
             throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
@@ -133,41 +153,15 @@ class AnonRunCommand extends Command
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
         // Now work on the DB
-        $anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
-        $anon->setConfiguration($reader);
+        $this->anon = new \Inet\Neuralyzer\Anonymizer\DB($this->pdo);
+        $this->anon->setConfiguration($reader);
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
         // Get tables
         $tables = $reader->getEntities();
         foreach ($tables as $table) {
-            try {
-                $result = $pdo->query("SELECT COUNT(1) FROM $table");
-            } catch (\Exception $e) {
-                throw new \InvalidArgumentException("Could not count records in table '$table' defined in your config");
-            }
-
-            $data = $result->fetchAll(\PDO::FETCH_COLUMN);
-            $total = (int)$data[0];
-            if ($total === 0) {
-                $output->writeln("<info>$table is empty</info>");
-                continue;
-            }
-
-            $bar = new ProgressBar($output, $total);
-            $bar->setRedrawFrequency($total > 100 ? 100 : 0);
-            $output->writeln("<info>Anonymizing $table</info>");
-            $queries = $anon->processEntity($table, function () use ($bar) {
-                $bar->advance();
-            }, $input->getOption('pretend'), $input->getOption('sql'));
-
-            $output->writeln(PHP_EOL);
-
-            if ($input->getOption('sql')) {
-                $output->writeln('<comment>Queries:</comment>');
-                $output->writeln(implode(PHP_EOL, $queries));
-                $output->writeln(PHP_EOL);
-            }
+            $this->anonymizeTable($table, $input, $output);
         }
 
         // Get memory and execution time information
@@ -177,5 +171,68 @@ class AnonRunCommand extends Command
         $time = ($time > 180 ? round($time / 60, 2) . 'mins' : "$time sec");
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
+    }
+
+    /**
+     * Prepare a question and return its result
+     * @return string
+     */
+    private function askPassword(): string
+    {
+        $helper = $this->getHelper('question');
+        $question = new Question('Password: ');
+        $question->setHidden(true);
+        $question->setHiddenFallback(false);
+
+        return $helper->ask($this->input, $this->output, $question);
+    }
+
+    /**
+     * Anonmyze a specific table and display info about the job
+     *
+     * @param  string $table
+     */
+    private function anonymizeTable(string $table)
+    {
+        $total = $this->countRecords($table);
+        if ($total === 0) {
+            $this->output->writeln("<info>$table is empty</info>");
+            return;
+        }
+
+        $bar = new ProgressBar($this->output, $total);
+        $bar->setRedrawFrequency($total > 100 ? 100 : 0);
+
+        $this->output->writeln("<info>Anonymizing $table</info>");
+        $queries = $this->anon->processEntity($table, function () use ($bar) {
+            $bar->advance();
+        }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+
+        $this->output->writeln(PHP_EOL);
+
+        if ($this->input->getOption('sql')) {
+            $this->output->writeln('<comment>Queries:</comment>');
+            $this->output->writeln(implode(PHP_EOL, $queries));
+            $this->output->writeln(PHP_EOL);
+        }
+    }
+
+    /**
+     * Count records on a table
+     * @param  string $table
+     * @return int
+     */
+    private function countRecords(string $table): int
+    {
+        try {
+            $result = $this->pdo->query("SELECT COUNT(1) FROM $table");
+        } catch (\Exception $e) {
+            $msg = "Could not count records in table '$table' defined in your config";
+            throw new \InvalidArgumentException($msg);
+        }
+
+        $data = $result->fetchAll(\PDO::FETCH_COLUMN);
+
+        return (int)$data[0];
     }
 }

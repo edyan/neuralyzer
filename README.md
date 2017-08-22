@@ -32,7 +32,7 @@ The main command is config:generate that expects some parameters:
 Options:
       --host=HOST                  Host [default: "127.0.0.1"]
   -d, --db=DB                      Database Name
-  -u, --user=USER                  User Name [default: "manu"]
+  -u, --user=USER                  User Name [default: "root"]
   -p, --password=PASSWORD          Password (or prompted)
   -f, --file=FILE                  File [default: "anon.yml"]
       --protect                    Protect IDs and other fields
