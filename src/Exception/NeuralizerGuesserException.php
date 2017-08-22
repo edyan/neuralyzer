@@ -20,6 +20,6 @@ namespace Inet\Neuralyzer\Exception;
 /**
  * Exception
  */
-class InetAnonException extends \Exception
+class NeuralizerGuesserException extends \Exception
 {
 }

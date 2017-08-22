@@ -18,7 +18,7 @@
 namespace Inet\Neuralyzer\Configuration;
 
 use Inet\Neuralyzer\GuesserInterface;
-use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
+use Inet\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -114,7 +114,7 @@ class Writer
         // First step : get the list of tables
         $tables = $this->getTablesList($pdo);
         if (empty($tables)) {
-            throw new InetAnonConfigurationException('No tables to read in that database');
+            throw new NeuralizerConfigurationException('No tables to read in that database');
         }
 
         // For each table, read the cols and guess the Faker
@@ -130,7 +130,7 @@ class Writer
         }
 
         if (empty($data)) {
-            throw new InetAnonConfigurationException('All tables or fields have been ignored');
+            throw new NeuralizerConfigurationException('All tables or fields have been ignored');
         }
 
         return ['guesser_version' => $guesser->getVersion(), 'entities' => $data];
@@ -145,7 +145,7 @@ class Writer
     public function save(array $data, string $filename)
     {
         if (!is_writeable(dirname($filename))) {
-            throw new InetAnonConfigurationException(dirname($filename) . ' is not writeable.');
+            throw new NeuralizerConfigurationException(dirname($filename) . ' is not writeable.');
         }
 
         file_put_contents($filename, Yaml::dump($data, 4));
@@ -184,7 +184,7 @@ class Writer
      */
     protected function getTablesList(\PDO $pdo): array
     {
-        $result = $pdo->query('SHOW TABLES');
+        $result = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
 
         $tables = $result->fetchAll(\PDO::FETCH_COLUMN);
         foreach ($tables as $key => $val) {
@@ -214,12 +214,12 @@ class Writer
         $cols = $result->fetchAll(\PDO::FETCH_ASSOC);
         $colsInfo = [];
 
-        $primary = false;
+        $hasPrimary = false;
         foreach ($cols as $col) {
             // get the info that we found a primary key
             $isPrimary = ($col['Key'] === 'PRI'  ? true : false);
             if ($isPrimary) {
-                $primary = true;
+                $hasPrimary = true;
             }
 
             // If the col has to be ignored: just leave
@@ -244,8 +244,8 @@ class Writer
         }
 
         // No primary ? Exception !
-        if ($primary === false) {
-            throw new InetAnonConfigurationException("Not able to work with $table, it has no primary key.");
+        if ($hasPrimary === false) {
+            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
         }
 
         return $colsInfo;

@@ -17,7 +17,7 @@
 
 namespace Inet\Neuralyzer\Anonymizer;
 
-use Inet\Neuralyzer\Exception\InetAnonException;
+use Inet\Neuralyzer\Exception\NeuralizerException;
 
 /**
  * DB Anonymizer
@@ -119,13 +119,13 @@ class DB extends AbstractAnonymizer
         try {
             $res = $this->pdo->query("SHOW COLUMNS FROM $table WHERE `Key` = 'Pri'");
         } catch (\Exception $e) {
-            throw new \PDOException('Query Error : ' . $e->getMessage());
+            throw new NeuralizerException('Query Error : ' . $e->getMessage());
         }
 
         $primary = $res->fetchAll(\PDO::FETCH_COLUMN);
         // Didn't find a primary key !
         if (empty($primary)) {
-            throw new InetAnonException("Can't find a primary key for '$table'");
+            throw new NeuralizerException("Can't find a primary key for '$table'");
         }
 
         return $primary[0];
@@ -149,7 +149,13 @@ class DB extends AbstractAnonymizer
         foreach ($data as $field => $value) {
             $values[":$field"] = $value;
         }
-        $this->preparedStmt->execute($values);
+
+        try {
+            $this->preparedStmt->execute($values);
+        } catch (\PDOException $e) {
+            $this->pdo->rollback();
+            throw new NeuralizerException("Problem anonymizing $table (" . $e->getMessage() . ')');
+        }
     }
 
     /**
@@ -192,7 +198,7 @@ class DB extends AbstractAnonymizer
         try {
             $this->pdo->query($sql);
         } catch (\Exception $e) {
-            throw new \PDOException('Query Error : ' . $e->getMessage());
+            throw new NeuralizerException('Query DELETE Error (' . $e->getMessage() . ')');
         }
 
         return $sql;
@@ -211,7 +217,7 @@ class DB extends AbstractAnonymizer
     {
         $fieldsVals = [];
         foreach ($data as $field => $value) {
-            $fieldsVals[] = "$field = IF($field IS NOT NULL, '" . addslashes($value) . "', NULL)";
+            $fieldsVals[] = "$field = IF($field IS NOT NULL, '" . $this->pdo->quote($value) . "', NULL)";
         }
 
         $sql = "UPDATE $table SET " . implode(', ', $fieldsVals) . " WHERE $where";

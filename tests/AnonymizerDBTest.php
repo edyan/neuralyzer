@@ -10,7 +10,7 @@ class AnonymizerDBTest extends ConfigurationDB
     public $i = 0;
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |Can't find a primary key for 'guestbook'|
      */
     public function testWithoutPrimary()
@@ -23,7 +23,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException PDOException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |Query Error : SQLSTATE.*|
      */
     public function testWrongTableName()
@@ -36,7 +36,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No entities found. Have you loaded a configuration file ?|
      */
     public function testWithPrimaryNoConf()
@@ -48,7 +48,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No configuration for that entity.*|
      */
     public function testWithPrimaryConfWrongTable()
@@ -63,8 +63,8 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException \PDOException
-     * @expectedExceptionMessageRegExp |Query Error : SQLSTATE\[42S22\]: Column not found.*|
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+     * @expectedExceptionMessageRegExp |Query DELETE Error \(SQLSTATE\[42S22\]: Column not found.*|
      */
     public function testWithPrimaryConfWrongWhere()
     {

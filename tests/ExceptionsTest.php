@@ -2,36 +2,36 @@
 
 namespace Inet\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Guesser;
+use Inet\Neuralyzer\Exception as NeuralyzerExceptions;
 use PHPUnit\Framework\TestCase;
 
 class ExceptionsTest extends TestCase
 {
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testInetInetAnonConfigurationException()
+    public function testInetNeuralizerConfigurationException()
     {
-        throw new \Inet\Neuralyzer\Exception\InetAnonConfigurationException('test');
+        throw new NeuralyzerExceptions\NeuralizerConfigurationException('test');
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonGuesserException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerGuesserException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testInetAnonGuesserException()
+    public function testNeuralizerGuesserException()
     {
-        throw new \Inet\Neuralyzer\Exception\InetAnonGuesserException('test');
+        throw new NeuralyzerExceptions\NeuralizerGuesserException('test');
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testInetAnonException()
+    public function testNeuralizerException()
     {
-        throw new \Inet\Neuralyzer\Exception\InetAnonException('test');
+        throw new NeuralyzerExceptions\NeuralizerException('test');
     }
 }

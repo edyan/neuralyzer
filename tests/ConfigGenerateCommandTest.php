@@ -14,7 +14,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 {
     /**
      * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |You must define the database name with --db|
+     * @expectedExceptionMessageRegExp |Database name is required \(--db\)|
      */
     public function testExecuteNoDB()
     {
@@ -23,7 +23,12 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
         $command = $application->find('config:generate');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(['command' => $command->getName()]);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => 'toto',
+        ]);
     }
 
     /**
@@ -92,7 +97,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testExecuteProtectTable()

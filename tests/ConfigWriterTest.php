@@ -12,8 +12,8 @@ class ConfigWriterTest extends ConfigurationDB
     private $ignoredTables = ['guestbook'];
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
-     * @expectedExceptionMessageRegExp |Not able to work with guestbook, it has no primary key.|
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedExceptionMessageRegExp |Can't work with guestbook, it has no primary key.|
      */
     public function testGenerateConfNoPrimary()
     {
@@ -24,7 +24,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfNoTable()
@@ -37,7 +37,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |All tables or fields have been ignored|
      */
     public function testGenerateConfIgnoreAllFields()
@@ -51,7 +51,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfIgnoreAllTables()
@@ -125,7 +125,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\InetAnonConfigurationException
+     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |/doesntexist is not writeable.|
      */
     public function testGenerateConfNotWriteable()

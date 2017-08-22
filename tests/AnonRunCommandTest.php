@@ -20,9 +20,16 @@ class AnonRunCommandTest extends ConfigurationDB
         $application = new Application();
         $application->add(new Command());
 
+        // We mock the DialogHelper
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
-        $commandTester->execute(['command' => $command->getName()]);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => 'toto',
+            '--config' => __DIR__ . '/_files/config.right.yaml'
+        ]);
     }
 
     /**
@@ -69,6 +76,27 @@ class AnonRunCommandTest extends ConfigurationDB
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.notable.yaml'
         ]);
+    }
+
+    public function testExecuteFieldTooLong()
+    {
+        $this->createPrimary();
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('run');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--db' => getenv('DB_NAME'),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => getenv('DB_PASSWORD'),
+            '--config' => __DIR__ . '/_files/config.right.fieldtoolong.yaml',
+        ]);
+        $regexp = '|Error anonymizing guestbook. Message was : Problem anonymizing guestbook \(SQLSTATE.+|';
+        $this->assertRegExp($regexp, $commandTester->getDisplay());
     }
 
     public function testExecuteRightTablePassPrompted()

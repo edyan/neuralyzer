@@ -25,11 +25,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Stopwatch\Stopwatch;
 
+
 /**
  * Command to launch an anonymization based on a config file
  */
 class AnonRunCommand extends Command
 {
+    use DBTrait;
+
     /**
      * Anonymizer DB Interface
      * @var Inet\Neuralyzer\Anonymizer\DB
@@ -49,15 +52,10 @@ class AnonRunCommand extends Command
     private $input;
 
     /**
-     * PDO Object Initialized
-     * @var \PDO
-     */
-    private $pdo;
-
-    /**
      * @var OutputInterface
      */
     private $output;
+
 
     /**
      * Configure the command
@@ -124,9 +122,23 @@ class AnonRunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $password = $input->getOption('password');
+        if (is_null($password)) {
+            $question = new Question('Password: ');
+            $question->setHidden(true)->setHiddenFallback(false);
+
+            $password = $this->getHelper('question')->ask($input, $output, $question);
+        }
+
+        $this->connectToDB(
+            $input->getOption('host'),
+            $input->getOption('db'),
+            $input->getOption('user'),
+            $password
+        );
+
         $this->input = $input;
         $this->output = $output;
-        $this->connectToDB();
 
         // Anon READER
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
@@ -153,20 +165,6 @@ class AnonRunCommand extends Command
     }
 
     /**
-     * Prepare a question and return its result
-     * @return string
-     */
-    private function askPassword(): string
-    {
-        $helper = $this->getHelper('question');
-        $question = new Question('Password: ');
-        $question->setHidden(true);
-        $question->setHiddenFallback(false);
-
-        return $helper->ask($this->input, $this->output, $question);
-    }
-
-    /**
      * Anonmyze a specific table and display info about the job
      *
      * @param  string $table
@@ -183,9 +181,16 @@ class AnonRunCommand extends Command
         $bar->setRedrawFrequency($total > 100 ? 100 : 0);
 
         $this->output->writeln("<info>Anonymizing $table</info>");
-        $queries = $this->anon->processEntity($table, function () use ($bar) {
-            $bar->advance();
-        }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+
+        try {
+            $queries = $this->anon->processEntity($table, function () use ($bar) {
+                $bar->advance();
+            }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+        } catch (\Exception $e) {
+            $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
+            $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
+            return;
+        }
 
         $this->output->writeln(PHP_EOL);
 
@@ -193,32 +198,6 @@ class AnonRunCommand extends Command
             $this->output->writeln('<comment>Queries:</comment>');
             $this->output->writeln(implode(PHP_EOL, $queries));
             $this->output->writeln(PHP_EOL);
-        }
-    }
-
-    /**
-     * Initialize a PDO Object
-     */
-    private function connectToDB()
-    {
-        $dbName = $this->input->getOption('db');
-        // Throw an exception immediately if we dont have the required DB parameter
-        if (empty($dbName)) {
-            throw new \InvalidArgumentException('Database name is required (--db)');
-        }
-
-        $password = $this->input->getOption('password');
-        if (is_null($password)) {
-            $password = $this->askPassword();
-        }
-
-        $host = $this->input->getOption('host');
-        $user = $this->input->getOption('user');
-        try {
-            $this->pdo = new \PDO("mysql:dbname=$dbName;host=" . $host, $user, $password);
-            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        } catch (\Exception $e) {
-            throw new \RuntimeException("Can't connect to the database. Check your credentials");
         }
     }
 

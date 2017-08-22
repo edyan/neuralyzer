@@ -1,33 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<phpunit
-    bootstrap="vendor/autoload.php"
-    backupGlobals="false"
-    backupStaticAttributes="false"
-    colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    processIsolation="false"
-    stopOnError="true"
-    stopOnFailure="true"
-    syntaxCheck="true">
-  <php>
-    <env name='DB_USER' value='root' />
-    <env name='DB_PASSWORD' value='' />
-    <env name='DB_HOST' value='127.0.0.1' />
-    <env name='DB_NAME' value='test_db' />
-
-    <!-- E_ALL & ~E_STRICT = 30719 -->
-    <ini name="error_reporting" value="30719"/>
-  </php>
-  <testsuites>
-    <testsuite name="Inet">
-        <directory>tests</directory>
-    </testsuite>
-  </testsuites>
- <filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
-      <directory suffix=".php">src</directory>
-    </whitelist>
-  </filter>
+<phpunit bootstrap="vendor/autoload.php" colors="true" processIsolation="false" stopOnError="true" stopOnFailure="true" syntaxCheck="true">
+    <php>
+        <env name='DB_USER' value='root'/>
+        <env name='DB_PASSWORD' value=''/>
+        <env name='DB_HOST' value='127.0.0.1'/>
+        <env name='DB_NAME' value='test_db'/>
+    </php>
+    <testsuites>
+        <testsuite name="Inet">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+            <exclude>
+                <directory suffix=".php">src/Exception</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="true" showOnlySummary="true"/>
+        <log type="coverage-html" target="reports/coverage"/>
+    </logging>
 </phpunit>

@@ -18,7 +18,7 @@
 namespace Inet\Neuralyzer\Anonymizer;
 
 use Inet\Neuralyzer\Configuration\Reader;
-use Inet\Neuralyzer\Exception\InetAnonConfigurationException;
+use Inet\Neuralyzer\Exception\NeuralizerConfigurationException;
 
 /**
  * Abstract Anonymizer
@@ -148,15 +148,15 @@ abstract class AbstractAnonymizer
      *
      * @param string $entity
      *
-     * @throws InetAnonConfigurationException
+     * @throws NeuralizerConfigurationException
      */
     private function checkEntityIsInConfig(string $entity)
     {
         if (empty($this->configEntites)) {
-            throw new InetAnonConfigurationException('No entities found. Have you loaded a configuration file ?');
+            throw new NeuralizerConfigurationException('No entities found. Have you loaded a configuration file ?');
         }
         if (!array_key_exists($entity, $this->configEntites)) {
-            throw new InetAnonConfigurationException("No configuration for that entity ($entity)");
+            throw new NeuralizerConfigurationException("No configuration for that entity ($entity)");
         }
     }
 }

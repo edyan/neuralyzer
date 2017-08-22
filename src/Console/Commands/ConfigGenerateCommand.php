@@ -28,6 +28,7 @@ use Symfony\Component\Console\Question\Question;
  */
 class ConfigGenerateCommand extends Command
 {
+    use DBTrait;
 
     /**
      * Set the command shortcut to be used in configuration
@@ -35,6 +36,7 @@ class ConfigGenerateCommand extends Command
      * @var string
      */
     protected $command = 'config:generate';
+
 
     /**
      * Configure the command
@@ -106,40 +108,34 @@ class ConfigGenerateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $db = $input->getOption('db');
-        if (empty($db)) {
-            throw new \InvalidArgumentException('You must define the database name with --db');
-        }
-
         $password = $input->getOption('password');
         if (is_null($password)) {
-            $helper = $this->getHelper('question');
             $question = new Question('Password: ');
-            $question->setHidden(true);
-            $question->setHiddenFallback(false);
-            $password = $helper->ask($input, $output, $question);
+            $question->setHidden(true)->setHiddenFallback(false);
+
+            $password = $this->getHelper('question')->ask($input, $output, $question);
         }
 
-        try {
-            $pdo = new \PDO(
-                "mysql:dbname=$db;host=" . $input->getOption('host'),
-                $input->getOption('user'),
-                $password
-            );
-        } catch (\Exception $e) {
-            throw new \RuntimeException("Can't connect to the database. Check your credentials");
-        }
+        $this->connectToDB(
+            $input->getOption('host'),
+            $input->getOption('db'),
+            $input->getOption('user'),
+            $password
+        );
+
+        $ignoreFields = $input->getOption('ignore-field');
 
         $writer = new \Inet\Neuralyzer\Configuration\Writer;
-        $ignoreFields = $input->getOption('ignore-field');
         $writer->protectCols($input->getOption('protect'));
+
         // Override the protection if fields are defined
         if (!empty($ignoreFields)) {
             $writer->protectCols(true);
             $writer->setProtectedCols($ignoreFields);
         }
+
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($pdo, new \Inet\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($this->pdo, new \Inet\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to ' . $input->getOption('file') . '</comment>');

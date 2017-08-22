@@ -17,7 +17,7 @@
 
 namespace Inet\Neuralyzer;
 
-use Inet\Neuralyzer\Exception\InetAnonGuesserException;
+use Inet\Neuralyzer\Exception\NeuralizerGuesserException;
 
 /**
  * Guesser to map field type to Faker Class
@@ -74,8 +74,8 @@ class Guesser implements GuesserInterface
     {
         return [
             // Strings
-            'char'      => ['method' => 'sentence', 'params' => [8]],
-            'varchar'   => ['method' => 'sentence', 'params' => [8]],
+            'char'      => ['method' => 'sentence', 'params' => [4]],
+            'varchar'   => ['method' => 'sentence', 'params' => [4]],
 
             // Text & Blobs
             'text'      => ['method' => 'sentence', 'params' => [20]],
@@ -129,14 +129,14 @@ class Guesser implements GuesserInterface
         if ($type === 'enum') {
             return [
                 'method' => 'randomElement',
-                'params' => [[explode("','", substr($len, 1, -1))]]
+                'params' => [explode("','", substr($len, 1, -1))]
             ];
         }
 
         // Try to find by fieldType
         $colsType = $this->getColsTypeMapping();
         if (!array_key_exists($type, $colsType)) {
-            throw new InetAnonGuesserException("Can't guess the type $type");
+            throw new NeuralizerGuesserException("Can't guess the type $type");
         }
 
         return $colsType[$type];
