@@ -155,7 +155,7 @@ class Guesser implements GuesserInterface
             ),
             'bigint' => array(
                 'method' => 'randomNumber',
-                'params' => array(15),
+                'params' => array(strlen(mt_getrandmax()) - 1),
             ),
             // Decimal
             'float' => array(
