@@ -1,5 +1,3 @@
-dist: precise
-
 filter:
     excluded_paths:
         - tests/*

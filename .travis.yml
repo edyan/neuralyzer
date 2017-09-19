@@ -1,3 +1,4 @@
+dist: precise
 sudo: false
 
 language: php
@@ -20,4 +21,3 @@ script:
 after_script:
   - test "5.6" == "${TRAVIS_PHP_VERSION}" && wget https://scrutinizer-ci.com/ocular.phar
   - test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover coverage.clover
-
