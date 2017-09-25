@@ -103,6 +103,14 @@ class Guesser implements GuesserInterface
                 'params' => array(8),
             ),
             // Text & Blobs
+            'tinytext' => array(
+                'method' => 'sentence',
+                'params' => array(4),
+            ),
+            'tinyblob' => array(
+                'method' => 'sentence',
+                'params' => array(4),
+            ),
             'text' => array(
                 'method' => 'sentence',
                 'params' => array(20),
@@ -110,6 +118,14 @@ class Guesser implements GuesserInterface
             'blob' => array(
                 'method' => 'sentence',
                 'params' => array(20),
+            ),
+            'mediumtext' => array(
+                'method' => 'sentence',
+                'params' => array(40),
+            ),
+            'mediumblob' => array(
+                'method' => 'sentence',
+                'params' => array(40),
             ),
             'longtext' => array(
                 'method' => 'sentence',
