@@ -74,32 +74,36 @@ class Guesser implements GuesserInterface
     {
         return [
             // Strings
-            'char'      => ['method' => 'sentence', 'params' => [4]],
-            'varchar'   => ['method' => 'sentence', 'params' => [4]],
+            'char'       => ['method' => 'sentence', 'params' => [4]],
+            'varchar'    => ['method' => 'sentence', 'params' => [4]],
 
             // Text & Blobs
-            'text'      => ['method' => 'sentence', 'params' => [20]],
-            'blob'      => ['method' => 'sentence', 'params' => [20]],
-            'longtext'  => ['method' => 'sentence', 'params' => [70]],
-            'longblob'  => ['method' => 'sentence', 'params' => [70]],
+            'tinytext'   => ['method' => 'sentence', 'params' => [4]],
+            'tinyblob'   => ['method' => 'sentence', 'params' => [4]],
+            'text'       => ['method' => 'sentence', 'params' => [20]],
+            'blob'       => ['method' => 'sentence', 'params' => [20]],
+            'mediumtext' => ['method' => 'sentence', 'params' => [40]],
+            'mediumblob' => ['method' => 'sentence', 'params' => [40]],
+            'longtext'   => ['method' => 'sentence', 'params' => [70]],
+            'longblob'   => ['method' => 'sentence', 'params' => [70]],
 
             // DateTime
-            'date'      => ['method' => 'date', 'params' => ['Y-m-d', 'now']],
-            'datetime'  => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
-            'timestamp' => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
-            'time'      => ['method' => 'date', 'params' => ['H:i:s', 'now']],
+            'date'       => ['method' => 'date', 'params' => ['Y-m-d', 'now']],
+            'datetime'   => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
+            'timestamp'  => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
+            'time'       => ['method' => 'date', 'params' => ['H:i:s', 'now']],
 
             // Integer
-            'tinyint'   => ['method' => 'randomNumber', 'params' => [2]],
-            'smallint'  => ['method' => 'randomNumber', 'params' => [4]],
-            'mediumint' => ['method' => 'randomNumber', 'params' => [6]],
-            'int'       => ['method' => 'randomNumber', 'params' => [9]],
-            'bigint'    => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
+            'tinyint'    => ['method' => 'randomNumber', 'params' => [2]],
+            'smallint'   => ['method' => 'randomNumber', 'params' => [4]],
+            'mediumint'  => ['method' => 'randomNumber', 'params' => [6]],
+            'int'        => ['method' => 'randomNumber', 'params' => [9]],
+            'bigint'     => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
 
             // Decimal
-            'float'     => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
-            'decimal'   => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
-            'double'    => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'float'      => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'decimal'    => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'double'     => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
         ];
     }
 
