@@ -11,6 +11,7 @@
     ],
     "license": "GPL-2.0",
     "minimum-stability": "stable",
+    "bin": ["bin/anon"],
     "require": {
         "php": ">=7.0",
         "fzaninotto/faker": "^1",
