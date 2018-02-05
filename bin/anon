@@ -6,6 +6,9 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
+// Load composer
+error_reporting(error_reporting() & ~E_NOTICE & ~E_STRICT);
+
 $findAutoloader = function () {
     $files = array(
         __DIR__ . '/../../../autoload.php',  // composer dependency
@@ -29,11 +32,6 @@ if (!$composerAutoloader = $findAutoloader()) {
         'php composer.phar install' . PHP_EOL
     );
 }
-
-
-// Load composer
-require_once(__DIR__ . '/../vendor/autoload.php');
-error_reporting(error_reporting() & ~E_NOTICE & ~E_STRICT);
 
 use Inet\Neuralyzer\Console\Application;
 
