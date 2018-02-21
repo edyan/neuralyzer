@@ -17,7 +17,7 @@ It is also able to `DELETE FROM` tables with a `WHERE` critera (see the config p
 
 ## Installation
 ```bash
-composer install edyan/neuralyzer
+composer require edyan/neuralyzer
 ```
 
 ## CLI
