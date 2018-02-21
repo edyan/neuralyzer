@@ -23,6 +23,7 @@
         "phpunit/phpunit": "^6",
         "phpunit/dbunit": "^3"
     },
+    "bin": ["bin/anon"],
     "autoload": {
         "psr-4": {
             "Inet\\Neuralyzer\\": "src/"
