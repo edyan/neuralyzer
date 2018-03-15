@@ -35,12 +35,49 @@ class GuesserTest extends TestCase
         $this->assertInternalType('array', $colsTypeMapping);
     }
 
-    public function testMapColByName()
+    public function testMapColByNameStreetName()
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'my_street_name', 'varchar', '255');
         $this->assertInternalType('array', $mapping);
         $this->assertArrayHasKey('method', $mapping);
+        $this->assertEquals('streetAddress', $mapping['method']);
+    }
+
+    public function testMapColByNameEmail()
+    {
+        $guesser = new Guesser;
+        $mapping = $guesser->mapCol('test', 'email', 'varchar', '255');
+        $this->assertInternalType('array', $mapping);
+        $this->assertArrayHasKey('method', $mapping);
+        $this->assertEquals('email', $mapping['method']);
+    }
+
+    public function testMapColByNameEmail2()
+    {
+        $guesser = new Guesser;
+        $mapping = $guesser->mapCol('test', 'email_address', 'varchar', '255');
+        $this->assertInternalType('array', $mapping);
+        $this->assertArrayHasKey('method', $mapping);
+        $this->assertEquals('email', $mapping['method']);
+    }
+
+    public function testMapColByNameFirstName()
+    {
+        $guesser = new Guesser;
+        $mapping = $guesser->mapCol('test', 'first_name', 'varchar', '255');
+        $this->assertInternalType('array', $mapping);
+        $this->assertArrayHasKey('method', $mapping);
+        $this->assertEquals('firstName', $mapping['method']);
+    }
+
+    public function testMapColByNameFirstName2()
+    {
+        $guesser = new Guesser;
+        $mapping = $guesser->mapCol('test', 'firstname', 'varchar', '255');
+        $this->assertInternalType('array', $mapping);
+        $this->assertArrayHasKey('method', $mapping);
+        $this->assertEquals('firstName', $mapping['method']);
     }
 
     public function testMapColByType()

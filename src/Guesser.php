@@ -53,15 +53,15 @@ class Guesser implements GuesserInterface
             '.*\..*phone.*'               => ['method' => 'phoneNumber'],
 
             // Internet
-            '.*\.email_address'           => ['method' => 'email'],
+            '.*\.email.*'                 => ['method' => 'email'],
             '.*\.url'                     => ['method' => 'url'],
 
             // Text
             '.*\.(comments|description)'  => ['method' => 'sentence', 'params' => [20]],
 
             // Person
-            '.*\.first_name'              => ['method' => 'firstName'],
-            '.*\.last_name'               => ['method' => 'lastName'],
+            '.*\.first_?name'             => ['method' => 'firstName'],
+            '.*\.last_?name'              => ['method' => 'lastName'],
         ];
     }
 
