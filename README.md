@@ -26,6 +26,15 @@ The easiest way to use that tool is to start with the command line tool. After c
 bin/neuralyzer
 ```
 
+You can even download the executable directly :
+```bash
+$ wget https://raw.githubusercontent.com/edyan/neuralyzer/master/neuralyzer.phar
+$ sudo mv neuralyzer.phar /usr/local/bin/neuralyzer
+$ sudo chmod +x /usr/local/bin/neuralyzer
+$ neuralyzer
+```
+
+
 ### Generate the configuration
 The main command is config:generate that expects some parameters:
 ```bash
@@ -220,4 +229,10 @@ foreach ($tables as $table) {
 
     $queries = $anon->processEntity($table);
 }
+```
+
+## Development
+To build with Robo :
+```bash
+$ php -d phar.readonly=0 vendor/bin/robo phar:build
 ```
