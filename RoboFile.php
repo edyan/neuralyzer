@@ -71,6 +71,7 @@ class RoboFile extends \Robo\Tasks
         // Build the phar
         return $collection
             ->taskPackPhar('neuralyzer.phar')
+                ->compress()
                 ->addFile('bin/neuralyzer', 'bin/neuralyzer')
                 ->addFiles($files)
                 ->executable('bin/neuralyzer')
