@@ -33,6 +33,13 @@ class RunCommand extends Command
     use DBTrait;
 
     /**
+     * Store the DB Object
+     *
+     * @var \Inet\Neuralyzer\Anonymizer\DB
+     */
+    private $anonDb;
+
+    /**
      * Set the command shortcut to be used in configuration
      *
      * @var string
@@ -136,8 +143,8 @@ class RunCommand extends Command
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
         // Now work on the DB
-        $this->anon = new \Inet\Neuralyzer\Anonymizer\DB($this->pdo);
-        $this->anon->setConfiguration($reader);
+        $this->anonDb = new \Inet\Neuralyzer\Anonymizer\DB($this->pdo);
+        $this->anonDb->setConfiguration($reader);
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
@@ -175,7 +182,7 @@ class RunCommand extends Command
         $this->output->writeln("<info>Anonymizing $table</info>");
 
         try {
-            $queries = $this->anon->processEntity($table, function () use ($bar) {
+            $queries = $this->anonDb->processEntity($table, function () use ($bar) {
                 $bar->advance();
             }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
         } catch (\Exception $e) {
