@@ -25,19 +25,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Stopwatch\Stopwatch;
 
-
 /**
  * Command to launch an anonymization based on a config file
  */
-class AnonRunCommand extends Command
+class RunCommand extends Command
 {
     use DBTrait;
-
-    /**
-     * Anonymizer DB Interface
-     * @var Inet\Neuralyzer\Anonymizer\DB
-     */
-    private $anon;
 
     /**
      * Set the command shortcut to be used in configuration
@@ -66,50 +59,49 @@ class AnonRunCommand extends Command
     {
         // First command : Test the DB Connexion
         $this->setName($this->command)
-             ->setDescription(
-                 'Generate configuration for the Anonymizer'
-             )->setHelp(
-                 'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
-                 "Usage: ./bin/anon <info>{$this->command} -u app -p app -f anon.yml</info>"
-             )->addOption(
-                 'host',
-                 null,
-                 InputOption::VALUE_REQUIRED,
-                 'Host',
-                 '127.0.0.1'
-             )->addOption(
-                 'db',
-                 'd',
-                 InputOption::VALUE_REQUIRED,
-                 'Database Name'
-             )->addOption(
-                 'user',
-                 'u',
-                 InputOption::VALUE_REQUIRED,
-                 'User Name',
-                 get_current_user()
-             )->addOption(
-                 'password',
-                 'p',
-                 InputOption::VALUE_REQUIRED,
-                 'Password (or prompted)'
-             )->addOption(
-                 'config',
-                 'c',
-                 InputOption::VALUE_REQUIRED,
-                 'Configuration File',
-                 'anon.yml'
-             )->addOption(
-                 'pretend',
-                 null,
-                 InputOption::VALUE_NONE,
-                 "Don't run the queries"
-             )->addOption(
-                 'sql',
-                 null,
-                 InputOption::VALUE_NONE,
-                 'Display the SQL'
-             );
+            ->setDescription('Generate configuration for the Anonymizer')
+            ->setHelp(
+                'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
+                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+            )->addOption(
+                'host',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Host',
+                '127.0.0.1'
+            )->addOption(
+                'db',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'Database Name'
+            )->addOption(
+                'user',
+                'u',
+                InputOption::VALUE_REQUIRED,
+                'User Name',
+                get_current_user()
+            )->addOption(
+                'password',
+                'p',
+                InputOption::VALUE_REQUIRED,
+                'Password (or prompted)'
+            )->addOption(
+                'config',
+                'c',
+                InputOption::VALUE_REQUIRED,
+                'Configuration File',
+                'anon.yml'
+            )->addOption(
+                'pretend',
+                null,
+                InputOption::VALUE_NONE,
+                "Don't run the queries"
+            )->addOption(
+                'sql',
+                null,
+                InputOption::VALUE_NONE,
+                'Display the SQL'
+            );
     }
 
     /**

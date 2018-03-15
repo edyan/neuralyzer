@@ -11,7 +11,7 @@
     ],
     "license": "GPL-2.0",
     "minimum-stability": "stable",
-    "bin": ["bin/anon"],
+    "bin": ["bin/neuralyzer"],
     "require": {
         "php": ">=7.1",
         "fzaninotto/faker": "^1",

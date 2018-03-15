@@ -23,7 +23,7 @@ composer require edyan/neuralyzer
 ## CLI
 The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
 ```bash
-bin/anon
+bin/neuralyzer
 ```
 
 ### Generate the configuration
@@ -43,7 +43,7 @@ Options:
 
 #### Example
 ```bash
-bin/anon config:generate --db test -u root --ignore-table config --ignore-field ".*\.id.*"
+bin/neuralyzer config:generate --db test -u root --ignore-table config --ignore-field ".*\.id.*"
 ```
 
 That produces a file which looks like:
@@ -103,7 +103,7 @@ Options:
 ```
 #### Example
 ```bash
-bin/anon run --db test -u root --sql
+bin/neuralyzer run --db test -u root --sql
 ```
 
 That produces that kind of output:

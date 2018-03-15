@@ -32,7 +32,7 @@ class Application extends BaseApplication
     public function getDefaultCommands()
     {
         $commands = parent::getDefaultCommands();
-        $commands[] = new \Inet\Neuralyzer\Console\Commands\AnonRunCommand();
+        $commands[] = new \Inet\Neuralyzer\Console\Commands\RunCommand();
         $commands[] = new \Inet\Neuralyzer\Console\Commands\ConfigGenerateCommand();
 
         return $commands;

@@ -47,55 +47,55 @@ class ConfigGenerateCommand extends Command
     {
         // First command : Test the DB Connexion
         $this->setName($this->command)
-             ->setDescription(
-                 'Generate configuration for the Anonymizer'
-             )->setHelp(
-                 'This command will connect to a DB and extract a list of tables / fields to a yaml file' . PHP_EOL .
-                 "Usage: ./bin/anon <info>{$this->command} -u app -p app -f anon.yml</info>"
-             )->addOption(
-                 'host',
-                 null,
-                 InputOption::VALUE_REQUIRED,
-                 'Host',
-                 '127.0.0.1'
-             )->addOption(
-                 'db',
-                 'd',
-                 InputOption::VALUE_REQUIRED,
-                 'Database Name'
-             )->addOption(
-                 'user',
-                 'u',
-                 InputOption::VALUE_REQUIRED,
-                 'User Name',
-                 get_current_user()
-             )->addOption(
-                 'password',
-                 'p',
-                 InputOption::VALUE_REQUIRED,
-                 "Password (or it'll be prompted)"
-             )->addOption(
-                 'file',
-                 'f',
-                 InputOption::VALUE_REQUIRED,
-                 'File',
-                 'anon.yml'
-             )->addOption(
-                 'protect',
-                 null,
-                 InputOption::VALUE_NONE,
-                 'Protect IDs and other fields'
-             )->addOption(
-                 'ignore-table',
-                 null,
-                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                 'Table to ignore. Can be repeated'
-             )->addOption(
-                 'ignore-field',
-                 null,
-                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                 'Field to ignore. Regexp in the form "table.field". Can be repeated'
-             );
+            ->setDescription(
+                'Generate configuration for the Anonymizer'
+            )->setHelp(
+                'This command will connect to a DB and extract a list of tables / fields to a yaml file' . PHP_EOL .
+                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+            )->addOption(
+                'host',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Host',
+                '127.0.0.1'
+            )->addOption(
+                'db',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'Database Name'
+            )->addOption(
+                'user',
+                'u',
+                InputOption::VALUE_REQUIRED,
+                'User Name',
+                get_current_user()
+            )->addOption(
+                'password',
+                'p',
+                InputOption::VALUE_REQUIRED,
+                "Password (or it'll be prompted)"
+            )->addOption(
+                'file',
+                'f',
+                InputOption::VALUE_REQUIRED,
+                'File',
+                'anon.yml'
+            )->addOption(
+                'protect',
+                null,
+                InputOption::VALUE_NONE,
+                'Protect IDs and other fields'
+            )->addOption(
+                'ignore-table',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Table to ignore. Can be repeated'
+            )->addOption(
+                'ignore-field',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Field to ignore. Regexp in the form "table.field". Can be repeated'
+            );
     }
 
     /**

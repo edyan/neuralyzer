@@ -3,7 +3,7 @@
 namespace Inet\Neuralyzer\Tests;
 
 use Inet\Neuralyzer\Console\Application;
-use Inet\Neuralyzer\Console\Commands\AnonRunCommand as Command;
+use Inet\Neuralyzer\Console\Commands\RunCommand as Command;
 use Inet\Neuralyzer\Configuration\Reader;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Question\Question;
