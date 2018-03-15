@@ -2,11 +2,11 @@
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 7.0
+ * PHP Version 7.1
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
- * @copyright 2017 Emmanuel Dyan
+ * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *

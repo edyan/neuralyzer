@@ -2,7 +2,7 @@
     "name": "edyan/neuralyzer",
     "description": "Library and CLI for Data anonymization",
     "type": "library",
-    "keywords": ["anonymization"],
+    "keywords": ["anonymization", "database", "GDPR", "privacy"],
     "authors": [
         {
             "name": "Emmanuel Dyan",
@@ -22,7 +22,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^6",
-        "phpunit/dbunit": "^3"
+        "phpunit/dbunit": "^3",
+        "consolidation/robo": "^1.0.0"
     },
     "autoload": {
         "psr-4": {

@@ -3,8 +3,9 @@ sudo: false
 language: php
 
 php:
-  - 7.0
   - 7.1
+  - 7.2
+  - nightly
 
 before_script:
   - composer install --no-interaction --prefer-source
@@ -14,5 +15,5 @@ script:
   - vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=coverage.clover
 
 after_script:
-  - test "7.0" == "${TRAVIS_PHP_VERSION}" && wget https://scrutinizer-ci.com/ocular.phar
+  - wget https://scrutinizer-ci.com/ocular.phar
   - test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover coverage.clover
