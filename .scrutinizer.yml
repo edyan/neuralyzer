@@ -9,6 +9,10 @@ checks:
     php:
         code_rating: true
 
+project_setup:
+    before:
+        - mysql -e "CREATE DATABASE test_db"
+            
 tools:
     external_code_coverage: true
     php_analyzer: true
