@@ -1,19 +1,5 @@
 <?xml version="1.0"?>
-<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<database name="test_anon">
-	<table_data name="guestbook">
-	<row>
-		<field name="id">1</field>
-		<field name="content">Hello buddy!</field>
-		<field name="user">joe</field>
-		<field name="created">2010-04-24 17:15:23</field>
-	</row>
-	<row>
-		<field name="id">2</field>
-		<field name="content">I like it!</field>
-		<field name="user">nancy</field>
-		<field name="created">2010-04-26 12:14:20</field>
-	</row>
-	</table_data>
-</database>
-</mysqldump>
+<dataset>
+    <guestbook id="1" content="Hello buddy!" user="joe" created="2010-04-24 17:15:23" />
+    <guestbook id="2" content="I like it!" user="nancy" created="2010-04-26 12:14:20" />
+</dataset>

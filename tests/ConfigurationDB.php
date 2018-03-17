@@ -17,7 +17,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         if ($this->conn === null) {
             if (self::$pdo == null) {
                 self::$pdo = new \PDO(
-                    'mysql:dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
+                    getenv('DB_DRIVER') . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
                     getenv('DB_USER'),
                     getenv('DB_PASSWORD')
                 );
@@ -33,18 +33,9 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
      */
     public function getDataSet()
     {
-        $create = <<<QUERY
-            DROP DATABASE {$this->dbName}; CREATE DATABASE {$this->dbName}; USE {$this->dbName};
-            CREATE TABLE `{$this->tableName}` (
-              `id` int(10) UNSIGNED NOT NULL,
-              `content` text NULL,
-              `user` varchar(200) NULL,
-              `created` datetime NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-QUERY;
-        self::$pdo->exec($create);
+        self::$pdo->exec($this->getCreateSQL());
 
-        return $this->createMySQLXMLDataSet(__DIR__ . '/_files/dataset.xml');
+        return $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
     }
 
     public function createPrimary()
@@ -60,5 +51,36 @@ QUERY;
     public function truncateTable()
     {
         self::$pdo->exec("TRUNCATE TABLE `{$this->tableName}`;");
+    }
+
+    protected function getCreateSQL()
+    {
+        if (getenv('DB_DRIVER') === 'mysql') {
+            return <<<QUERY
+            DROP TABLE IF EXISTS `{$this->tableName}`;
+            CREATE TABLE `{$this->tableName}` (
+                `id` int(10) UNSIGNED NOT NULL,
+                `content` text NULL,
+                `user` varchar(200) NULL,
+                `created` datetime NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+QUERY;
+        }
+
+        if (getenv('DB_DRIVER') === 'pgsql') {
+            return <<<QUERY
+            DROP TABLE IF EXISTS {$this->tableName};
+            CREATE TABLE {$this->tableName} (
+                id int PRIMARY KEY,
+                content text NULL,
+                "user" varchar (200) NULL,
+                created timestamp NULL
+            );
+QUERY;
+        }
+
+        throw new \InvalidArgumentException("No create SQL for driver " . getenv('DB_DRIVER'));
+
+
     }
 }

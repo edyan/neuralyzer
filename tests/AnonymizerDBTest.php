@@ -91,7 +91,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
         // check no data changed
-        $baseDataSet = $this->createMySQLXMLDataSet(__DIR__ . '/_files/dataset.xml');
+        $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet(['guestbook']);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
@@ -110,7 +110,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
         // check no data changed
-        $baseDataSet = $this->createMySQLXMLDataSet(__DIR__ . '/_files/dataset.xml');
+        $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet(['guestbook']);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
