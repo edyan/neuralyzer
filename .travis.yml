@@ -7,9 +7,14 @@ php:
   - 7.2
   - nightly
 
+services:
+  - mysql
+
+before_install:
+  - mysql -e 'create database test_db;'
+
 before_script:
   - composer install --no-interaction --prefer-source
-  - mysql -e 'create database test_db;'
 
 script:
   - vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=coverage.clover
