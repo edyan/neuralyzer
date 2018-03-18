@@ -7,7 +7,7 @@ use Inet\Neuralyzer\Configuration\Reader;
 
 class AnonymizerDBTest extends ConfigurationDB
 {
-    public $i = 0;
+    private $i;
 
     /**
      * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
@@ -17,20 +17,22 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $reader = new Reader('_files/config.right.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity('guestbook');
+        $db->processEntity($this->tableName);
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
-     * @expectedExceptionMessageRegExp |Query Error : SQLSTATE.*|
+    * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+    * @expectedExceptionMessage Table guestook does not exist
      */
     public function testWrongTableName()
     {
+        $this->dropTable();
+
         $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
         $db->processEntity('guestook');
     }
@@ -43,8 +45,8 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $db = new Db(self::$pdo);
-        $db->processEntity('guestbook');
+        $db = new Db($this->getDbParams());
+        $db->processEntity($this->tableName);
     }
 
     /**
@@ -57,14 +59,14 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.notable.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity('guestbook');
+        $db->processEntity($this->tableName);
     }
 
     /**
      * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
-     * @expectedExceptionMessageRegExp |Query DELETE Error \(SQLSTATE\[42S22\]: Column not found.*|
+     * @expectedExceptionMessageRegExp |.*SQLSTATE.*|
      */
     public function testWithPrimaryConfWrongWhere()
     {
@@ -72,9 +74,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity('guestbook', null, false);
+        $db->processEntity($this->tableName, null, false);
     }
 
     public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
@@ -83,16 +85,16 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity('guestbook', null, true, true);
+        $queries = $db->processEntity($this->tableName, null, true, true);
         // Check I have the queries returned
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
         // check no data changed
         $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
-        $queryTable = $this->getConnection()->createDataSet(['guestbook']);
+        $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
 
@@ -102,16 +104,16 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity('guestbook', null, true, true);
+        $queries = $db->processEntity($this->tableName, null, true, true);
         // Check I have the queries returned
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
         // check no data changed
         $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
-        $queryTable = $this->getConnection()->createDataSet(['guestbook']);
+        $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
 
@@ -121,10 +123,10 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
         // check the callback works
-        $db->processEntity('guestbook', function ($line) {
+        $db->processEntity($this->tableName, function ($line) {
             $this->assertGreaterThan($this->i, $line);
             $this->i = $line;
         }, true, true);
@@ -133,28 +135,28 @@ class AnonymizerDBTest extends ConfigurationDB
 
     }
 
-    public function testWithPrimaryConfRightTableUpdate()
+    public function testWithPrimaryConfRightTableUpdateSimple()
     {
         $this->createPrimary();
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity('guestbook', null, false, true);
+        $queries = $db->processEntity($this->tableName, null, false, true);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
 
         // check no data changed
-        $result = self::$pdo->query("SELECT * FROM `guestbook` LIMIT 1");
-        $data = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertNotEmpty($data);
         $this->assertArrayHasKey(0, $data);
         $data = $data[0];
-        $this->assertEquals(19, strlen($data['created']));
-        $this->assertNotEquals('joe', $data['user']);
+        $this->assertEquals(strlen('XXXX-XX-XX'), strlen($data['created']));
+        $this->assertNotEquals('joe', $data['username']);
         $this->assertNotEquals('Hello buddy!', $data['content']);
     }
 
@@ -164,16 +166,16 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity('guestbook', null, false, true);
+        $queries = $db->processEntity($this->tableName, null, false, true);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
 
         // check that I have only one record remaining
-        $result = self::$pdo->query("SELECT * FROM `guestbook`");
-        $data = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertEquals(1, count($data));
         $this->assertArrayHasKey(0, $data);
@@ -181,9 +183,9 @@ class AnonymizerDBTest extends ConfigurationDB
         // Make sure joe has disappeared
         // And that nancy is not nancy anymore
         $data = $data[0];
-        $this->assertEquals(19, strlen($data['created']));
-        $this->assertNotEquals('joe', $data['user']);
-        $this->assertNotEquals('nancy', $data['user']);
+        $this->assertEquals(strlen('XXXX-XX-XX'), strlen($data['created']));
+        $this->assertNotEquals('joe', $data['username']);
+        $this->assertNotEquals('nancy', $data['username']);
         $this->assertNotEquals('Hello buddy!', $data['content']);
         $this->assertNotEquals('I like it!', $data['content']);
     }
@@ -195,16 +197,16 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteall.yaml', [__DIR__]);
 
-        $db = new Db(self::$pdo);
+        $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity('guestbook', null, false, true);
+        $queries = $db->processEntity($this->tableName, null, false, true);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertEquals('DELETE FROM guestbook', $queries[0]);
 
         // check that I have only one record remaining
-        $result = self::$pdo->query("SELECT * FROM `guestbook`");
-        $data = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertEmpty($data);
     }

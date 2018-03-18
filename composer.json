@@ -18,7 +18,8 @@
         "symfony/console": "^4",
         "symfony/yaml": "^4",
         "symfony/config": "^4",
-        "symfony/stopwatch": "^4"
+        "symfony/stopwatch": "^4",
+        "doctrine/dbal": "^2"
     },
     "require-dev": {
         "phpunit/phpunit": "^6",

@@ -28,8 +28,6 @@ use Symfony\Component\Console\Question\Question;
  */
 class ConfigGenerateCommand extends Command
 {
-    use DBTrait;
-
     /**
      * Set the command shortcut to be used in configuration
      *
@@ -52,6 +50,12 @@ class ConfigGenerateCommand extends Command
             )->setHelp(
                 'This command will connect to a DB and extract a list of tables / fields to a yaml file' . PHP_EOL .
                 "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+            )->addOption(
+                'driver',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Driver (check Doctrine documentation to have the list)',
+                'pdo_mysql'
             )->addOption(
                 'host',
                 null,
@@ -108,6 +112,11 @@ class ConfigGenerateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        // Throw an exception immediately if we dont have the required DB parameter
+        if (empty($input->getOption('db'))) {
+            throw new \InvalidArgumentException('Database name is required (--db)');
+        }
+
         $password = $input->getOption('password');
         if (is_null($password)) {
             $question = new Question('Password: ');
@@ -116,14 +125,16 @@ class ConfigGenerateCommand extends Command
             $password = $this->getHelper('question')->ask($input, $output, $question);
         }
 
-        $this->connectToDB(
-            $input->getOption('host'),
-            $input->getOption('db'),
-            $input->getOption('user'),
-            $password
-        );
-
         $ignoreFields = $input->getOption('ignore-field');
+
+        // Now work on the DB
+        $db = new \Inet\Neuralyzer\Anonymizer\DB([
+            'driver' => $input->getOption('driver'),
+            'host' => $input->getOption('host'),
+            'dbname' => $input->getOption('db'),
+            'user' => $input->getOption('user'),
+            'password' => $password,
+        ]);
 
         $writer = new \Inet\Neuralyzer\Configuration\Writer;
         $writer->protectCols($input->getOption('protect'));
@@ -135,7 +146,7 @@ class ConfigGenerateCommand extends Command
         }
 
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($this->pdo, new \Inet\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($db, new \Inet\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to ' . $input->getOption('file') . '</comment>');

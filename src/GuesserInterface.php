@@ -34,7 +34,7 @@ interface GuesserInterface
      *
      * @return array
      */
-    public function getColsTypeMapping(): array;
+    public function getColsTypeMapping($length): array;
 
     /**
      * Will map cols first by looking for field name then by looking for field type

@@ -2,85 +2,157 @@
 
 namespace Inet\Neuralyzer\Tests;
 
+use Doctrine\DBAL\Schema\Schema;
+
 class ConfigurationDB extends \PHPUnit\Framework\TestCase
 {
     use \PHPUnit\DbUnit\TestCaseTrait;
 
+    /**
+     * Raw PDO Connection
+     */
     static protected $pdo = null;
-    private $conn = null;
-    private $dbName;
-    private $tableName = 'guestbook';
 
+    protected $tableName = 'guestbook';
+
+    protected $doctrine;
+
+    /**
+     * PDO Default DB Connection for PHPUnit
+     */
+    private $conn;
+
+
+    private $dbName;
+
+    /**
+     * For PHPUnit to manage DataSets
+     */
     final public function getConnection()
     {
         $this->dbName = getenv('DB_NAME');
+
+        ###### FOR US
+        $this->doctrine = \Doctrine\DBAL\DriverManager::getConnection(
+            $this->getDbParams(),
+            new \Doctrine\DBAL\Configuration
+        );
+
+        ###### FOR PHPUNIT
+        $driver = getenv('DB_DRIVER');
+        if (substr($driver, 0, 4) === 'pdo_') {
+            $driver = substr($driver, 4);
+        }
+
+        // From : https://phpunit.de/manual/current/en/database.html#database.implementing-getdataset
+        // Conn does not contain the defaultDbConnection
         if ($this->conn === null) {
+            // Pdo has never been initialized
             if (self::$pdo == null) {
                 self::$pdo = new \PDO(
-                    getenv('DB_DRIVER') . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
+                    $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
                     getenv('DB_USER'),
                     getenv('DB_PASSWORD')
                 );
             }
+
             $this->conn = $this->createDefaultDBConnection(self::$pdo);
         }
 
         return $this->conn;
     }
 
+
     /**
      * @return PHPUnit_Extensions_Database_DataSet_IDataSet
      */
     public function getDataSet()
     {
-        self::$pdo->exec($this->getCreateSQL());
+        $this->createTable();
 
         return $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
     }
 
+
     public function createPrimary()
     {
-        self::$pdo->exec("ALTER TABLE `{$this->tableName}` ADD PRIMARY KEY (`id`);");
+        $schemaManager = $this->doctrine->getSchemaManager();
+
+        $fromSchema = $schemaManager->createSchema();
+        $toSchema = clone $fromSchema;
+        $table = $toSchema->getTable($this->tableName);
+        $table->setPrimaryKey(['id']);
+
+        $this->doctrineMigrate($fromSchema, $toSchema);
     }
+
 
     public function dropTable()
     {
-        self::$pdo->exec("DROP TABLE IF EXISTS `{$this->tableName}`;");
+        $schemaManager = $this->doctrine->getSchemaManager();
+
+        $fromSchema = $schemaManager->createSchema();
+        $toSchema = clone $fromSchema;
+        $toSchema->dropTable($this->tableName);
+
+        $this->doctrineMigrate($fromSchema, $toSchema);
     }
+
 
     public function truncateTable()
     {
-        self::$pdo->exec("TRUNCATE TABLE `{$this->tableName}`;");
+        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $queryBuilder->delete($this->tableName)->execute();
     }
 
-    protected function getCreateSQL()
+
+    public function getDbParams()
     {
-        if (getenv('DB_DRIVER') === 'mysql') {
-            return <<<QUERY
-            DROP TABLE IF EXISTS `{$this->tableName}`;
-            CREATE TABLE `{$this->tableName}` (
-                `id` int(10) UNSIGNED NOT NULL,
-                `content` text NULL,
-                `user` varchar(200) NULL,
-                `created` datetime NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-QUERY;
+        return [
+            'driver' => getenv('DB_DRIVER'),
+            'host' => getenv('DB_HOST'),
+            'dbname' => getenv('DB_NAME'),
+            'user' => getenv('DB_USER'),
+            'password' => getenv('DB_PASSWORD'),
+        ];
+    }
+
+
+    protected function createTable()
+    {
+        try {
+            $this->dropTable();
+        } catch (\Exception $e) {
+            // Pass
         }
 
-        if (getenv('DB_DRIVER') === 'pgsql') {
-            return <<<QUERY
-            DROP TABLE IF EXISTS {$this->tableName};
-            CREATE TABLE {$this->tableName} (
-                id int PRIMARY KEY,
-                content text NULL,
-                "user" varchar (200) NULL,
-                created timestamp NULL
-            );
-QUERY;
+        $schema = new Schema();
+        $myTable = $schema->createTable($this->tableName);
+        $myTable->addColumn('id', 'integer', ['unsigned' => true]);
+        $myTable->addColumn('content', 'text');
+        $myTable->addColumn('username', 'string', ['length' => 32]);
+        $myTable->addColumn('created', 'date');
+
+        $queries = $schema->toSql($this->doctrine->getDatabasePlatform());
+        if (empty($queries)) {
+            return;
         }
 
-        throw new \InvalidArgumentException("No create SQL for driver " . getenv('DB_DRIVER'));
+        foreach ($queries as $query) {
+            $this->doctrine->executeQuery($query);
+        }
+    }
 
 
+    private function doctrineMigrate(Schema $fromSchema, Schema $toSchema)
+    {
+        $queries = $fromSchema->getMigrateToSql($toSchema, $this->doctrine->getDatabasePlatform());
+        if (empty($queries)) {
+            return;
+        }
+
+        foreach ($queries as $query) {
+            $this->doctrine->executeQuery($query);
+        }
     }
 }

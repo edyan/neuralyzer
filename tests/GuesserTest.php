@@ -31,7 +31,7 @@ class GuesserTest extends TestCase
     public function testGetColsTypeMapping()
     {
         $guesser = new Guesser;
-        $colsTypeMapping = $guesser->getColsTypeMapping();
+        $colsTypeMapping = $guesser->getColsTypeMapping(null);
         $this->assertInternalType('array', $colsTypeMapping);
     }
 
@@ -65,7 +65,7 @@ class GuesserTest extends TestCase
     public function testMapColByNameFirstName()
     {
         $guesser = new Guesser;
-        $mapping = $guesser->mapCol('test', 'first_name', 'varchar', '255');
+        $mapping = $guesser->mapCol('test', 'first_name', 'string', '255');
         $this->assertInternalType('array', $mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('firstName', $mapping['method']);
@@ -74,7 +74,7 @@ class GuesserTest extends TestCase
     public function testMapColByNameFirstName2()
     {
         $guesser = new Guesser;
-        $mapping = $guesser->mapCol('test', 'firstname', 'varchar', '255');
+        $mapping = $guesser->mapCol('test', 'firstname', 'string', '255');
         $this->assertInternalType('array', $mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('firstName', $mapping['method']);
@@ -83,10 +83,11 @@ class GuesserTest extends TestCase
     public function testMapColByType()
     {
         $guesser = new Guesser;
-        $mapping = $guesser->mapCol('test', 'nothingtocompare', 'varchar', '255');
+        $mapping = $guesser->mapCol('test', 'nothingtocompare', 'string', '255');
         $this->assertInternalType('array', $mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertArrayHasKey('params', $mapping);
+        $this->assertEquals(255, $mapping['params'][0]);
 
         // check the version
         $version = $guesser->getVersion();

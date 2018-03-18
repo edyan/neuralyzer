@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<phpunit bootstrap="vendor/autoload.php" colors="true" processIsolation="false" stopOnError="true" stopOnFailure="true" syntaxCheck="true">
+<phpunit
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    processIsolation="false"
+    stopOnError="true"
+    stopOnFailure="true"
+    syntaxCheck="true">
     <php>
-        <env name='DB_DRIVER' value='mysql'/>
+        <env name='DB_DRIVER' value='pdo_mysql'/>
         <env name='DB_USER' value='root'/>
         <env name='DB_PASSWORD' value=''/>
         <env name='DB_HOST' value='127.0.0.1'/>

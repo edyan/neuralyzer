@@ -30,14 +30,12 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 class RunCommand extends Command
 {
-    use DBTrait;
-
     /**
      * Store the DB Object
      *
      * @var \Inet\Neuralyzer\Anonymizer\DB
      */
-    private $anonDb;
+    private $db;
 
     /**
      * Set the command shortcut to be used in configuration
@@ -70,6 +68,12 @@ class RunCommand extends Command
             ->setHelp(
                 'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
                 "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+            )->addOption(
+                'driver',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Driver (check Doctrine documentation to have the list)',
+                'pdo_mysql'
             )->addOption(
                 'host',
                 null,
@@ -121,6 +125,11 @@ class RunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        // Throw an exception immediately if we dont have the required DB parameter
+        if (empty($input->getOption('db'))) {
+            throw new \InvalidArgumentException('Database name is required (--db)');
+        }
+
         $password = $input->getOption('password');
         if (is_null($password)) {
             $question = new Question('Password: ');
@@ -129,13 +138,6 @@ class RunCommand extends Command
             $password = $this->getHelper('question')->ask($input, $output, $question);
         }
 
-        $this->connectToDB(
-            $input->getOption('host'),
-            $input->getOption('db'),
-            $input->getOption('user'),
-            $password
-        );
-
         $this->input = $input;
         $this->output = $output;
 
@@ -143,8 +145,14 @@ class RunCommand extends Command
         $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
         // Now work on the DB
-        $this->anonDb = new \Inet\Neuralyzer\Anonymizer\DB($this->pdo);
-        $this->anonDb->setConfiguration($reader);
+        $this->db = new \Inet\Neuralyzer\Anonymizer\DB([
+            'driver' => $input->getOption('driver'),
+            'host' => $input->getOption('host'),
+            'dbname' => $input->getOption('db'),
+            'user' => $input->getOption('user'),
+            'password' => $password,
+        ]);
+        $this->db->setConfiguration($reader);
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
@@ -182,7 +190,7 @@ class RunCommand extends Command
         $this->output->writeln("<info>Anonymizing $table</info>");
 
         try {
-            $queries = $this->anonDb->processEntity($table, function () use ($bar) {
+            $queries = $this->db->processEntity($table, function () use ($bar) {
                 $bar->advance();
             }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
         } catch (\Exception $e) {
@@ -208,14 +216,15 @@ class RunCommand extends Command
     private function countRecords(string $table): int
     {
         try {
-            $result = $this->pdo->query("SELECT COUNT(1) FROM $table");
+            $stmt = $this->db->getConn()->prepare("SELECT COUNT(1) AS total FROM $table");
+            $stmt->execute();
         } catch (\Exception $e) {
-            $msg = "Could not count records in table '$table' defined in your config";
+            $msg = "Could not count records in '$table' from your config : " . $e->getMessage();
             throw new \InvalidArgumentException($msg);
         }
 
-        $data = $result->fetchAll(\PDO::FETCH_COLUMN);
+        $data = $stmt->fetchAll();
 
-        return (int)$data[0];
+        return (int)$data[0]['total'];
     }
 }

@@ -126,7 +126,7 @@ abstract class AbstractAnonymizer
      *
      * @return array
      */
-    public function generateFakeData(string $entity): array
+    public function generateFakeData(string $entity, array $tableFields): array
     {
         $this->checkEntityIsInConfig($entity);
 
@@ -137,7 +137,12 @@ abstract class AbstractAnonymizer
         foreach ($entityCols as $colName => $colProps) {
             $args = empty($colProps['params']) ? [] : $colProps['params'];
             $data = call_user_func_array([$faker, $colProps['method']], $args);
+
             $entity[$colName] = $data;
+            // Cut the value if too long ...
+            if (!empty($tableFields[$colName]['length'])) {
+                $entity[$colName] = substr($data, 0, $tableFields[$colName]['length']);
+            }
         }
 
         return $entity;

@@ -25,6 +25,7 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => 'toto',
@@ -33,9 +34,9 @@ class RunCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessageRegExp |Can't connect to the database. Check your credentials|
-     */
+    * @expectedException InvalidArgumentException
+    * @expectedExceptionMessageRegExp |Could not count records in 'guestbook' from your config : An exception occurred in driver.*|
+    */
     public function testExecuteWrongPass()
     {
         $this->createPrimary();
@@ -47,6 +48,31 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
+            '--db' => getenv('DB_NAME'),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => 'toto',
+            '--config' => __DIR__ . '/_files/config.right.yaml'
+        ]);
+    }
+
+    /**
+    * @expectedException Doctrine\DBAL\DBALException
+    * @expectedExceptionMessageRegExp |The given 'driver' wrong_driver is unknown.*|
+    */
+    public function testExecuteWrongDriver()
+    {
+        $this->createPrimary();
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('run');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--driver' => 'wrong_driver',
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
@@ -57,7 +83,7 @@ class RunCommandTest extends ConfigurationDB
 
     /**
      * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage Could not count records in table 'accounts' defined in your config
+     * @expectedExceptionMessageRegExp |Could not count records in 'accounts' from your config : An exception occurred while .*|
      */
     public function testExecuteWrongTablePasswordOnCLI()
     {
@@ -70,6 +96,7 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
@@ -80,25 +107,29 @@ class RunCommandTest extends ConfigurationDB
 
     public function testExecuteFieldTooLong()
     {
+        $this->markTestIncomplete('Field too long must be checked for all DB Types ...');
+
         // Change the SQL Mode as travis does not have the same than us
         $sqlMode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
-        self::$pdo->query("SET @@global.sql_mode = '$sqlMode'");
+        $db = new \Inet\Neuralyzer\Anonymizer\DB($this->getDbParams());
+        $db->getConn()->query("SET @@global.sql_mode = '$sqlMode'");
 
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());
 
-        // We mock the DialogHelper
         $command = $application->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.fieldtoolong.yaml',
+            '--config' => __DIR__ . '/_files/config.right.fieldtoolong.yaml'
         ]);
+
         $regexp = '|Error anonymizing guestbook. Message was : Problem anonymizing guestbook \(SQLSTATE.+|';
         $this->assertRegExp($regexp, $commandTester->getDisplay());
     }
@@ -123,6 +154,7 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
@@ -154,6 +186,7 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
@@ -175,6 +208,7 @@ class RunCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),

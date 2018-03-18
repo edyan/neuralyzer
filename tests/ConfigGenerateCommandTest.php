@@ -32,8 +32,8 @@ class ConfigGenerateCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessageRegExp |Can't connect to the database. Check your credentials|
+     * @expectedException Doctrine\DBAL\Exception\ConnectionException
+     * @expectedExceptionMessageRegExp |An exception occurred in driver: SQLSTATE\[HY000\].*|
      */
     public function testExecuteWrongPass()
     {
@@ -53,7 +53,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         ]);
     }
 
-    public function testExecute()
+    public function testExecuteWorking()
     {
         $this->createPrimary();
         $application = new Application();
@@ -89,8 +89,8 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
-        $this->assertArrayHasKey('id', $values['entities']['guestbook']['cols']);
-        $this->assertArrayHasKey('user', $values['entities']['guestbook']['cols']);
+        $this->assertArrayHasKey('username', $values['entities']['guestbook']['cols']);
+        $this->assertArrayNotHasKey('id', $values['entities']['guestbook']['cols']);
 
         // remove the file
         unlink($temp);
@@ -153,7 +153,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
-            '--ignore-field' => ['.*\.user'],
+            '--ignore-field' => ['.*\.username'],
         ]);
         $this->assertRegExp('|Configuration written to.*|', $commandTester->getDisplay());
         $this->assertFileExists($temp);
@@ -166,7 +166,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
         $this->assertArrayNotHasKey('id', $values['entities']['guestbook']['cols']);
-        $this->assertArrayNotHasKey('user', $values['entities']['guestbook']['cols']);
+        $this->assertArrayNotHasKey('username', $values['entities']['guestbook']['cols']);
 
         // remove the file
         unlink($temp);
@@ -208,7 +208,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
-        $this->assertArrayHasKey('user', $values['entities']['guestbook']['cols']);
+        $this->assertArrayHasKey('username', $values['entities']['guestbook']['cols']);
         $this->assertArrayNotHasKey('id', $values['entities']['guestbook']['cols']);
 
         // remove the file

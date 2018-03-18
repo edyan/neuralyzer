@@ -70,40 +70,30 @@ class Guesser implements GuesserInterface
      *
      * @return array
      */
-    public function getColsTypeMapping(): array
+    public function getColsTypeMapping($length): array
     {
         return [
             // Strings
-            'char'       => ['method' => 'sentence', 'params' => [4]],
-            'varchar'    => ['method' => 'sentence', 'params' => [4]],
+            'string'       => ['method' => 'sentence', 'params' => [$length]],
 
             // Text & Blobs
-            'tinytext'   => ['method' => 'sentence', 'params' => [4]],
-            'tinyblob'   => ['method' => 'sentence', 'params' => [4]],
             'text'       => ['method' => 'sentence', 'params' => [20]],
             'blob'       => ['method' => 'sentence', 'params' => [20]],
-            'mediumtext' => ['method' => 'sentence', 'params' => [40]],
-            'mediumblob' => ['method' => 'sentence', 'params' => [40]],
-            'longtext'   => ['method' => 'sentence', 'params' => [70]],
-            'longblob'   => ['method' => 'sentence', 'params' => [70]],
 
             // DateTime
             'date'       => ['method' => 'date', 'params' => ['Y-m-d', 'now']],
             'datetime'   => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
-            'timestamp'  => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
             'time'       => ['method' => 'date', 'params' => ['H:i:s', 'now']],
 
             // Integer
-            'tinyint'    => ['method' => 'randomNumber', 'params' => [2]],
+            'boolean'    => ['method' => 'boolean',      'params' => [4]],
             'smallint'   => ['method' => 'randomNumber', 'params' => [4]],
-            'mediumint'  => ['method' => 'randomNumber', 'params' => [6]],
-            'int'        => ['method' => 'randomNumber', 'params' => [9]],
+            'integer'    => ['method' => 'randomNumber', 'params' => [9]],
             'bigint'     => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
 
             // Decimal
             'float'      => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
             'decimal'    => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
-            'double'     => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
         ];
     }
 
@@ -138,7 +128,7 @@ class Guesser implements GuesserInterface
         }
 
         // Try to find by fieldType
-        $colsType = $this->getColsTypeMapping();
+        $colsType = $this->getColsTypeMapping($len);
         if (!array_key_exists($type, $colsType)) {
             throw new NeuralizerGuesserException("Can't guess the type $type");
         }

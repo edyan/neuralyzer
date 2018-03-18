@@ -80,7 +80,7 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(string $version, string $dbType)
     {
-        $driver = $dbType === 'postgres' ? 'pgsql' : 'mysql';
+        $driver = $dbType === 'postgres' ? 'pdo_pgsql' : 'pdo_mysql';
 
         $this->taskDockerRun('edyan/php:' . $version)
             ->detached()->name('robo_php')->option('--rm')

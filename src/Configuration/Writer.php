@@ -18,6 +18,7 @@
 namespace Inet\Neuralyzer\Configuration;
 
 use Inet\Neuralyzer\GuesserInterface;
+use Inet\Neuralyzer\Anonymizer\DB;
 use Inet\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -26,6 +27,12 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Writer
 {
+    /**
+     * Doctrine conection handler
+     * @var \Doctrine\DBAL\Connection
+     */
+    private $conn;
+
     /**
      * Should I protect the cols ? That will also protect the Primary Keys
      *
@@ -103,16 +110,17 @@ class Writer
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param \PDO                              $pdo
+     * @param DB               $db
      * @param GuesserInterface $guesser
      *
      * @return array
      */
-    public function generateConfFromDB(\PDO $pdo, GuesserInterface $guesser): array
+    public function generateConfFromDB(DB $db, GuesserInterface $guesser): array
     {
+        $this->conn = $db->getConn();
 
         // First step : get the list of tables
-        $tables = $this->getTablesList($pdo);
+        $tables = $this->getTablesList();
         if (empty($tables)) {
             throw new NeuralizerConfigurationException('No tables to read in that database');
         }
@@ -120,7 +128,7 @@ class Writer
         // For each table, read the cols and guess the Faker
         $data = [];
         foreach ($tables as $table) {
-            $cols = $this->getColsList($pdo, $table);
+            $cols = $this->getColsList($table);
             // No cols because all are ignored ?
             if (empty($cols)) {
                 continue;
@@ -160,14 +168,14 @@ class Writer
      *
      * @return bool
      */
-    protected function colIgnored(string $table, string $col, bool $isPrimary): bool
+    protected function colIgnored(string $table, string $col): bool
     {
         if ($this->protectCols === false) {
             return false;
         }
 
         foreach ($this->protectedCols as $protectedCol) {
-            if ($isPrimary || preg_match("/^$protectedCol\$/", $table. '.' . $col)) {
+            if (preg_match("/^$protectedCol\$/", $table. '.' . $col)) {
                 return true;
             }
         }
@@ -178,22 +186,20 @@ class Writer
     /**
      * Get the table lists from a connection
      *
-     * @param \PDO $pdo
-     *
      * @return array
      */
-    protected function getTablesList(\PDO $pdo): array
+    protected function getTablesList(): array
     {
-        $result = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
+        $schemaManager = $this->conn->getSchemaManager();
 
-        $tables = $result->fetchAll(\PDO::FETCH_COLUMN);
-        foreach ($tables as $key => $val) {
-            if ($this->tableIgnored($val)) {
-                unset($tables[$key]);
+        $tablesInDB = $schemaManager->listTables();
+        $tables = [];
+        foreach ($tablesInDB as $table) {
+            if ($this->tableIgnored($table->getName())) {
                 continue;
             }
 
-            $this->tablesInConf[] = $val;
+            $tables[] = $this->tablesInConf[] = $table->getName();
         }
 
         return array_values($tables);
@@ -202,50 +208,33 @@ class Writer
     /**
      * Get the cols lists from a connection + table
      *
-     * @param \PDO   $pdo
      * @param string $table
      *
      * @return array
      */
-    protected function getColsList(\PDO $pdo, string $table): array
+    protected function getColsList(string $table): array
     {
-        $result = $pdo->query("SHOW COLUMNS FROM $table");
+        $schema = $this->conn->getSchemaManager();
+        $tableDetails = $schema->listTableDetails($table);
+        // No primary ? Exception !
+        if ($tableDetails->hasPrimaryKey() === false) {
+            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
+        }
+        $primaryKey = $tableDetails->getPrimaryKey()->getColumns()[0];
 
-        $cols = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $cols = $schema->listTableColumns($table);
         $colsInfo = [];
-
-        $hasPrimary = false;
         foreach ($cols as $col) {
-            // get the info that we found a primary key
-            $isPrimary = ($col['Key'] === 'PRI'  ? true : false);
-            if ($isPrimary) {
-                $hasPrimary = true;
-            }
-
             // If the col has to be ignored: just leave
-            if ($this->colIgnored($table, $col['Field'], $isPrimary)) {
+            if ($primaryKey === $col->getName() || $this->colIgnored($table, $col->getName())) {
                 continue;
             }
 
-            $length = null;
-            $type = $col['Type'];
-            preg_match('|^(.*)\((.*)\)|', $col['Type'], $colProps);
-            if (!empty($colProps)) {
-                $type = $colProps[1];
-                $length = $colProps[2];
-            }
-
             $colsInfo[] = [
-                'name' => $col['Field'],
-                'type' => $type,
-                'len'  => $length,
-                'id'   => $isPrimary,
+                'name' => $col->getName(),
+                'type' => strtolower((string)$col->getType()),
+                'len'  => $col->getLength()
             ];
-        }
-
-        // No primary ? Exception !
-        if ($hasPrimary === false) {
-            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
         }
 
         return $colsInfo;

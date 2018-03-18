@@ -2,6 +2,7 @@
 
 namespace Inet\Neuralyzer\Tests;
 
+use Inet\Neuralyzer\Anonymizer\DB;
 use Inet\Neuralyzer\Configuration\Writer;
 use Inet\Neuralyzer\Configuration\Reader;
 use Inet\Neuralyzer\Guesser;
@@ -17,10 +18,8 @@ class ConfigWriterTest extends ConfigurationDB
      */
     public function testGenerateConfNoPrimary()
     {
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
         $writer = new Writer;
-        $writer->generateConfFromDB($pdo, new Guesser);
+        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
     }
 
     /**
@@ -30,10 +29,9 @@ class ConfigWriterTest extends ConfigurationDB
     public function testGenerateConfNoTable()
     {
         $this->dropTable();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
-        $writer->generateConfFromDB($pdo, new Guesser);
+        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
     }
 
     /**
@@ -43,11 +41,10 @@ class ConfigWriterTest extends ConfigurationDB
     public function testGenerateConfIgnoreAllFields()
     {
         $this->createPrimary();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
         $writer->setProtectedCols($this->protectedCols);
-        $writer->generateConfFromDB($pdo, new Guesser);
+        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
     }
 
     /**
@@ -57,27 +54,25 @@ class ConfigWriterTest extends ConfigurationDB
     public function testGenerateConfIgnoreAllTables()
     {
         $this->createPrimary();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
         $writer->setIgnoredTables($this->ignoredTables);
-        $writer->generateConfFromDB($pdo, new Guesser);
+        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
     }
 
     public function testGenerateConfDontIgnore()
     {
         $this->createPrimary();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
         $writer->setProtectedCols(['.*\..*']);
         $writer->protectCols(false);
-        $entities = $writer->generateConfFromDB($pdo, new Guesser);
+        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
         $this->assertInternalType('array', $entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
         $this->assertArrayHasKey('cols', $entities['entities']['guestbook']);
-        $this->assertArrayHasKey('id', $entities['entities']['guestbook']['cols']);
+        $this->assertArrayNotHasKey('id', $entities['entities']['guestbook']['cols']);
 
         $tablesInConf = $writer->getTablesInConf();
         $this->assertInternalType('array', $tablesInConf);
@@ -87,18 +82,17 @@ class ConfigWriterTest extends ConfigurationDB
     public function testGenerateConfWriteable()
     {
         $this->createPrimary();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
-        $writer->setProtectedCols(['.*\.user']);
+        $writer->setProtectedCols(['.*\.username']);
         $writer->protectCols(true);
-        $entities = $writer->generateConfFromDB($pdo, new Guesser);
+        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
         $this->assertInternalType('array', $entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
         $this->assertArrayHasKey('cols', $entities['entities']['guestbook']);
         $this->assertArrayNotHasKey('id', $entities['entities']['guestbook']['cols']);
-        $this->assertArrayNotHasKey('user', $entities['entities']['guestbook']['cols']);
+        $this->assertArrayNotHasKey('username', $entities['entities']['guestbook']['cols']);
         $this->assertArrayHasKey('content', $entities['entities']['guestbook']['cols']);
 
         // check the configuration for the date
@@ -107,7 +101,7 @@ class ConfigWriterTest extends ConfigurationDB
         $this->assertArrayHasKey('method', $created);
         $this->assertArrayHasKey('params', $created);
         $this->assertEquals('date', $created['method']);
-        $this->assertEquals('Y-m-d H:i:s', $created['params'][0]);
+        $this->assertEquals('Y-m-d', $created['params'][0]);
 
         // save it
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');
@@ -131,12 +125,11 @@ class ConfigWriterTest extends ConfigurationDB
     public function testGenerateConfNotWriteable()
     {
         $this->createPrimary();
-        $conn = $this->getConnection();
-        $pdo = $conn->getConnection();
+
         $writer = new Writer;
-        $writer->setProtectedCols(['.*\.user']);
+        $writer->setProtectedCols(['.*\.username']);
         $writer->protectCols(true);
-        $entities = $writer->generateConfFromDB($pdo, new Guesser);
+        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
         // save it
         $writer->save($entities, '/doesntexist/toto');
     }

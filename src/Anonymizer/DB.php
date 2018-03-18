@@ -17,6 +17,8 @@
 
 namespace Inet\Neuralyzer\Anonymizer;
 
+use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Inet\Neuralyzer\Exception\NeuralizerException;
 
 /**
@@ -25,28 +27,20 @@ use Inet\Neuralyzer\Exception\NeuralizerException;
 class DB extends AbstractAnonymizer
 {
     /**
-     * The PDO connection
+     * Zend DB Adapter
      *
-     * @var \PDO
+     * @var \Doctrine\DBAL\Connection
      */
-    private $pdo;
-
-    /**
-     * Prepared statement is stored for the update, to make the queries faster
-     *
-     * @var \PDOStatement
-     */
-    private $preparedStmt;
+    private $conn;
 
     /**
      * Constructor
      *
-     * @param \PDO $pdo
+     * @param $params   Parameters to send to Doctrine DB
      */
-    public function __construct(\PDO $pdo)
+    public function __construct(array $params)
     {
-        $this->pdo = $pdo;
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->conn = \Doctrine\DBAL\DriverManager::getConnection($params, new DbalConfiguration());
     }
 
     /**
@@ -65,6 +59,11 @@ class DB extends AbstractAnonymizer
         bool $pretend = true,
         bool $returnResult = false
     ) {
+        $schema = $this->conn->getSchemaManager();
+        if ($schema->tablesExist($table) === false) {
+            throw new NeuralizerException("Table $table does not exist");
+        }
+
         $queries = [];
         $actionsOnThatEntity = $this->whatToDoWithEntity($table);
 
@@ -77,35 +76,44 @@ class DB extends AbstractAnonymizer
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
             // I need to read line by line if I have to update the table
             // to make sure I do update by update (slower but no other choice for now)
-            $i = 0;
-            $this->preparedStmt = null;
+            $rowNum = 0;
 
             $key = $this->getPrimaryKey($table);
-            $res = $this->pdo->query("SELECT $key FROM $table");
-            $res->setFetchMode(\PDO::FETCH_ASSOC);
+            $tableCols = $this->getTableCols($table);
 
-            $this->pdo->beginTransaction();
+            $queryBuilder = $this->conn->createQueryBuilder();
+            $rows = $queryBuilder->select($key)->from($table)->execute();
 
-            while ($row = $res->fetch()) {
+            foreach ($rows as $row) {
                 $val = $row[$key];
-                $data = $this->generateFakeData($table);
+                $data = $this->generateFakeData($table, $tableCols);
+                $queryBuilder = $this->prepareUpdate($table, $data, $key, $val);
+
+                ($returnResult === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
 
                 if ($pretend === false) {
-                    $this->runUpdate($table, $data, $key, $val);
+                    $this->runUpdate($queryBuilder, $table);
                 }
-                ($returnResult === true ? array_push($queries, $this->buildUpdateSQL($table, $data, "$key = '$val'")) : '');
 
                 if (!is_null($callback)) {
-                    $callback(++$i);
+                    $callback(++$rowNum);
                 }
             }
-
-            // Commit, even if I am in pretend (that will do ... nothing)
-            $this->pdo->commit();
         }
 
         return $queries;
     }
+
+
+    /**
+     * Get Doctrine Connection
+     * @return Doctrine\DBAL\Connection
+     */
+    public function getConn()
+    {
+        return $this->conn;
+    }
+
 
     /**
      * Identify the primary key for a table
@@ -116,66 +124,94 @@ class DB extends AbstractAnonymizer
      */
     protected function getPrimaryKey(string $table)
     {
-        try {
-            $res = $this->pdo->query("SHOW COLUMNS FROM $table WHERE `Key` = 'Pri'");
-        } catch (\Exception $e) {
-            throw new NeuralizerException('Query Error : ' . $e->getMessage());
-        }
-
-        $primary = $res->fetchAll(\PDO::FETCH_COLUMN);
-        // Didn't find a primary key !
-        if (empty($primary)) {
+        $schema = $this->conn->getSchemaManager();
+        $tableDetails = $schema->listTableDetails($table);
+        if ($tableDetails->hasPrimaryKey() === false) {
             throw new NeuralizerException("Can't find a primary key for '$table'");
         }
 
-        return $primary[0];
+        return $tableDetails->getPrimaryKey()->getColumns()[0];
     }
+
+
+    /**
+     * Identify the primary key for a table
+     *
+     * @param string $table
+     *
+     * @return array $cols
+     */
+    protected function getTableCols(string $table)
+    {
+        $schema = $this->conn->getSchemaManager();
+        $tableCols = $schema->listTableColumns($table);
+        $cols = [];
+        foreach ($tableCols as $col) {
+            $cols[$col->getName()] = [
+                'length' => $col->getLength(),
+            ];
+        }
+
+        return $cols;
+    }
+
 
     /**
      * Execute the Update with PDO
      *
-     * @param string $table      Name of the table
-     * @param array  $data       Array of fields => value to update the table
-     * @param string $primaryKey
-     * @param string $val        Primary Key's Value
+     * @param  string $table      Name of the table
+     * @param  array  $data       Array of fields => value to update the table
+     * @param  string $primaryKey
+     * @param  string $val        Primary Key's Value
+     * @return string             Doctrine DBAL QueryBuilder
      */
-    private function runUpdate(string $table, array $data, string $primaryKey, $val)
+    private function prepareUpdate(string $table, array $data, string $primaryKey, $val)
     {
-        if (is_null($this->preparedStmt)) {
-            $this->prepareStmt($table, $primaryKey, array_keys($data));
-        }
-
-        $values = [":$primaryKey" => $val];
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $queryBuilder->update($table);
         foreach ($data as $field => $value) {
-            $values[":$field"] = $value;
+            $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
+            $queryBuilder = $queryBuilder->set($field, $condition);
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
+        $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
+        $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $val);
 
+        return $queryBuilder;
+    }
+
+
+    /**
+     * Execute the Update with PDO
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param string                     $table          Name of the table
+     */
+    private function runUpdate(QueryBuilder $queryBuilder, string $table)
+    {
         try {
-            $this->preparedStmt->execute($values);
-        } catch (\PDOException $e) {
-            $this->pdo->rollback();
+            $queryBuilder->execute();
+        } catch (\Doctrine\DBAL\Exception\DriverException $e) {
             throw new NeuralizerException("Problem anonymizing $table (" . $e->getMessage() . ')');
         }
     }
 
+
     /**
-     * Prepare the statement if asked
-     *
-     * @param string $table
-     * @param string $primaryKey
-     * @param array  $fieldNames
-     *
-     * @return \PDOStatement
+     * To debug, build the final SQL (can be approximative)
+     * @param  QueryBuilder $queryBuilder
+     * @return string
      */
-    private function prepareStmt(string $table, string $primaryKey, array $fieldNames)
+    private function getRawSQL(QueryBuilder $queryBuilder)
     {
-        $fields = [];
-        foreach ($fieldNames as $field) {
-            $fields[] = "$field = IF($field IS NOT NULL, :$field, NULL)";
+        $sql = $queryBuilder->getSQL();
+        foreach ($queryBuilder->getParameters() as $parameter => $value) {
+            $sql = str_replace($parameter, "'$value'", $sql);
         }
-        $sql = "UPDATE $table SET " . implode(', ', $fields) . " WHERE $primaryKey = :$primaryKey";
-        $this->preparedStmt = $this->pdo->prepare($sql);
+
+        return $sql;
     }
+
 
     /**
      * Execute the Delete with PDO
@@ -188,39 +224,22 @@ class DB extends AbstractAnonymizer
      */
     private function runDelete(string $table, string $where, bool $pretend): string
     {
-        $where = empty($where) ? '' : " WHERE $where";
-        $sql = "DELETE FROM {$table}{$where}";
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $queryBuilder->delete($table);
+        if (!empty($where)) {
+            $queryBuilder = $queryBuilder->where($where);
+        }
+        $sql = $queryBuilder->getSQL();
 
         if ($pretend === true) {
             return $sql;
         }
 
         try {
-            $this->pdo->query($sql);
+            $queryBuilder->execute();
         } catch (\Exception $e) {
             throw new NeuralizerException('Query DELETE Error (' . $e->getMessage() . ')');
         }
-
-        return $sql;
-    }
-
-    /**
-     * Build the SQL just for debug
-     *
-     * @param string $table
-     * @param array  $data
-     * @param string $where
-     *
-     * @return string
-     */
-    private function buildUpdateSQL(string $table, array $data, string $where): string
-    {
-        $fieldsVals = [];
-        foreach ($data as $field => $value) {
-            $fieldsVals[] = "$field = IF($field IS NOT NULL, '" . $this->pdo->quote($value) . "', NULL)";
-        }
-
-        $sql = "UPDATE $table SET " . implode(', ', $fieldsVals) . " WHERE $where";
 
         return $sql;
     }
