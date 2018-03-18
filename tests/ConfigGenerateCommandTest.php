@@ -25,6 +25,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => 'toto',
@@ -33,7 +34,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
 
     /**
      * @expectedException Doctrine\DBAL\Exception\ConnectionException
-     * @expectedExceptionMessageRegExp |An exception occurred in driver: SQLSTATE\[HY000\].*|
+     * @expectedExceptionMessageRegExp |An exception occurred in driver: SQLSTATE.*|
      */
     public function testExecuteWrongPass()
     {
@@ -46,6 +47,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
@@ -73,6 +75,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
@@ -120,6 +123,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
@@ -149,6 +153,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
@@ -192,6 +197,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
             '--host' => getenv('DB_HOST'),
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),

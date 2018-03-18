@@ -61,6 +61,7 @@ class Writer
      */
     protected $tablesInConf = [];
 
+
     /**
      * Set Change Id to ask the writer to ignore (or not) the protectedCols
      *
@@ -72,6 +73,7 @@ class Writer
 
         return $this;
     }
+
 
     /**
      * Set protected cols
@@ -85,6 +87,7 @@ class Writer
         return $this;
     }
 
+
     /**
      * Set protected cols
      *
@@ -97,6 +100,7 @@ class Writer
         return $this;
     }
 
+
     /**
      * Get Tables List added to the conf
      *
@@ -106,6 +110,7 @@ class Writer
     {
         return $this->tablesInConf;
     }
+
 
     /**
      * Generate the configuration by reading tables + cols

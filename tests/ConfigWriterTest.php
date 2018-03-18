@@ -100,8 +100,8 @@ class ConfigWriterTest extends ConfigurationDB
         $this->assertInternalType('array', $created);
         $this->assertArrayHasKey('method', $created);
         $this->assertArrayHasKey('params', $created);
-        $this->assertEquals('date', $created['method']);
-        $this->assertEquals('Y-m-d', $created['params'][0]);
+        $this->assertEquals('datetime', $created['method']);
+        $this->assertEquals('now', $created['params'][0]);
 
         // save it
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');

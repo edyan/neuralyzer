@@ -236,3 +236,9 @@ To build with Robo :
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo phar:build
 ```
+
+
+
+
+
+BE CAREFUL OF DATE  TYPE in CONFIG !!!!

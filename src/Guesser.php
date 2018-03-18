@@ -81,9 +81,9 @@ class Guesser implements GuesserInterface
             'blob'       => ['method' => 'sentence', 'params' => [20]],
 
             // DateTime
-            'date'       => ['method' => 'date', 'params' => ['Y-m-d', 'now']],
-            'datetime'   => ['method' => 'date', 'params' => ['Y-m-d H:i:s', 'now']],
-            'time'       => ['method' => 'date', 'params' => ['H:i:s', 'now']],
+            'date'       => ['method' => 'datetime', 'params' => ['now']],
+            'datetime'   => ['method' => 'datetime', 'params' => ['now']],
+            'time'       => ['method' => 'datetime', 'params' => ['now']],
 
             // Integer
             'boolean'    => ['method' => 'boolean',      'params' => [4]],

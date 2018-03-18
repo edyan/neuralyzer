@@ -27,7 +27,7 @@ use Inet\Neuralyzer\Exception\NeuralizerException;
 class DB extends AbstractAnonymizer
 {
     /**
-     * Zend DB Adapter
+     * Doctrine DB Adapter
      *
      * @var \Doctrine\DBAL\Connection
      */
@@ -87,7 +87,7 @@ class DB extends AbstractAnonymizer
             foreach ($rows as $row) {
                 $val = $row[$key];
                 $data = $this->generateFakeData($table, $tableCols);
-                $queryBuilder = $this->prepareUpdate($table, $data, $key, $val);
+                $queryBuilder = $this->prepareUpdate($table, $tableCols, $data, $key, $val);
 
                 ($returnResult === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
 
@@ -149,6 +149,7 @@ class DB extends AbstractAnonymizer
         foreach ($tableCols as $col) {
             $cols[$col->getName()] = [
                 'length' => $col->getLength(),
+                'type'   => $col->getType(),
             ];
         }
 
@@ -165,14 +166,14 @@ class DB extends AbstractAnonymizer
      * @param  string $val        Primary Key's Value
      * @return string             Doctrine DBAL QueryBuilder
      */
-    private function prepareUpdate(string $table, array $data, string $primaryKey, $val)
+    private function prepareUpdate(string $table, array $cols, array $data, string $primaryKey, $val)
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         $queryBuilder = $queryBuilder->update($table);
         foreach ($data as $field => $value) {
             $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
             $queryBuilder = $queryBuilder->set($field, $condition);
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value, $cols[$field]['type']);
         }
         $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
         $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $val);
@@ -206,6 +207,9 @@ class DB extends AbstractAnonymizer
     {
         $sql = $queryBuilder->getSQL();
         foreach ($queryBuilder->getParameters() as $parameter => $value) {
+            if (is_object($value)) {
+                $value = '{object}';
+            }
             $sql = str_replace($parameter, "'$value'", $sql);
         }
 

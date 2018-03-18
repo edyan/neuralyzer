@@ -13,9 +13,9 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
      */
     static protected $pdo = null;
 
-    protected $tableName = 'guestbook';
+    static protected $doctrine;
 
-    protected $doctrine;
+    protected $tableName = 'guestbook';
 
     /**
      * PDO Default DB Connection for PHPUnit
@@ -31,12 +31,6 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
     final public function getConnection()
     {
         $this->dbName = getenv('DB_NAME');
-
-        ###### FOR US
-        $this->doctrine = \Doctrine\DBAL\DriverManager::getConnection(
-            $this->getDbParams(),
-            new \Doctrine\DBAL\Configuration
-        );
 
         ###### FOR PHPUNIT
         $driver = getenv('DB_DRIVER');
@@ -76,7 +70,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
 
     public function createPrimary()
     {
-        $schemaManager = $this->doctrine->getSchemaManager();
+        $schemaManager = $this->getDoctrine()->getSchemaManager();
 
         $fromSchema = $schemaManager->createSchema();
         $toSchema = clone $fromSchema;
@@ -89,7 +83,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
 
     public function dropTable()
     {
-        $schemaManager = $this->doctrine->getSchemaManager();
+        $schemaManager = $this->getDoctrine()->getSchemaManager();
 
         $fromSchema = $schemaManager->createSchema();
         $toSchema = clone $fromSchema;
@@ -101,7 +95,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
 
     public function truncateTable()
     {
-        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $queryBuilder->delete($this->tableName)->execute();
     }
 
@@ -115,6 +109,18 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
             'user' => getenv('DB_USER'),
             'password' => getenv('DB_PASSWORD'),
         ];
+    }
+
+    protected function getDoctrine()
+    {
+        if (empty(self::$doctrine)) {
+            self::$doctrine = \Doctrine\DBAL\DriverManager::getConnection(
+                $this->getDbParams(),
+                new \Doctrine\DBAL\Configuration
+            );
+        }
+
+        return self::$doctrine;
     }
 
 
@@ -133,26 +139,26 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         $myTable->addColumn('username', 'string', ['length' => 32]);
         $myTable->addColumn('created', 'date');
 
-        $queries = $schema->toSql($this->doctrine->getDatabasePlatform());
+        $queries = $schema->toSql($this->getDoctrine()->getDatabasePlatform());
         if (empty($queries)) {
             return;
         }
 
         foreach ($queries as $query) {
-            $this->doctrine->executeQuery($query);
+            $this->getDoctrine()->executeQuery($query);
         }
     }
 
 
     private function doctrineMigrate(Schema $fromSchema, Schema $toSchema)
     {
-        $queries = $fromSchema->getMigrateToSql($toSchema, $this->doctrine->getDatabasePlatform());
+        $queries = $fromSchema->getMigrateToSql($toSchema, $this->getDoctrine()->getDatabasePlatform());
         if (empty($queries)) {
             return;
         }
 
         foreach ($queries as $query) {
-            $this->doctrine->executeQuery($query);
+            $this->getDoctrine()->executeQuery($query);
         }
     }
 }

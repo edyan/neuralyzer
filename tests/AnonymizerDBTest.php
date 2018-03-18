@@ -149,7 +149,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
 
         // check no data changed
-        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertNotEmpty($data);
@@ -174,7 +174,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
 
         // check that I have only one record remaining
-        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertEquals(1, count($data));
@@ -205,7 +205,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertEquals('DELETE FROM guestbook', $queries[0]);
 
         // check that I have only one record remaining
-        $queryBuilder = $this->doctrine->createQueryBuilder();
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertEmpty($data);

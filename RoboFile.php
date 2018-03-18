@@ -31,9 +31,9 @@ class RoboFile extends \Robo\Tasks
      * Run All Unit Test
      * @param  array  $opts
      */
-    public function test($opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false])
+    public function test($opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false, 'wait' => 5])
     {
-        $this->setupDocker($opts['php'], $opts['db']);
+        $this->setupDocker($opts['php'], $opts['db'], $opts['wait']);
 
         $this->taskDockerExec('robo_php')
             ->interactive()
@@ -47,7 +47,7 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function setupDocker(string $php = '7.1', string $dbType = 'mysql')
+    private function setupDocker(string $php = '7.1', string $dbType = 'mysql', int $wait)
     {
         $this->destroyDocker();
 
@@ -56,6 +56,8 @@ class RoboFile extends \Robo\Tasks
         }
 
         $this->startDb($dbType);
+        $this->say("Waiting $wait seconds $dbType to start");
+        sleep($wait);
         $this->startPHP($php, $dbType);
     }
 
@@ -67,27 +69,29 @@ class RoboFile extends \Robo\Tasks
                          ->env('MYSQL_DATABASE', 'test_db');
         } elseif ($type === 'postgres') {
             $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'root')
-                         ->env('POSTGRES_USER', 'root')
                          ->env('POSTGRES_DB', 'test_db');
         }
 
         $dbCt->run();
-
-        $this->say("Waiting 10 seconds $type to start");
-        sleep(10);
     }
 
 
     private function startPHP(string $version, string $dbType)
     {
-        $driver = $dbType === 'postgres' ? 'pdo_pgsql' : 'pdo_mysql';
+        $driver = 'pdo_mysql';
+        $dbUser = 'root';
+        if ($dbType === 'postgres') {
+            $driver = 'pdo_pgsql';
+            $dbUser = 'postgres';
+        }
 
         $this->taskDockerRun('edyan/php:' . $version)
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
-            ->env('DB_HOST', 'mysql')->env('DB_PASSWORD', 'root')->env('DB_DRIVER', $driver)
+            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $driver)
+            ->env('DB_PASSWORD', 'root')->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')
-            ->link('robo_db', 'mysql')
+            ->link('robo_db', 'robo_db')
             ->run();
     }
 
