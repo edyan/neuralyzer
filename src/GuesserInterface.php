@@ -30,8 +30,9 @@ interface GuesserInterface
     public function getColsNameMapping(): array;
 
     /**
-     * Retruns an array of fieldType => Faker class
+     * Returns an array of fieldType => Faker method
      *
+     * @param  mixed $length  Field's length
      * @return array
      */
     public function getColsTypeMapping($length): array;

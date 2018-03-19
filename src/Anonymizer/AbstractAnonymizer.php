@@ -68,10 +68,10 @@ abstract class AbstractAnonymizer
     /**
      * Process the entity according to the anonymizer type
      *
-     * @param string        $entity
-     * @param callable|null $callback
-     * @param bool          $pretend
-     * @param bool          $returnResult
+     * @param string        $entity         Entity's name
+     * @param callable|null $callback       Callback function with current row num as parameter
+     * @param bool          $pretend        Simulate update
+     * @param bool          $returnRes      Return queries
      */
     abstract public function processEntity(
         string $entity,

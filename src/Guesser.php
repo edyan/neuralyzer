@@ -32,7 +32,7 @@ class Guesser implements GuesserInterface
      */
     public function getVersion(): string
     {
-        return '1.0.0b';
+        return '3.0';
     }
 
     /**
@@ -65,8 +65,10 @@ class Guesser implements GuesserInterface
         ];
     }
 
+
     /**
-     * Retruns an array of fieldType => Faker class
+     * Returns an array of fieldType => Faker method
+     * @param  mixed $length  Field's length
      *
      * @return array
      */

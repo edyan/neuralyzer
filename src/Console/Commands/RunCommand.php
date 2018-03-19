@@ -45,11 +45,15 @@ class RunCommand extends Command
     private $command = 'run';
 
     /**
+     * Symfony's Input Class for parameters and options
+     *
      * @var InputInterface
      */
     private $input;
 
     /**
+     * Symfony's Output Class to display info
+     *
      * @var OutputInterface
      */
     private $output;
@@ -118,8 +122,8 @@ class RunCommand extends Command
     /**
      * Execute the command
      *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
+     * @param InputInterface  $input   Symfony's Input Class for parameters and options
+     * @param OutputInterface $output  Symfony's Output Class to display infos
      *
      * @return void
      */

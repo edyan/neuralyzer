@@ -112,7 +112,8 @@ class Writer
     /**
      * Set a flat to protect cols (Primary Key is protected by default)
      *
-     * @param bool
+     * @param  bool   $protectCols
+     * @return Writer
      */
     public function protectCols(bool $protectCols): Writer
     {
@@ -142,6 +143,7 @@ class Writer
      * Set protected cols
      *
      * @param array $ignoredTables
+     * @return Writer
      */
     public function setIgnoredTables(array $ignoredTables): Writer
     {
@@ -155,6 +157,7 @@ class Writer
      * Set protected cols
      *
      * @param array $protectedCols
+     * @return Writer
      */
     public function setProtectedCols(array $protectedCols): Writer
     {
@@ -169,7 +172,6 @@ class Writer
      *
      * @param  string $table
      * @param  string $col
-     * @param  bool   $isPrimary
      * @return bool
      */
     protected function colIgnored(string $table, string $col): bool
