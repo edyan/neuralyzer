@@ -4,12 +4,11 @@
  *
  * PHP Version 7.1
  *
+ * @package edyan/neuralyzer
+ *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
- *
- * @package edyan/neuralyzer
- *
  * @license GNU General Public License v2.0
  *
  * @link https://github.com/edyan/neuralyzer
@@ -17,9 +16,9 @@
 
 namespace Edyan\Neuralyzer\Configuration;
 
-use Edyan\Neuralyzer\GuesserInterface;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\GuesserInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -28,10 +27,11 @@ use Symfony\Component\Yaml\Yaml;
 class Writer
 {
     /**
-     * Doctrine conection handler
-     * @var \Doctrine\DBAL\Connection
+     * List of tables patterns to ignore
+     *
+     * @var array
      */
-    private $conn;
+    protected $ignoredTables = [];
 
     /**
      * Should I protect the cols ? That will also protect the Primary Keys
@@ -48,76 +48,24 @@ class Writer
     protected $protectedCols = ['id', 'parent_id'];
 
     /**
-     * List of tables patterns to ignore
-     *
-     * @var array
-     */
-    protected $ignoredTables = [];
-
-    /**
      * Store the tables added to the conf
      *
      * @var array
      */
     protected $tablesInConf = [];
 
-
     /**
-     * Set Change Id to ask the writer to ignore (or not) the protectedCols
-     *
-     * @param    bool
+     * Doctrine conection handler
+     * @var \Doctrine\DBAL\Connection
      */
-    public function protectCols(bool $protect): Writer
-    {
-        $this->protectCols = $protect;
-
-        return $this;
-    }
-
-
-    /**
-     * Set protected cols
-     *
-     * @param array $cols
-     */
-    public function setProtectedCols(array $cols): Writer
-    {
-        $this->protectedCols = $cols;
-
-        return $this;
-    }
-
-
-    /**
-     * Set protected cols
-     *
-     * @param array $tables
-     */
-    public function setIgnoredTables(array $tables): Writer
-    {
-        $this->ignoredTables = $tables;
-
-        return $this;
-    }
-
-
-    /**
-     * Get Tables List added to the conf
-     *
-     * @return array
-     */
-    public function getTablesInConf(): array
-    {
-        return $this->tablesInConf;
-    }
+    private $conn;
 
 
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param DB               $db
-     * @param GuesserInterface $guesser
-     *
+     * @param  DB               $db
+     * @param  GuesserInterface $guesser
      * @return array
      */
     public function generateConfFromDB(DB $db, GuesserInterface $guesser): array
@@ -149,6 +97,31 @@ class Writer
         return ['guesser_version' => $guesser->getVersion(), 'entities' => $data];
     }
 
+
+    /**
+     * Get Tables List added to the conf
+     *
+     * @return array
+     */
+    public function getTablesInConf(): array
+    {
+        return $this->tablesInConf;
+    }
+
+
+    /**
+     * Set a flat to protect cols (Primary Key is protected by default)
+     *
+     * @param bool
+     */
+    public function protectCols(bool $protectCols): Writer
+    {
+        $this->protectCols = $protectCols;
+
+        return $this;
+    }
+
+
     /**
      * Save the data to the file as YAML
      *
@@ -164,13 +137,39 @@ class Writer
         file_put_contents($filename, Yaml::dump($data, 4));
     }
 
+
+    /**
+     * Set protected cols
+     *
+     * @param array $ignoredTables
+     */
+    public function setIgnoredTables(array $ignoredTables): Writer
+    {
+        $this->ignoredTables = $ignoredTables;
+
+        return $this;
+    }
+
+
+    /**
+     * Set protected cols
+     *
+     * @param array $protectedCols
+     */
+    public function setProtectedCols(array $protectedCols): Writer
+    {
+        $this->protectedCols = $protectedCols;
+
+        return $this;
+    }
+
+
     /**
      * Check if that col has to be ignored
      *
-     * @param string $table
-     * @param string $col
-     * @param bool   $isPrimary
-     *
+     * @param  string $table
+     * @param  string $col
+     * @param  bool   $isPrimary
      * @return bool
      */
     protected function colIgnored(string $table, string $col): bool
@@ -180,13 +179,49 @@ class Writer
         }
 
         foreach ($this->protectedCols as $protectedCol) {
-            if (preg_match("/^$protectedCol\$/", $table. '.' . $col)) {
+            if (preg_match("/^$protectedCol\$/", $table . '.' . $col)) {
                 return true;
             }
         }
 
         return false;
     }
+
+
+    /**
+     * Get the cols lists from a connection + table
+     *
+     * @param  string  $table
+     * @return array
+     */
+    protected function getColsList(string $table): array
+    {
+        $schema = $this->conn->getSchemaManager();
+        $tableDetails = $schema->listTableDetails($table);
+        // No primary ? Exception !
+        if ($tableDetails->hasPrimaryKey() === false) {
+            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
+        }
+        $primaryKey = $tableDetails->getPrimaryKey()->getColumns()[0];
+
+        $cols = $schema->listTableColumns($table);
+        $colsInfo = [];
+        foreach ($cols as $col) {
+            // If the col has to be ignored: just leave
+            if ($primaryKey === $col->getName() || $this->colIgnored($table, $col->getName())) {
+                continue;
+            }
+
+            $colsInfo[] = [
+                'name' => $col->getName(),
+                'type' => strtolower((string) $col->getType()),
+                'len' => $col->getLength(),
+            ];
+        }
+
+        return $colsInfo;
+    }
+
 
     /**
      * Get the table lists from a connection
@@ -210,48 +245,13 @@ class Writer
         return array_values($tables);
     }
 
-    /**
-     * Get the cols lists from a connection + table
-     *
-     * @param string $table
-     *
-     * @return array
-     */
-    protected function getColsList(string $table): array
-    {
-        $schema = $this->conn->getSchemaManager();
-        $tableDetails = $schema->listTableDetails($table);
-        // No primary ? Exception !
-        if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
-        }
-        $primaryKey = $tableDetails->getPrimaryKey()->getColumns()[0];
-
-        $cols = $schema->listTableColumns($table);
-        $colsInfo = [];
-        foreach ($cols as $col) {
-            // If the col has to be ignored: just leave
-            if ($primaryKey === $col->getName() || $this->colIgnored($table, $col->getName())) {
-                continue;
-            }
-
-            $colsInfo[] = [
-                'name' => $col->getName(),
-                'type' => strtolower((string)$col->getType()),
-                'len'  => $col->getLength()
-            ];
-        }
-
-        return $colsInfo;
-    }
 
     /**
      * Guess the cols with the guesser
      *
-     * @param string                            $table
-     * @param array                             $cols
-     * @param GuesserInterface $guesser
-     *
+     * @param  string           $table
+     * @param  array            $cols
+     * @param  GuesserInterface $guesser
      * @return array
      */
     protected function guessColsAnonType(string $table, array $cols, GuesserInterface $guesser): array
@@ -264,11 +264,11 @@ class Writer
         return $mapping;
     }
 
+
     /**
      * Check if that table has to be ignored
      *
-     * @param string $table
-     *
+     * @param  string $table
      * @return bool
      */
     protected function tableIgnored(string $table): bool

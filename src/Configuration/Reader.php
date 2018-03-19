@@ -55,8 +55,9 @@ class Reader
      */
     protected $configValues = [];
 
+
     /**
-     * Constructor
+     * Set a few properties, open the config file and parse it
      *
      * @param string $configFileName
      * @param array  $configDirectories
@@ -72,6 +73,7 @@ class Reader
         $this->parseAndValidateConfig();
     }
 
+
     /**
      * Getter
      *
@@ -82,6 +84,7 @@ class Reader
         return $this->configValues;
     }
 
+
     /**
      * Return the list of entites
      *
@@ -91,6 +94,7 @@ class Reader
     {
         return array_keys($this->configValues['entities']);
     }
+
 
     /**
      * Parse and validate the configuration
