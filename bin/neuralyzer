@@ -16,7 +16,7 @@ if (!strpos(basename(__FILE__), 'phar')) {
 }
 $classLoader = require $autoloaderPath;
 
-use Inet\Neuralyzer\Console\Application;
+use Edyan\Neuralyzer\Console\Application;
 
 $app = new Application('Anonmymization command line', '2.0');
 $app->run();

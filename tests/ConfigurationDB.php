@@ -1,6 +1,6 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
 use Doctrine\DBAL\Schema\Schema;
 

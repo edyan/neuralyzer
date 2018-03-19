@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Exception;
+namespace Edyan\Neuralyzer\Exception;
 
 /**
  * Exception

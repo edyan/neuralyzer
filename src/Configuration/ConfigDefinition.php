@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Configuration;
+namespace Edyan\Neuralyzer\Configuration;
 
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -23,7 +23,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 /**
  * Configuration Validation
  */
-class AnonConfiguration implements ConfigurationInterface
+class ConfigDefinition implements ConfigurationInterface
 {
     /**
      * Validate the configuration

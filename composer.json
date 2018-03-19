@@ -28,12 +28,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Inet\\Neuralyzer\\": "src/"
+            "Edyan\\Neuralyzer\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Inet\\Neuralyzer\\Tests\\": "tests/"
+            "Edyan\\Neuralyzer\\Tests\\": "tests/"
         }
     }
 }

@@ -15,13 +15,16 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Anonymizer;
+namespace Edyan\Neuralyzer\Anonymizer;
 
-use Inet\Neuralyzer\Configuration\Reader;
-use Inet\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 
 /**
- * Abstract Anonymizer
+ * Abstract Anonymizer, that can be implemented as DB Anonymizer for example
+ * Its goal is only to anonymize any data, from a simple array
+ * not to write or read it from anywhere
+ *
  */
 abstract class AbstractAnonymizer
 {
@@ -50,6 +53,19 @@ abstract class AbstractAnonymizer
     protected $configEntites = [];
 
     /**
+     * Current table (entity) to process
+     * @var string
+     */
+    protected $entity;
+
+    /**
+     * Current table (entity) Columns
+     * @var array
+     */
+    protected $entityCols;
+
+
+    /**
      * Process the entity according to the anonymizer type
      *
      * @param string        $entity
@@ -58,11 +74,12 @@ abstract class AbstractAnonymizer
      * @param bool          $returnResult
      */
     abstract public function processEntity(
-        string $table,
+        string $entity,
         callable $callback = null,
         bool $pretend = true,
-        bool $returnResult = false
-    );
+        bool $returnRes = false
+    ): array;
+
 
     /**
      * Set the configuration
@@ -72,22 +89,20 @@ abstract class AbstractAnonymizer
     public function setConfiguration(Reader $configuration)
     {
         $this->configuration = $configuration;
-        $configEntites = $configuration->getConfigValues();
-        $this->configEntites = $configEntites['entities'];
+        $this->configEntites = $configuration->getConfigValues()['entities'];
     }
+
 
     /**
      * Evaluate, from the configuration if I have to update or Truncate the table
      *
-     * @param string $entity
-     *
      * @return int
      */
-    public function whatToDoWithEntity(string $entity): int
+    protected function whatToDoWithEntity(): int
     {
-        $this->checkEntityIsInConfig($entity);
+        $this->checkEntityIsInConfig();
 
-        $entityConfig = $this->configEntites[$entity];
+        $entityConfig = $this->configEntites[$this->entity];
 
         $actions = 0;
         if (array_key_exists('delete', $entityConfig) && $entityConfig['delete'] === true) {
@@ -101,67 +116,70 @@ abstract class AbstractAnonymizer
         return $actions;
     }
 
+
     /**
      * Returns the 'delete_where' parameter for an entity in config (or empty)
      *
-     * @param string $entity
-     *
      * @return string
      */
-    public function getWhereConditionInConfig(string $entity): string
+    public function getWhereConditionInConfig(): string
     {
-        $this->checkEntityIsInConfig($entity);
+        $this->checkEntityIsInConfig();
 
-        if (!array_key_exists('delete_where', $this->configEntites[$entity])) {
+        if (!array_key_exists('delete_where', $this->configEntites[$this->entity])) {
             return '';
         }
 
-        return $this->configEntites[$entity]['delete_where'];
+        return $this->configEntites[$this->entity]['delete_where'];
     }
+
 
     /**
      * Generate fake data for an entity and return it as an Array
      *
-     * @param string $entity
-     *
      * @return array
      */
-    public function generateFakeData(string $entity, array $tableFields): array
+    protected function generateFakeData(): array
     {
-        $this->checkEntityIsInConfig($entity);
+        $this->checkEntityIsInConfig();
 
         $faker = \Faker\Factory::create();
 
-        $entityCols = $this->configEntites[$entity]['cols'];
-        $entity = [];
-        foreach ($entityCols as $colName => $colProps) {
+        $colsInConfig = $this->configEntites[$this->entity]['cols'];
+        $row = [];
+        foreach ($colsInConfig as $colName => $colProps) {
             $args = empty($colProps['params']) ? [] : $colProps['params'];
             $data = call_user_func_array([$faker, $colProps['method']], $args);
 
-            $entity[$colName] = $data;
+            $row[$colName] = $data;
+
+            $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...
-            if (!empty($tableFields[$colName]['length'])) {
-                $entity[$colName] = substr($data, 0, $tableFields[$colName]['length']);
+            if (!empty($colLength) && strlen($data) > $colLength) {
+                $row[$colName] = substr($data, 0, $this->entityCols[$colName]['length']);
             }
         }
 
-        return $entity;
+        return $row;
     }
+
 
     /**
      * Make sure that entity is defined in the configuration
      *
-     * @param string $entity
-     *
      * @throws NeuralizerConfigurationException
      */
-    private function checkEntityIsInConfig(string $entity)
+    private function checkEntityIsInConfig()
     {
         if (empty($this->configEntites)) {
-            throw new NeuralizerConfigurationException('No entities found. Have you loaded a configuration file ?');
+            throw new NeuralizerConfigurationException(
+                'No entities found. Have you loaded a configuration file ?'
+            );
         }
-        if (!array_key_exists($entity, $this->configEntites)) {
-            throw new NeuralizerConfigurationException("No configuration for that entity ($entity)");
+        if (!array_key_exists($this->entity, $this->configEntites)) {
+            throw new NeuralizerConfigurationException(
+                "No configuration for that entity ({$this->entity})"
+            );
         }
     }
 }

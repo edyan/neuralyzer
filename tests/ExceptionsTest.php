@@ -1,24 +1,24 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Exception as NeuralyzerExceptions;
+use Edyan\Neuralyzer\Exception as NeuralyzerExceptions;
 use PHPUnit\Framework\TestCase;
 
 class ExceptionsTest extends TestCase
 {
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testInetNeuralizerConfigurationException()
+    public function testNeuralizerConfigurationException()
     {
         throw new NeuralyzerExceptions\NeuralizerConfigurationException('test');
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerGuesserException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerGuesserException
      * @expectedExceptionMessageRegExp |test|
      */
     public function testNeuralizerGuesserException()
@@ -27,7 +27,7 @@ class ExceptionsTest extends TestCase
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |test|
      */
     public function testNeuralizerException()

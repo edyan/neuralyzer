@@ -1,10 +1,10 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Console\Application;
-use Inet\Neuralyzer\Console\Commands\RunCommand as Command;
-use Inet\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Console\Application;
+use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
+use Edyan\Neuralyzer\Configuration\Reader;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
@@ -100,7 +100,7 @@ class ConfigGenerateCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testExecuteProtectTable()

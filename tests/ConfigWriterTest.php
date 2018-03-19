@@ -1,11 +1,11 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Anonymizer\DB;
-use Inet\Neuralyzer\Configuration\Writer;
-use Inet\Neuralyzer\Configuration\Reader;
-use Inet\Neuralyzer\Guesser;
+use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Configuration\Writer;
+use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Guesser;
 
 class ConfigWriterTest extends ConfigurationDB
 {
@@ -13,7 +13,7 @@ class ConfigWriterTest extends ConfigurationDB
     private $ignoredTables = ['guestbook'];
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |Can't work with guestbook, it has no primary key.|
      */
     public function testGenerateConfNoPrimary()
@@ -23,7 +23,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfNoTable()
@@ -35,7 +35,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |All tables or fields have been ignored|
      */
     public function testGenerateConfIgnoreAllFields()
@@ -48,7 +48,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfIgnoreAllTables()
@@ -119,7 +119,7 @@ class ConfigWriterTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |/doesntexist is not writeable.|
      */
     public function testGenerateConfNotWriteable()

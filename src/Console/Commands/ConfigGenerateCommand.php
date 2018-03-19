@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Console\Commands;
+namespace Edyan\Neuralyzer\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -128,7 +128,7 @@ class ConfigGenerateCommand extends Command
         $ignoreFields = $input->getOption('ignore-field');
 
         // Now work on the DB
-        $db = new \Inet\Neuralyzer\Anonymizer\DB([
+        $db = new \Edyan\Neuralyzer\Anonymizer\DB([
             'driver' => $input->getOption('driver'),
             'host' => $input->getOption('host'),
             'dbname' => $input->getOption('db'),
@@ -136,7 +136,7 @@ class ConfigGenerateCommand extends Command
             'password' => $password,
         ]);
 
-        $writer = new \Inet\Neuralyzer\Configuration\Writer;
+        $writer = new \Edyan\Neuralyzer\Configuration\Writer;
         $writer->protectCols($input->getOption('protect'));
 
         // Override the protection if fields are defined
@@ -146,7 +146,7 @@ class ConfigGenerateCommand extends Command
         }
 
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($db, new \Inet\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to ' . $input->getOption('file') . '</comment>');

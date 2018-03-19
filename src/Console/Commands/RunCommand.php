@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Console\Commands;
+namespace Edyan\Neuralyzer\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -33,7 +33,7 @@ class RunCommand extends Command
     /**
      * Store the DB Object
      *
-     * @var \Inet\Neuralyzer\Anonymizer\DB
+     * @var \Edyan\Neuralyzer\Anonymizer\DB
      */
     private $db;
 
@@ -142,10 +142,10 @@ class RunCommand extends Command
         $this->output = $output;
 
         // Anon READER
-        $reader = new \Inet\Neuralyzer\Configuration\Reader($input->getOption('config'));
+        $reader = new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('config'));
 
         // Now work on the DB
-        $this->db = new \Inet\Neuralyzer\Anonymizer\DB([
+        $this->db = new \Edyan\Neuralyzer\Anonymizer\DB([
             'driver' => $input->getOption('driver'),
             'host' => $input->getOption('host'),
             'dbname' => $input->getOption('db'),

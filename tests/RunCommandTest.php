@@ -1,9 +1,9 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Console\Application;
-use Inet\Neuralyzer\Console\Commands\RunCommand as Command;
+use Edyan\Neuralyzer\Console\Application;
+use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
@@ -111,7 +111,7 @@ class RunCommandTest extends ConfigurationDB
 
         // Change the SQL Mode as travis does not have the same than us
         $sqlMode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
-        $db = new \Inet\Neuralyzer\Anonymizer\DB($this->getDbParams());
+        $db = new \Edyan\Neuralyzer\Anonymizer\DB($this->getDbParams());
         $db->getConn()->query("SET @@global.sql_mode = '$sqlMode'");
 
         $this->createPrimary();

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="build" default="mainloop">
     <property name="directories" value="src" />
-    <property name="excludeDirs" value="Inet/Tests/**" />
+    <property name="excludeDirs" value="tests/**" />
     <property name="mainPhingDir" value="reports/phing-reports" />
 
     <property name="pkgPHPVersions" value="7.1" />

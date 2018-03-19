@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Console;
+namespace Edyan\Neuralyzer\Console;
 
 use Symfony\Component\Console\Application as BaseApplication;
 
@@ -32,8 +32,8 @@ class Application extends BaseApplication
     public function getDefaultCommands()
     {
         $commands = parent::getDefaultCommands();
-        $commands[] = new \Inet\Neuralyzer\Console\Commands\RunCommand();
-        $commands[] = new \Inet\Neuralyzer\Console\Commands\ConfigGenerateCommand();
+        $commands[] = new \Edyan\Neuralyzer\Console\Commands\RunCommand();
+        $commands[] = new \Edyan\Neuralyzer\Console\Commands\ConfigGenerateCommand();
 
         return $commands;
     }

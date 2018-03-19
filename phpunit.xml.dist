@@ -14,7 +14,7 @@
         <env name='DB_NAME' value='test_db'/>
     </php>
     <testsuites>
-        <testsuite name="Inet">
+        <testsuite name="Neuralyzer">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

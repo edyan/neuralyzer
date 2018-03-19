@@ -15,9 +15,9 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer;
+namespace Edyan\Neuralyzer;
 
-use Inet\Neuralyzer\Exception\NeuralizerGuesserException;
+use Edyan\Neuralyzer\Exception\NeuralizerGuesserException;
 
 /**
  * Guesser to map field type to Faker Class

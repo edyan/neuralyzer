@@ -1,8 +1,8 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Configuration\Reader;
 use PHPUnit\Framework\TestCase;
 
 class ConfigReaderTest extends TestCase

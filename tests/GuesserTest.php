@@ -1,8 +1,8 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Guesser;
+use Edyan\Neuralyzer\Guesser;
 use PHPUnit\Framework\TestCase;
 
 class GuesserTest extends TestCase
@@ -12,11 +12,11 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $this->assertInstanceOf(
-            'Inet\Neuralyzer\GuesserInterface',
+            'Edyan\Neuralyzer\GuesserInterface',
             $guesser
         );
         $this->assertInstanceOf(
-            'Inet\Neuralyzer\Guesser',
+            'Edyan\Neuralyzer\Guesser',
             $guesser
         );
     }
@@ -112,7 +112,7 @@ class GuesserTest extends TestCase
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerGuesserException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerGuesserException
      */
     public function testMapColWrongType()
     {

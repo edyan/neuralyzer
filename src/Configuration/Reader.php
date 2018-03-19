@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Configuration;
+namespace Edyan\Neuralyzer\Configuration;
 
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
@@ -100,7 +100,7 @@ class Reader
         $this->configValues = Yaml::parse(file_get_contents($this->configFilePath));
 
         $processor = new Processor();
-        $configuration = new AnonConfiguration();
+        $configuration = new ConfigDefinition();
         $processor->processConfiguration($configuration, [$this->configValues]);
     }
 }

@@ -15,7 +15,7 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer;
+namespace Edyan\Neuralyzer;
 
 /**
  * Guesser to map col type to Faker Class

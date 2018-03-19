@@ -15,11 +15,11 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Configuration;
+namespace Edyan\Neuralyzer\Configuration;
 
-use Inet\Neuralyzer\GuesserInterface;
-use Inet\Neuralyzer\Anonymizer\DB;
-use Inet\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\GuesserInterface;
+use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 
 /**

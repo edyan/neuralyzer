@@ -15,14 +15,15 @@
  * @link https://github.com/edyan/neuralyzer
  */
 
-namespace Inet\Neuralyzer\Anonymizer;
+namespace Edyan\Neuralyzer\Anonymizer;
 
 use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\DriverManager as DbalDriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Inet\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Exception\NeuralizerException;
 
 /**
- * DB Anonymizer
+ * Implement AbstractAnonymizer for DB, to read and write data via Doctrine DBAL
  */
 class DB extends AbstractAnonymizer
 {
@@ -33,75 +34,15 @@ class DB extends AbstractAnonymizer
      */
     private $conn;
 
+
     /**
-     * Constructor
+     * Init connection
      *
      * @param $params   Parameters to send to Doctrine DB
      */
     public function __construct(array $params)
     {
-        $this->conn = \Doctrine\DBAL\DriverManager::getConnection($params, new DbalConfiguration());
-    }
-
-    /**
-     * Process an entity by reading / writing to the DB
-     *
-     * @param string        $table
-     * @param callable|null $callback
-     * @param bool          $pretend
-     * @param bool          $returnResult
-     *
-     * @return void|array
-     */
-    public function processEntity(
-        string $table,
-        callable $callback = null,
-        bool $pretend = true,
-        bool $returnResult = false
-    ) {
-        $schema = $this->conn->getSchemaManager();
-        if ($schema->tablesExist($table) === false) {
-            throw new NeuralizerException("Table $table does not exist");
-        }
-
-        $queries = [];
-        $actionsOnThatEntity = $this->whatToDoWithEntity($table);
-
-        if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
-            $where = $this->getWhereConditionInConfig($table);
-            $query = $this->runDelete($table, $where, $pretend);
-            ($returnResult === true ? array_push($queries, $query) : '');
-        }
-
-        if ($actionsOnThatEntity & self::UPDATE_TABLE) {
-            // I need to read line by line if I have to update the table
-            // to make sure I do update by update (slower but no other choice for now)
-            $rowNum = 0;
-
-            $key = $this->getPrimaryKey($table);
-            $tableCols = $this->getTableCols($table);
-
-            $queryBuilder = $this->conn->createQueryBuilder();
-            $rows = $queryBuilder->select($key)->from($table)->execute();
-
-            foreach ($rows as $row) {
-                $val = $row[$key];
-                $data = $this->generateFakeData($table, $tableCols);
-                $queryBuilder = $this->prepareUpdate($table, $tableCols, $data, $key, $val);
-
-                ($returnResult === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
-
-                if ($pretend === false) {
-                    $this->runUpdate($queryBuilder, $table);
-                }
-
-                if (!is_null($callback)) {
-                    $callback(++$rowNum);
-                }
-            }
-        }
-
-        return $queries;
+        $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
     }
 
 
@@ -116,18 +57,79 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Identify the primary key for a table
+     * Process an entity by reading / writing to the DB
      *
-     * @param string $table
+     * @param string        $entity
+     * @param callable|null $callback
+     * @param bool          $pretend
+     * @param bool          $returnRes
+     *
+     * @return void|array
+     */
+    public function processEntity(
+        string $entity,
+        callable $callback = null,
+        bool $pretend = true,
+        bool $returnRes = false
+    ): array {
+        $schema = $this->conn->getSchemaManager();
+        if ($schema->tablesExist($entity) === false) {
+            throw new NeuralizerException("Table $entity does not exist");
+        }
+
+        $this->entity = $entity;
+        $queries = [];
+
+        $actionsOnThatEntity = $this->whatToDoWithEntity();
+
+        if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
+            $where = $this->getWhereConditionInConfig();
+            $query = $this->runDelete($where, $pretend);
+            ($returnRes === true ? array_push($queries, $query) : '');
+        }
+
+        if ($actionsOnThatEntity & self::UPDATE_TABLE) {
+            // I need to read line by line if I have to update the table
+            // to make sure I do update by update (slower but no other choice for now)
+            $rowNum = 0;
+
+            $key = $this->getPrimaryKey();
+            $this->entityCols = $this->getTableCols();
+
+            $queryBuilder = $this->conn->createQueryBuilder();
+            $rows = $queryBuilder->select($key)->from($this->entity)->execute();
+
+            foreach ($rows as $row) {
+                $data = $this->generateFakeData();
+                $queryBuilder = $this->prepareUpdate($data, $key, $row[$key]);
+
+                ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
+
+                if ($pretend === false) {
+                    $this->runUpdate($queryBuilder);
+                }
+
+                if (!is_null($callback)) {
+                    $callback(++$rowNum);
+                }
+            }
+        }
+
+        return $queries;
+    }
+
+
+    /**
+     * Identify the primary key for a table
      *
      * @return string Field's name
      */
-    protected function getPrimaryKey(string $table)
+    private function getPrimaryKey()
     {
         $schema = $this->conn->getSchemaManager();
-        $tableDetails = $schema->listTableDetails($table);
+        $tableDetails = $schema->listTableDetails($this->entity);
         if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralizerException("Can't find a primary key for '$table'");
+            throw new NeuralizerException("Can't find a primary key for '{$this->entity}'");
         }
 
         return $tableDetails->getPrimaryKey()->getColumns()[0];
@@ -135,16 +137,14 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Identify the primary key for a table
-     *
-     * @param string $table
+     * Retrieve columns list for a table with type and length
      *
      * @return array $cols
      */
-    protected function getTableCols(string $table)
+    private function getTableCols()
     {
         $schema = $this->conn->getSchemaManager();
-        $tableCols = $schema->listTableColumns($table);
+        $tableCols = $schema->listTableColumns($this->entity);
         $cols = [];
         foreach ($tableCols as $col) {
             $cols[$col->getName()] = [
@@ -160,23 +160,23 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Update with PDO
      *
-     * @param  string $table      Name of the table
-     * @param  array  $data       Array of fields => value to update the table
+     * @param  array  $data           Array of fields => value to update the table
      * @param  string $primaryKey
-     * @param  string $val        Primary Key's Value
-     * @return string             Doctrine DBAL QueryBuilder
+     * @param  string $primaryKeyVal  Primary Key's Value
+     * @return string                 Doctrine DBAL QueryBuilder
      */
-    private function prepareUpdate(string $table, array $cols, array $data, string $primaryKey, $val)
+    private function prepareUpdate(array $data, string $primaryKey, $primaryKeyVal)
     {
         $queryBuilder = $this->conn->createQueryBuilder();
-        $queryBuilder = $queryBuilder->update($table);
+        $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
+            $type = $this->entityCols[$field]['type'];
             $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
             $queryBuilder = $queryBuilder->set($field, $condition);
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value, $cols[$field]['type']);
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value, $type);
         }
         $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
-        $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $val);
+        $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $primaryKeyVal);
 
         return $queryBuilder;
     }
@@ -186,14 +186,15 @@ class DB extends AbstractAnonymizer
      * Execute the Update with PDO
      *
      * @param QueryBuilder $queryBuilder
-     * @param string                     $table          Name of the table
      */
-    private function runUpdate(QueryBuilder $queryBuilder, string $table)
+    private function runUpdate(QueryBuilder $queryBuilder)
     {
         try {
             $queryBuilder->execute();
         } catch (\Doctrine\DBAL\Exception\DriverException $e) {
-            throw new NeuralizerException("Problem anonymizing $table (" . $e->getMessage() . ')');
+            throw new NeuralizerException(
+                "Problem anonymizing {$this->entity} (" . $e->getMessage() . ')'
+            );
         }
     }
 
@@ -220,16 +221,15 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Delete with PDO
      *
-     * @param string $table
      * @param string $where
      * @param bool   $pretend
      *
      * @return string
      */
-    private function runDelete(string $table, string $where, bool $pretend): string
+    private function runDelete(string $where, bool $pretend): string
     {
         $queryBuilder = $this->conn->createQueryBuilder();
-        $queryBuilder = $queryBuilder->delete($table);
+        $queryBuilder = $queryBuilder->delete($this->entity);
         if (!empty($where)) {
             $queryBuilder = $queryBuilder->where($where);
         }

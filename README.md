@@ -142,8 +142,8 @@ The writer is helpful to generate a yaml file that contains all tables and field
 ```php
 <?php
 // You need to instanciate a \PDO Object first
-$writer = new Inet\Neuralyzer\Configuration\Writer;
-$data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
+$writer = new Edyan\Neuralyzer\Configuration\Writer;
+$data = $writer->generateConfFromDB($pdo, new Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'anon.yaml');
 ```
 
@@ -151,7 +151,7 @@ If you need, you can protect some cols (with regexp) or tables:
 ```php
 <?php
 // You need to instanciate a \PDO Object first
-$writer = new Inet\Neuralyzer\Configuration\Writer;
+$writer = new Edyan\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
 // define cols to protect (must be prefixed with the table name)
 $writer->setProtectedCols([
@@ -169,7 +169,7 @@ $writer->setIgnoredTables([
     'email_cache',
 ]);
 // Write the configuration
-$data = $writer->generateConfFromDB($pdo, new Inet\Neuralyzer\Guesser);
+$data = $writer->generateConfFromDB($pdo, new Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'anon.yaml');
 ```
 
@@ -178,7 +178,7 @@ The configuration Reader is the exact opposite of the Writer. Its main job is to
 of the yaml file is correct. Example:
 ```yaml
 // will throw an exception
-$reader = new Inet\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
+$reader = new Edyan\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
 $tables = $reader->getEntities();
 ```
 
@@ -192,7 +192,7 @@ It can be extended very easily as it has to be injected to the Writer.
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
 <?php
-$anon = new Inet\Neuralyzer\Anonymizer\DB($pdo);
+$anon = new Edyan\Neuralyzer\Anonymizer\DB($pdo);
 $anon->setConfiguration($reader);
 
 ```
@@ -212,8 +212,8 @@ Parameters:
 Full Example:
 ```php
 <?php
-$reader = new Inet\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
-$anon = new \Inet\Neuralyzer\Anonymizer\DB($pdo);
+$reader = new Edyan\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
+$anon = new \Edyan\Neuralyzer\Anonymizer\DB($pdo);
 $anon->setConfiguration($reader);
 
 // Get tables

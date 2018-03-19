@@ -1,16 +1,16 @@
 <?php
 
-namespace Inet\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests;
 
-use Inet\Neuralyzer\Anonymizer\DB;
-use Inet\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Configuration\Reader;
 
 class AnonymizerDBTest extends ConfigurationDB
 {
     private $i;
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |Can't find a primary key for 'guestbook'|
      */
     public function testWithoutPrimary()
@@ -23,7 +23,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-    * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+    * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
     * @expectedExceptionMessage Table guestook does not exist
      */
     public function testWrongTableName()
@@ -38,7 +38,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No entities found. Have you loaded a configuration file ?|
      */
     public function testWithPrimaryNoConf()
@@ -50,7 +50,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      * @expectedExceptionMessageRegExp |No configuration for that entity.*|
      */
     public function testWithPrimaryConfWrongTable()
@@ -65,7 +65,7 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException Inet\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessageRegExp |.*SQLSTATE.*|
      */
     public function testWithPrimaryConfWrongWhere()
