@@ -149,7 +149,7 @@ class RoboFile extends \Robo\Tasks
                 ->dir($buildDir)
                 ->noDev()
                 ->noScripts()
-                ->printed(true)
+                ->printOutput(true)
                 ->optimizeAutoloader()
                 ->run();
 
