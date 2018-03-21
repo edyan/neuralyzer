@@ -48,6 +48,7 @@ class ConfigDefinition implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('guesser_version')->isRequired()->end()
+                ->scalarNode('language')->defaultValue('en_US')->end()
                 ->arrayNode('entities')
                     ->isRequired()
                     ->requiresAtLeastOneElement()

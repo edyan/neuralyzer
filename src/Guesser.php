@@ -44,24 +44,25 @@ class Guesser implements GuesserInterface
     {
         // can contain regexp
         return [
-            // Adress and coordinates
-            '.*\..*street.*'              => ['method' => 'streetAddress'],
-            '.*\..*postalcode.*'          => ['method' => 'postcode'],
-            '.*\..*city.*'                => ['method' => 'city'],
-            '.*\..*state.*'               => ['method' => 'state'],
-            '.*\..*country.*'             => ['method' => 'country'],
-            '.*\..*phone.*'               => ['method' => 'phoneNumber'],
-
             // Internet
-            '.*\.email.*'                 => ['method' => 'email'],
-            '.*\.url'                     => ['method' => 'url'],
+            '.*email.*'                 => ['method' => 'email'],
+            '.*url'                     => ['method' => 'url'],
+
+            // Adress and coordinates
+            '.*address.*'              => ['method' => 'streetAddress'],
+            '.*street.*'              => ['method' => 'streetAddress'],
+            '.*postalcode.*'          => ['method' => 'postcode'],
+            '.*city.*'                => ['method' => 'city'],
+            '.*state.*'               => ['method' => 'state'],
+            '.*country.*'             => ['method' => 'country'],
+            '.*phone.*'               => ['method' => 'phoneNumber'],
 
             // Text
             '.*\.(comments|description)'  => ['method' => 'sentence', 'params' => [20]],
 
             // Person
-            '.*\.first_?name'             => ['method' => 'firstName'],
-            '.*\.last_?name'              => ['method' => 'lastName'],
+            '.*first_?name'             => ['method' => 'firstName'],
+            '.*last_?name'              => ['method' => 'lastName'],
         ];
     }
 
@@ -115,7 +116,7 @@ class Guesser implements GuesserInterface
         // Try to find by colsName
         $colsName = $this->getColsNameMapping();
         foreach ($colsName as $colRegex => $params) {
-            preg_match("/^$colRegex\$/", $table. '.' . $name, $matches);
+            preg_match("/^$colRegex\$/i", $table. '.' . $name, $matches);
             if (!empty($matches)) {
                 return $params;
             }

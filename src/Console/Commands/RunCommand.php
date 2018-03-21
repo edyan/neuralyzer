@@ -71,16 +71,16 @@ class RunCommand extends Command
             ->setDescription('Generate configuration for the Anonymizer')
             ->setHelp(
                 'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
-                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f neuralyzer.yml</info>"
             )->addOption(
                 'driver',
-                null,
+                'D',
                 InputOption::VALUE_REQUIRED,
                 'Driver (check Doctrine documentation to have the list)',
                 'pdo_mysql'
             )->addOption(
                 'host',
-                null,
+                'H',
                 InputOption::VALUE_REQUIRED,
                 'Host',
                 '127.0.0.1'
@@ -105,7 +105,12 @@ class RunCommand extends Command
                 'c',
                 InputOption::VALUE_REQUIRED,
                 'Configuration File',
-                'anon.yml'
+                'neuralyzer.yml'
+            )->addOption(
+                'table',
+                't',
+                InputOption::VALUE_REQUIRED,
+                'Do a single table'
             )->addOption(
                 'pretend',
                 null,
@@ -161,7 +166,7 @@ class RunCommand extends Command
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
         // Get tables
-        $tables = $reader->getEntities();
+        $tables = empty($input->getOption('table')) ? $reader->getEntities() : [$input->getOption('table')];
         foreach ($tables as $table) {
             $this->anonymizeTable($table, $input, $output);
         }

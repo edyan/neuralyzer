@@ -94,7 +94,11 @@ class Writer
             throw new NeuralizerConfigurationException('All tables or fields have been ignored');
         }
 
-        return ['guesser_version' => $guesser->getVersion(), 'entities' => $data];
+        return [
+            'guesser_version' => $guesser->getVersion(),
+            'language' => 'en_US',
+            'entities' => $data
+        ];
     }
 
 

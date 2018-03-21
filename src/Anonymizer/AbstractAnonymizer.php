@@ -143,7 +143,7 @@ abstract class AbstractAnonymizer
     {
         $this->checkEntityIsInConfig();
 
-        $faker = \Faker\Factory::create();
+        $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
 
         $colsInConfig = $this->configEntites[$this->entity]['cols'];
         $row = [];

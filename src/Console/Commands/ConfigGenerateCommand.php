@@ -49,16 +49,16 @@ class ConfigGenerateCommand extends Command
                 'Generate configuration for the Anonymizer'
             )->setHelp(
                 'This command will connect to a DB and extract a list of tables / fields to a yaml file' . PHP_EOL .
-                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f anon.yml</info>"
+                "Usage: neuralyzer <info>{$this->command} -u app -p app -f neuralyzer.yml</info>"
             )->addOption(
                 'driver',
-                null,
+                'D',
                 InputOption::VALUE_REQUIRED,
                 'Driver (check Doctrine documentation to have the list)',
                 'pdo_mysql'
             )->addOption(
                 'host',
-                null,
+                'H',
                 InputOption::VALUE_REQUIRED,
                 'Host',
                 '127.0.0.1'
@@ -83,7 +83,7 @@ class ConfigGenerateCommand extends Command
                 'f',
                 InputOption::VALUE_REQUIRED,
                 'File',
-                'anon.yml'
+                'neuralyzer.yml'
             )->addOption(
                 'protect',
                 null,

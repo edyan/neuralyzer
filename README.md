@@ -9,23 +9,21 @@ edyan/neuralyzer
 =====
 
 ## Summary
-This project is a library and a command line tool that **anonymizes** (for now, but as it uses PDO,
-it's easy to implement other DBs) a MySQL database. It uses [Faker](https://github.com/fzaninotto/Faker) to generate
-the data and replace the rows in tables.
+This project is a library and a command line tool that **anonymizes** a database. It uses [Faker](https://github.com/fzaninotto/Faker) to generate the data and replace the rows in tables.
+It's also based on [Doctrine DBAL](https://github.com/doctrine/dbal) to abstract interactions with
+databases. It's then supposed to be able to work with any database type.
 
-It is also able to `DELETE FROM` tables with a `WHERE` critera (see the config parameters `delete` and `delete_from`).
+Neuralyzer is also able to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
+before launching the anonymization (see the config parameters `delete` and `delete_from`).
 
-## Installation
+
+## Installation as a library
 ```bash
 composer require edyan/neuralyzer
 ```
 
-## CLI
-The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
-```bash
-bin/neuralyzer
-```
 
+## Installation as an executable
 You can even download the executable directly :
 ```bash
 $ wget https://raw.githubusercontent.com/edyan/neuralyzer/master/neuralyzer.phar
@@ -35,29 +33,37 @@ $ neuralyzer
 ```
 
 
-### Generate the configuration
-The main command is config:generate that expects some parameters:
+## Usage
+The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
 ```bash
+vendor/bin/neuralyzer
+```
+
+
+### Generate the configuration
+The main command is config:generate that accepts the following options:
+```
 Options:
-      --host=HOST                  Host [default: "127.0.0.1"]
+  -D, --driver=DRIVER              Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
+  -H, --host=HOST                  Host [default: "127.0.0.1"]
   -d, --db=DB                      Database Name
-  -u, --user=USER                  User Name [default: "root"]
-  -p, --password=PASSWORD          Password (or prompted)
-  -f, --file=FILE                  File [default: "anon.yml"]
+  -u, --user=USER                  User Name [default: "www-data"]
+  -p, --password=PASSWORD          Password (or it'll be prompted)
+  -f, --file=FILE                  File [default: "neuralyzer.yml"]
       --protect                    Protect IDs and other fields
       --ignore-table=IGNORE-TABLE  Table to ignore. Can be repeated (multiple values allowed)
       --ignore-field=IGNORE-FIELD  Field to ignore. Regexp in the form "table.field". Can be repeated (multiple values allowed)
-
 ```
 
 #### Example
 ```bash
-bin/neuralyzer config:generate --db test -u root --ignore-table config --ignore-field ".*\.id.*"
+vendor/bin/neuralyzer config:generate --db test -u root --ignore-table config --ignore-field ".*\.id.*"
 ```
 
 That produces a file which looks like:
 ```yaml
-guesser_version: 1.0.0b
+guesser_version: '3.0'
+language: en_US
 entities:
     authors:
         cols:
@@ -69,9 +75,13 @@ entities:
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
 ```
 
-You can update the file to change its configuration. For example, if you need to remove data while anonymizing, do:
+You can update the file to change its configuration. For example, if you need to remove data
+ while anonymizing and change the language (see [Faker's doc](https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider) for available languages), do :
 ```yaml
-guesser_version: 1.0.0b
+guesser_version: '3.0'
+# be careful that some languages have only a few methods.
+# Example : https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider/fr_FR
+language: en_US
 entities:
     authors:
         cols:
@@ -86,7 +96,7 @@ entities:
 
 **INFO**: You can also use delete in standalone, without anonymizing anything. That will delete everything in books:
 ```yaml
-guesser_version: 1.0.0b
+guesser_version: '3.0'
 entities:
     authors:
         cols:
@@ -97,22 +107,23 @@ entities:
 ```
 
 
-
 ### Run the anonymizer
 To run the anonymizer, the command is simply "run" and expects:
-```bash
+```
 Options:
-      --host=HOST          Host [default: "127.0.0.1"]
+  -D, --driver=DRIVER      Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
+  -H, --host=HOST          Host [default: "127.0.0.1"]
   -d, --db=DB              Database Name
-  -u, --user=USER          User Name [default: "manu"]
+  -u, --user=USER          User Name [default: "www-data"]
   -p, --password=PASSWORD  Password (or prompted)
-  -c, --config=CONFIG      Configuration File [default: "anon.yml"]
-      --pretend            Do not run the queries
+  -c, --config=CONFIG      Configuration File [default: "neuralyzer.yml"]
+      --pretend            Don't run the queries
       --sql                Display the SQL
+  -t, --table=TABLE        Do a single table      
 ```
 #### Example
 ```bash
-bin/neuralyzer run --db test -u root --sql
+vendor/bin/neuralyzer run --db test -u root --sql
 ```
 
 That produces that kind of output:
@@ -137,6 +148,13 @@ The library is made to be integrated with any Tool such as a CLI tool. It contai
 * A DB Anonymizer
 
 
+### Guesser
+The guesser is the central piece of the config generator.
+It guesses, according to the field name or field type what type of faker method to apply.
+
+It can be extended very easily as it has to be injected to the Writer.
+
+
 ### Configuration Writer
 The writer is helpful to generate a yaml file that contains all tables and fields from a DB. A basic usage could be the following:
 ```php
@@ -144,13 +162,22 @@ The writer is helpful to generate a yaml file that contains all tables and field
 // You need to instanciate a \PDO Object first
 $writer = new Edyan\Neuralyzer\Configuration\Writer;
 $data = $writer->generateConfFromDB($pdo, new Edyan\Neuralyzer\Guesser);
-$writer->save($data, 'anon.yaml');
+$writer->save($data, 'neuralyzer.yml');
 ```
 
 If you need, you can protect some cols (with regexp) or tables:
 ```php
-<?php
-// You need to instanciate a \PDO Object first
+// You need to pass some parameters required by Doctrine DBAL
+// See : http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html
+$db = new Edyan\Neuralyzer\Anonymizer\DB([
+    'driver' => 'pdo_mysql',
+    'host' => '127.0.0.1',
+    'dbname' => 'test',
+    'user' => 'root',
+    'password' => 'root'
+]);
+
+// Then call the writer
 $writer = new Edyan\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
 // define cols to protect (must be prefixed with the table name)
@@ -169,31 +196,35 @@ $writer->setIgnoredTables([
     'email_cache',
 ]);
 // Write the configuration
-$data = $writer->generateConfFromDB($pdo, new Edyan\Neuralyzer\Guesser);
-$writer->save($data, 'anon.yaml');
+$data = $writer->generateConfFromDB($db, new Edyan\Neuralyzer\Guesser);
+$writer->save($data, 'neuralyzer.yml');
 ```
 
 ### Configuration Reader
 The configuration Reader is the exact opposite of the Writer. Its main job is to validate that the configuration
-of the yaml file is correct. Example:
+of the yaml file is correct then to provide methods to access its parameters. Example:
 ```yaml
-// will throw an exception
-$reader = new Edyan\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
+// will throw an exception if it's not valid
+$reader = new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
 $tables = $reader->getEntities();
 ```
-
-### Guesser
-The guesser is the central piece of the tool. It guess, according to the field name or field type what type of
-faker method to apply.
-
-It can be extended very easily as it has to be injected to the Writer.
 
 ### DB Anonymizer
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
-<?php
-$anon = new Edyan\Neuralyzer\Anonymizer\DB($pdo);
-$anon->setConfiguration($reader);
+// You need to pass some parameters required by Doctrine DBAL
+// See : http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html
+$db = new Edyan\Neuralyzer\Anonymizer\DB([
+    'driver' => 'pdo_mysql',
+    'host' => '127.0.0.1',
+    'dbname' => 'test',
+    'user' => 'root',
+    'password' => 'root'
+]);
+
+$db->setConfiguration(
+    new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml')
+);
 
 ```
 
@@ -212,33 +243,51 @@ Parameters:
 Full Example:
 ```php
 <?php
-$reader = new Edyan\Neuralyzer\Configuration\Reader('sugarcli_anon.yaml');
-$anon = new \Edyan\Neuralyzer\Anonymizer\DB($pdo);
-$anon->setConfiguration($reader);
+
+require_once 'vendor/autoload.php';
+
+$reader = new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
+$db = new Edyan\Neuralyzer\Anonymizer\DB([
+    'driver' => 'pdo_mysql',
+    'host' => '127.0.0.1',
+    'dbname' => 'test',
+    'user' => 'root',
+    'password' => 'root'
+]);
+
+$db->setConfiguration($reader);
 
 // Get tables
 $tables = $reader->getEntities();
 foreach ($tables as $table) {
-    $result = $pdo->query("SELECT COUNT(1) FROM $table");
-    $data = $result->fetchAll(\PDO::FETCH_COLUMN);
-    $total = (int)$data[0];
-    if ($total === 0) {
+    $res = $db->getConn()->createQueryBuilder()
+              ->select('COUNT(1) AS total')->from($table)->execute()->fetchAll()[0];
+
+    if ((int)$res['total'] === 0) {
         $output->writeln("<info>$table is empty</info>");
         continue;
     }
 
-    $queries = $anon->processEntity($table);
+    $queries = $db->processEntity($table);
 }
 ```
 
 ## Development
-To build with Robo :
+Neuralyzer uses (Robo)[https://robo.li] to run its tests (via Docker) and build its phar.
+
+Clone the project, run `composer install` then...
+
+### Run the tests
+```bash
+$ vendor/bin/robo test --php 7.1 --wait 10
+```
+
+
+### Build the phar
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo phar:build
 ```
 
 
-
-
-
-BE CAREFUL OF DATE  TYPE in CONFIG !!!!
+## Known bugs / limitations
+* PostgreSQL asks to cast specific values such as dates (Try it by running `vendor/bin/robo test --db postgres`)
