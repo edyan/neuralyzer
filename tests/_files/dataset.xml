@@ -1,5 +1,33 @@
-<?xml version="1.0"?>
 <dataset>
-    <guestbook id="1" content="Hello buddy!" username="joe"   created="2010-04-24" />
-    <guestbook id="2" content="I like it!"   username="nancy" created="2010-04-26" />
+    <guestbook
+        id="1"
+        content="Hello buddy!"
+        username="joe"
+        created="2010-04-24"
+        a_bigint="1111111111111"
+        a_bool="1"
+        a_datetime="2010-01-09 04:02:03"
+        a_datetimetz="2002-04-09 07:00:00"
+        a_time="12:14:02"
+        a_decimal="3.45"
+        an_integer="-123"
+        a_smallint="12"
+        a_float="3.56"
+    />
+    <guestbook
+        id="2"
+        content="I like it!"
+        username="nancy"
+        created="2010-04-26"
+        a_bigint="2222222222222222222"
+        a_bool="1"
+        a_datetime="2010-01-07 14:12:57"
+        a_datetimetz="2007-04-11 07:04:00"
+        a_time="09:14:04"
+        a_decimal="7.55"
+        an_integer="23"
+        a_smallint="1"
+        a_float="12.5"
+    />
 </dataset>
+

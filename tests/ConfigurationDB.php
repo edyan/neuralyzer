@@ -138,6 +138,15 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         $myTable->addColumn('content', 'text');
         $myTable->addColumn('username', 'string', ['length' => 32]);
         $myTable->addColumn('created', 'date');
+        $myTable->addColumn('a_bigint', 'bigint');
+        $myTable->addColumn('a_bool', 'boolean');
+        $myTable->addColumn('a_datetime', 'datetime');
+        $myTable->addColumn('a_datetimetz', 'datetimetz');
+        $myTable->addColumn('a_time', 'time');
+        $myTable->addColumn('a_decimal', 'decimal', ['precision' => 4, 'scale' => 3]);
+        $myTable->addColumn('an_integer', 'integer', ['unsigned' => false]);
+        $myTable->addColumn('a_smallint', 'smallint');
+        $myTable->addColumn('a_float', 'float', ['precision' => 4, 'scale' => 3]);
 
         $queries = $schema->toSql($this->getDoctrine()->getDatabasePlatform());
         if (empty($queries)) {

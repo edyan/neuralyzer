@@ -171,8 +171,7 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
             $type = $this->entityCols[$field]['type'];
-            $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
-            $queryBuilder = $queryBuilder->set($field, $condition);
+            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field, $type));
             $queryBuilder = $queryBuilder->setParameter(":$field", $value, $type);
         }
         $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
@@ -246,5 +245,27 @@ class DB extends AbstractAnonymizer
         }
 
         return $sql;
+    }
+
+    private function getCondition(string $field, string $type)
+    {
+        $type = strtolower($type);
+        $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
+        switch ($type) {
+            case 'date':
+                return "CAST($condition as DATE)";
+            case 'datetime':
+                return "CAST($condition as DATETIME)";
+            case 'time':
+                return "CAST($condition as TIME)";
+            case 'decimal':
+                return "CAST($condition as DECIMAL)";
+            case 'signed':
+                return "CAST($condition as SIGNED)";
+            case 'unsigned':
+                return "CAST($condition as UNSIGNED)";
+        }
+
+        return $condition;
     }
 }

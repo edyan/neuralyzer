@@ -273,7 +273,7 @@ foreach ($tables as $table) {
 ```
 
 ## Development
-Neuralyzer uses (Robo)[https://robo.li] to run its tests (via Docker) and build its phar.
+Neuralyzer uses [Robo](https://robo.li) to run its tests (via Docker) and build its phar.
 
 Clone the project, run `composer install` then...
 
