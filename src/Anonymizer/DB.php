@@ -100,13 +100,12 @@ class DB extends AbstractAnonymizer
             $rows = $queryBuilder->select($key)->from($this->entity)->execute();
 
             foreach ($rows as $row) {
-                $data = $this->generateFakeData();
-                $queryBuilder = $this->prepareUpdate($data, $key, $row[$key]);
+                $queryBuilder = $this->prepareUpdate($key, $row[$key]);
 
                 ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
 
                 if ($pretend === false) {
-                    $this->runUpdate($queryBuilder);
+                    $queryBuilder->execute();
                 }
 
                 if (!is_null($callback)) {
@@ -150,6 +149,7 @@ class DB extends AbstractAnonymizer
             $cols[$col->getName()] = [
                 'length' => $col->getLength(),
                 'type'   => $col->getType(),
+                'unsigned' => $col->getUnsigned(),
             ];
         }
 
@@ -160,41 +160,24 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Update with PDO
      *
-     * @param  array  $data           Array of fields => value to update the table
      * @param  string $primaryKey
      * @param  string $primaryKeyVal  Primary Key's Value
      * @return string                 Doctrine DBAL QueryBuilder
      */
-    private function prepareUpdate(array $data, string $primaryKey, $primaryKeyVal)
+    private function prepareUpdate(string $primaryKey, $primaryKeyVal): QueryBuilder
     {
+        $data = $this->generateFakeData();
+
         $queryBuilder = $this->conn->createQueryBuilder();
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
-            $type = $this->entityCols[$field]['type'];
-            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field, $type));
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value, $type);
+            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field));
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
         $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
         $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $primaryKeyVal);
 
         return $queryBuilder;
-    }
-
-
-    /**
-     * Execute the Update with PDO
-     *
-     * @param QueryBuilder $queryBuilder
-     */
-    private function runUpdate(QueryBuilder $queryBuilder)
-    {
-        try {
-            $queryBuilder->execute();
-        } catch (\Doctrine\DBAL\Exception\DriverException $e) {
-            throw new NeuralizerException(
-                "Problem anonymizing {$this->entity} (" . $e->getMessage() . ')'
-            );
-        }
     }
 
 
@@ -207,9 +190,6 @@ class DB extends AbstractAnonymizer
     {
         $sql = $queryBuilder->getSQL();
         foreach ($queryBuilder->getParameters() as $parameter => $value) {
-            if (is_object($value)) {
-                $value = '{object}';
-            }
             $sql = str_replace($parameter, "'$value'", $sql);
         }
 
@@ -247,22 +227,55 @@ class DB extends AbstractAnonymizer
         return $sql;
     }
 
-    private function getCondition(string $field, string $type)
+
+    /**
+     * Build the condition by casting the value if needed
+     *
+     * @param  string $field
+     * @return string
+     */
+    private function getCondition(string $field): string
     {
-        $type = strtolower($type);
+        $type = strtolower($this->entityCols[$field]['type']);
+
+        $integerCast = $this->getIntegerCast($field);
+
         $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
-        switch ($type) {
-            case 'date':
-                return "CAST($condition as DATE)";
-            case 'datetime':
-                return "CAST($condition as DATETIME)";
-            case 'time':
-                return "CAST($condition as TIME)";
-            case 'decimal':
-            case 'float':
-                return "CAST($condition as DECIMAL)";
+
+        $typeToCast = [
+            'date'     => 'DATE',
+            'datetime' => 'DATE',
+            'time'     => 'TIME',
+            'smallint' => $integerCast,
+            'integer'  => $integerCast,
+            'bigint'   => $integerCast,
+            'float'    => 'DECIMAL',
+            'decimal'  => 'DECIMAL',
+
+        ];
+
+        // No cast required
+        if (!array_key_exists($type, $typeToCast)) {
+            return $condition;
         }
 
-        return $condition;
+        return "CAST($condition AS {$typeToCast[$type]})";
+    }
+
+
+    /**
+     * Get the right CAST for an INTEGER
+     *
+     * @param  string $field
+     * @return string
+     */
+    private function getIntegerCast(string $field): string
+    {
+        $driver = $this->getConn()->getDriver();
+        if ($driver->getName() === 'pdo_mysql') {
+            return $this->entityCols[$field]['unsigned'] === true ? 'UNSIGNED' : 'SIGNED';
+        }
+
+        return 'INTEGER';
     }
 }

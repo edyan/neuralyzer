@@ -141,10 +141,10 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         $myTable->addColumn('a_bigint', 'bigint');
         $myTable->addColumn('a_datetime', 'datetime');
         $myTable->addColumn('a_time', 'time');
-        $myTable->addColumn('a_decimal', 'decimal', ['precision' => 4, 'scale' => 3]);
+        $myTable->addColumn('a_decimal', 'decimal', ['precision' => 10, 'scale' => 3]);
         $myTable->addColumn('an_integer', 'integer', ['unsigned' => false]);
-        $myTable->addColumn('a_smallint', 'smallint');
-        $myTable->addColumn('a_float', 'float', ['precision' => 4, 'scale' => 3]);
+        $myTable->addColumn('a_smallint', 'smallint', ['unsigned' => true]);
+        $myTable->addColumn('a_float', 'float', ['precision' => 10, 'scale' => 3]);
 
         $queries = $schema->toSql($this->getDoctrine()->getDatabasePlatform());
         if (empty($queries)) {

@@ -202,11 +202,13 @@ class RunCommand extends Command
             $queries = $this->db->processEntity($table, function () use ($bar) {
                 $bar->advance();
             }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+        // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
             $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
             $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
             return;
         }
+        // @codeCoverageIgnoreEnd
 
         $this->output->writeln(PHP_EOL);
 

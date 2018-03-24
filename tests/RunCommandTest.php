@@ -105,34 +105,6 @@ class RunCommandTest extends ConfigurationDB
         ]);
     }
 
-    public function testExecuteFieldTooLong()
-    {
-        $this->markTestIncomplete('Field too long must be checked for all DB Types ...');
-
-        // Change the SQL Mode as travis does not have the same than us
-        $sqlMode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
-        $db = new \Edyan\Neuralyzer\Anonymizer\DB($this->getDbParams());
-        $db->getConn()->query("SET @@global.sql_mode = '$sqlMode'");
-
-        $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
-        $command = $application->find('run');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            '--driver' => getenv('DB_DRIVER'),
-            '--db' => getenv('DB_NAME'),
-            '--user' => getenv('DB_USER'),
-            '--host' => getenv('DB_HOST'),
-            '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.fieldtoolong.yaml'
-        ]);
-
-        $regexp = '|Error anonymizing guestbook. Message was : Problem anonymizing guestbook \(SQLSTATE.+|';
-        $this->assertRegExp($regexp, $commandTester->getDisplay());
-    }
 
     public function testExecuteRightTablePassPrompted()
     {

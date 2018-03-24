@@ -11,14 +11,8 @@ class GuesserTest extends TestCase
     public function testInit()
     {
         $guesser = new Guesser;
-        $this->assertInstanceOf(
-            'Edyan\Neuralyzer\GuesserInterface',
-            $guesser
-        );
-        $this->assertInstanceOf(
-            'Edyan\Neuralyzer\Guesser',
-            $guesser
-        );
+        $this->assertInstanceOf('Edyan\Neuralyzer\GuesserInterface', $guesser);
+        $this->assertInstanceOf('Edyan\Neuralyzer\Guesser', $guesser);
     }
 
     public function testGetColsNameMapping()

@@ -148,8 +148,13 @@ abstract class AbstractAnonymizer
         $colsInConfig = $this->configEntites[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
+            $this->checkColIsInEntity($colName);
             $args = empty($colProps['params']) ? [] : $colProps['params'];
             $data = call_user_func_array([$faker, $colProps['method']], $args);
+            if (!is_scalar($data)) {
+                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
+                throw new NeuralizerConfigurationException($msg);
+            }
 
             $row[$colName] = $data;
 
@@ -180,6 +185,17 @@ abstract class AbstractAnonymizer
             throw new NeuralizerConfigurationException(
                 "No configuration for that entity ({$this->entity})"
             );
+        }
+    }
+
+    /**
+     * Verify a column is defined in the real entityCols
+     * @param  string $colName
+     */
+    private function checkColIsInEntity(string $colName)
+    {
+        if (!array_key_exists($colName, $this->entityCols)) {
+            throw new NeuralizerConfigurationException("Col $colName does not exist");
         }
     }
 }

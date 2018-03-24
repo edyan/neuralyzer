@@ -4,4 +4,4 @@ entities:
         cols:
             username: { method: text, params: [4000] }
             content: { method: sentence, params: [20] }
-            created: { method: datetime, params: ['now'] }
+            created: { method: date, params: [Y-m-d] }

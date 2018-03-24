@@ -71,8 +71,31 @@ class ConfigWriterTest extends ConfigurationDB
         $this->assertInternalType('array', $entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
-        $this->assertArrayHasKey('cols', $entities['entities']['guestbook']);
-        $this->assertArrayNotHasKey('id', $entities['entities']['guestbook']['cols']);
+
+        $guestbook = $entities['entities']['guestbook'];
+        $this->assertArrayHasKey('cols', $guestbook);
+        $this->assertArrayNotHasKey('id', $guestbook['cols']);
+
+        // check field by field
+        $fields = [
+            'content', 'username', 'created', 'a_bigint', 'a_datetime', 'a_time', 'a_decimal',
+            'an_integer', 'a_smallint', 'a_float'
+        ];
+        foreach ($fields as $field) {
+            $this->assertArrayHasKey('content', $guestbook['cols']);
+            $this->assertArrayHasKey('method', $guestbook['cols'][$field]);
+            $this->assertArrayHasKey('params', $guestbook['cols'][$field]);
+        }
+        $this->assertEquals('sentence', $guestbook['cols']['content']['method']);
+        $this->assertEquals('sentence', $guestbook['cols']['username']['method']);
+        $this->assertEquals('date', $guestbook['cols']['created']['method']);
+        $this->assertEquals('date', $guestbook['cols']['a_datetime']['method']);
+        $this->assertEquals('randomNumber', $guestbook['cols']['a_bigint']['method']);
+        $this->assertEquals('time', $guestbook['cols']['a_time']['method']);
+        $this->assertEquals('randomFloat', $guestbook['cols']['a_decimal']['method']);
+        $this->assertEquals('randomNumber', $guestbook['cols']['an_integer']['method']);
+        $this->assertEquals('randomNumber', $guestbook['cols']['a_smallint']['method']);
+        $this->assertEquals('randomFloat', $guestbook['cols']['a_float']['method']);
 
         $tablesInConf = $writer->getTablesInConf();
         $this->assertInternalType('array', $tablesInConf);
@@ -100,8 +123,8 @@ class ConfigWriterTest extends ConfigurationDB
         $this->assertInternalType('array', $created);
         $this->assertArrayHasKey('method', $created);
         $this->assertArrayHasKey('params', $created);
-        $this->assertEquals('datetime', $created['method']);
-        $this->assertEquals('now', $created['params'][0]);
+        $this->assertEquals('date', $created['method']);
+        $this->assertEquals('Y-m-d', $created['params'][0]);
 
         // save it
         $temp = tempnam(sys_get_temp_dir(), 'phpunit');

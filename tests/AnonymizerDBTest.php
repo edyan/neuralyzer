@@ -135,6 +135,39 @@ class AnonymizerDBTest extends ConfigurationDB
 
     }
 
+
+    /**
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedExceptionMessage Col usernamez does not exist
+     */
+    public function testWithPrimaryConfWrongField()
+    {
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__]);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $db->processEntity($this->tableName, null, false, true);
+    }
+
+
+    /**
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedExceptionMessage You must use faker methods that generate strings: 'datetime' forbidden
+     */
+    public function testWithPrimaryConfBadFakerType()
+    {
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__]);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $db->processEntity($this->tableName, null, false, true);
+    }
+
+
     public function testWithPrimaryConfRightTableUpdateSimple()
     {
         $this->createPrimary();
