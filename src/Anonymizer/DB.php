@@ -259,11 +259,8 @@ class DB extends AbstractAnonymizer
             case 'time':
                 return "CAST($condition as TIME)";
             case 'decimal':
+            case 'float':
                 return "CAST($condition as DECIMAL)";
-            case 'signed':
-                return "CAST($condition as SIGNED)";
-            case 'unsigned':
-                return "CAST($condition as UNSIGNED)";
         }
 
         return $condition;
