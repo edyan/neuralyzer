@@ -278,9 +278,15 @@ Neuralyzer uses [Robo](https://robo.li) to run its tests (via Docker) and build 
 Clone the project, run `composer install` then...
 
 ### Run the tests
+#### With MySQL
 ```bash
-$ vendor/bin/robo test --php 7.1 --wait 10
+$ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
 ```
+#### With PostgreSQL
+```bash
+$ vendor/bin/robo test --php 7.1 --wait 10 --db postgres
+```
+
 
 
 ### Build the phar
@@ -288,6 +294,3 @@ $ vendor/bin/robo test --php 7.1 --wait 10
 $ php -d phar.readonly=0 vendor/bin/robo phar:build
 ```
 
-
-## Known bugs / limitations
-* PostgreSQL asks to cast specific values such as dates (Try it by running `vendor/bin/robo test --db postgres`)
