@@ -51,8 +51,8 @@ class RoboFile extends \Robo\Tasks
     {
         $this->destroyDocker();
 
-        if (!in_array($dbType, ['mysql', 'postgres'])) {
-            throw new \InvalidArgumentException('Database can be only mysql or postgres');
+        if (!in_array($dbType, ['mysql', 'postgres', 'sqlserver'])) {
+            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlserver');
         }
 
         $this->startDb($dbType);
@@ -65,14 +65,19 @@ class RoboFile extends \Robo\Tasks
     {
         $dbCt = $this->taskDockerRun($type)->detached()->name('robo_db')->option('--rm');
         if ($type === 'mysql') {
-            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'root')
-                         ->env('MYSQL_DATABASE', 'test_db');
+            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'root')->env('MYSQL_DATABASE', 'test_db');
         } elseif ($type === 'postgres') {
-            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'root')
-                         ->env('POSTGRES_DB', 'test_db');
+            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'root')->env('POSTGRES_DB', 'test_db');
+        } elseif ($type === 'sqlserver') {
+            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'root');
         }
 
         $dbCt->run();
+
+        // Now create a DB For SQL Server is required
+        if ($type === 'sqlserver') {
+
+        }
     }
 
 
