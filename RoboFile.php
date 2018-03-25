@@ -51,50 +51,60 @@ class RoboFile extends \Robo\Tasks
     {
         $this->destroyDocker();
 
-        if (!in_array($dbType, ['mysql', 'postgres', 'sqlserver'])) {
-            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlserver');
+        if (!in_array($dbType, ['mysql', 'postgres', 'sqlsrv'])) {
+            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlsrv');
         }
 
         $this->startDb($dbType);
         $this->say("Waiting $wait seconds $dbType to start");
         sleep($wait);
+        // Now create a DB For SQL Server
+        if ($dbType === 'sqlsrv') {
+            $createSqlQuery = '/opt/sqlsrv-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"';
+            $this->taskDockerExec('robo_db')
+                 ->interactive()
+                 ->exec($this->taskExec($createSqlQuery))
+                 ->run();
+        }
+
         $this->startPHP($php, $dbType);
     }
 
     private function startDb($type)
     {
-        $dbCt = $this->taskDockerRun($type)->detached()->name('robo_db')->option('--rm');
+        $image = $type;
+        if ($type === 'sqlsrv') {
+            $image = 'microsoft/mssql-server-linux:2017-latest';
+        }
+
+        $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
         if ($type === 'mysql') {
-            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'root')->env('MYSQL_DATABASE', 'test_db');
+            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
         } elseif ($type === 'postgres') {
-            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'root')->env('POSTGRES_DB', 'test_db');
-        } elseif ($type === 'sqlserver') {
-            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'root');
+            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
+        } elseif ($type === 'sqlsrv') {
+            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
         }
 
         $dbCt->run();
-
-        // Now create a DB For SQL Server is required
-        if ($type === 'sqlserver') {
-
-        }
     }
 
 
     private function startPHP(string $version, string $dbType)
     {
-        $driver = 'pdo_mysql';
         $dbUser = 'root';
         if ($dbType === 'postgres') {
-            $driver = 'pdo_pgsql';
             $dbUser = 'postgres';
+        } elseif ($dbType === 'sqlsrv') {
+            $dbType = 'pdo_sqlsrv';
+            $dbUser = 'sa';
         }
 
         $this->taskDockerRun('edyan/php:' . $version)
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
-            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $driver)
-            ->env('DB_PASSWORD', 'root')->env('DB_USER', $dbUser)
+            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
+            ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')
             ->link('robo_db', 'robo_db')
             ->run();

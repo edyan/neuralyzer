@@ -158,7 +158,7 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Execute the Update with PDO
+     * Execute the Update with Doctrine QueryBuilder
      *
      * @param  string $primaryKey
      * @param  string $primaryKeyVal  Primary Key's Value
@@ -198,7 +198,7 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Execute the Delete with PDO
+     * Execute the Delete with Doctrine Query Builder
      *
      * @param string $where
      * @param bool   $pretend

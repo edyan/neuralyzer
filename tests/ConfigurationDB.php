@@ -49,7 +49,6 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
                     getenv('DB_PASSWORD')
                 );
             }
-
             $this->conn = $this->createDefaultDBConnection(self::$pdo);
         }
 
