@@ -32,10 +32,14 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
     {
         $this->dbName = getenv('DB_NAME');
 
-        ###### FOR PHPUNIT
         $driver = getenv('DB_DRIVER');
         if (substr($driver, 0, 4) === 'pdo_') {
             $driver = substr($driver, 4);
+        }
+
+        $conString = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
+        if ($driver === 'sqlsrv') {
+            $conString = $driver . ':Database=' . $this->dbName . ';Server=' . getenv('DB_HOST');
         }
 
         // From : https://phpunit.de/manual/current/en/database.html#database.implementing-getdataset
@@ -43,11 +47,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         if ($this->conn === null) {
             // Pdo has never been initialized
             if (self::$pdo == null) {
-                self::$pdo = new \PDO(
-                    $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST'),
-                    getenv('DB_USER'),
-                    getenv('DB_PASSWORD')
-                );
+                self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
             }
             $this->conn = $this->createDefaultDBConnection(self::$pdo);
         }

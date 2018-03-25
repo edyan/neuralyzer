@@ -60,7 +60,7 @@ class RoboFile extends \Robo\Tasks
         sleep($wait);
         // Now create a DB For SQL Server
         if ($dbType === 'sqlsrv') {
-            $createSqlQuery = '/opt/sqlsrv-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"';
+            $createSqlQuery = '/opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"';
             $this->taskDockerExec('robo_db')
                  ->interactive()
                  ->exec($this->taskExec($createSqlQuery))
