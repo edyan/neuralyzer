@@ -32,12 +32,17 @@ class ConfigGenerateCommandTest extends ConfigurationDB
         ]);
     }
 
-    /**
-     * @expectedException Doctrine\DBAL\Exception\ConnectionException
-     * @expectedExceptionMessageRegExp |An exception occurred in driver: SQLSTATE.*|
-     */
     public function testExecuteWrongPass()
     {
+        $except = \Doctrine\DBAL\Exception\ConnectionException::class;
+        $exceptMsg = '|An exception occurred in driver: SQLSTATE.*|';
+        if (getenv('DB_DRIVER') === 'sqlsrv') {
+            $except = \Doctrine\DBAL\Driver\SQLSrv\SQLSrvException::class;
+            $exceptMsg = "|.*Login failed for user 'sa'.*|";
+        }
+        $this->expectException($except);
+        $this->expectExceptionMessageRegExp($exceptMsg);
+
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());

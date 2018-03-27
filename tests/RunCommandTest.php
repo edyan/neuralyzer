@@ -34,11 +34,16 @@ class RunCommandTest extends ConfigurationDB
     }
 
     /**
-    * @expectedException InvalidArgumentException
-    * @expectedExceptionMessageRegExp |Could not count records in 'guestbook' from your config : An exception occurred in driver.*|
-    */
+     * @expectedException InvalidArgumentException
+     */
     public function testExecuteWrongPass()
     {
+        if (getenv('DB_DRIVER') === 'sqlsrv') {
+            $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
+        } else {
+            $this->expectExceptionMessageRegExp("|Could not count records in 'guestbook' from your config : An exception occurred in driver.*|");
+        }
+
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());

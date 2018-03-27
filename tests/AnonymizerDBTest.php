@@ -79,8 +79,14 @@ class AnonymizerDBTest extends ConfigurationDB
         $db->processEntity($this->tableName, null, false);
     }
 
+
     public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
     {
+        if (getenv('DB_DRIVER') === 'sqlsrv') {
+            $this->markTestSkipped(
+                "Can't compare dataset with SQLServer as the fields are in a random order"
+            );
+        }
         $this->createPrimary();
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__]);
@@ -93,13 +99,20 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
         // check no data changed
-        $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
+        $expectedDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
-        $this->assertDataSetsEqual($baseDataSet, $queryTable);
+
+        $this->assertDataSetsEqual($expectedDataSet, $queryTable);
     }
+
 
     public function testWithPrimaryConfRightTableDeletePretendPlusResult()
     {
+        if (getenv('DB_DRIVER') === 'sqlsrv') {
+            $this->markTestSkipped(
+                "Can't compare dataset with SQLServer as the fields are in a random order"
+            );
+        }
         $this->createPrimary();
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);

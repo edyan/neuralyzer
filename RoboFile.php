@@ -31,8 +31,9 @@ class RoboFile extends \Robo\Tasks
      * Run All Unit Test
      * @param  array  $opts
      */
-    public function test($opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false, 'wait' => 5])
-    {
+    public function test(
+        $opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false, 'wait' => 5]
+    ) {
         $this->setupDocker($opts['php'], $opts['db'], $opts['wait']);
 
         $this->taskDockerExec('robo_php')
@@ -96,11 +97,10 @@ class RoboFile extends \Robo\Tasks
         if ($dbType === 'postgres') {
             $dbUser = 'postgres';
         } elseif ($dbType === 'sqlsrv') {
-            $dbType = 'pdo_sqlsrv';
             $dbUser = 'sa';
         }
 
-        $this->taskDockerRun('edyan/php:' . $version)
+        $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
             ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
@@ -109,7 +109,7 @@ class RoboFile extends \Robo\Tasks
             ->link('robo_db', 'robo_db')
             ->run();
     }
-
+    
 
     private function destroyDocker()
     {
