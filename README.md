@@ -13,6 +13,8 @@ This project is a library and a command line tool that **anonymizes** a database
 It's also based on [Doctrine DBAL](https://github.com/doctrine/dbal) to abstract interactions with
 databases. It's then supposed to be able to work with any database type.
 
+Tested with MySQL, PostgreSQL and SQLServer.
+
 Neuralyzer is also able to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
 before launching the anonymization (see the config parameters `delete` and `delete_from`).
 
@@ -119,7 +121,7 @@ Options:
   -c, --config=CONFIG      Configuration File [default: "neuralyzer.yml"]
       --pretend            Don't run the queries
       --sql                Display the SQL
-  -t, --table=TABLE        Do a single table      
+  -t, --table=TABLE        Do a single table
 ```
 #### Example
 ```bash
