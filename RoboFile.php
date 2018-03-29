@@ -92,6 +92,10 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(string $version, string $dbType)
     {
+        if (!in_array($version, ['7.1', '7.2'])) {
+            throw new \InvalidArgumentException('PHP Version must be 7.1 or 7.2');
+        }
+
         $dbUser = 'root';
         if ($dbType === 'postgres') {
             $dbUser = 'postgres';
@@ -100,7 +104,7 @@ class RoboFile extends \Robo\Tasks
             $dbUser = 'sa';
         }
 
-        $this->taskDockerRun('edyan/php:' . $version)
+        $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
             ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
