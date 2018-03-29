@@ -36,7 +36,7 @@ jobs:
       # run tests!
       - run:
           name: Run tests
-          command: phpunit
+          command: vendor/bin/phpunit
           environment:
               DB_DRIVER: pdo_postgres
               DB_HOST: localhost
