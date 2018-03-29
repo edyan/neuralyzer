@@ -280,7 +280,8 @@ Neuralyzer uses [Robo](https://robo.li) to run its tests (via Docker) and build 
 Clone the project, run `composer install` then...
 
 ### Run the tests
-Change the `--wait` option if you have a lot of errors because DB is not ready.
+* Change the `--wait` option if you have a lot of errors because DB is not ready.
+* Change the `--php` option for `7.1` or `7.2`
 #### With MySQL
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
