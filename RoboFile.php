@@ -7,8 +7,13 @@
 
 class RoboFile extends \Robo\Tasks
 {
+    /**
+     * A test command just to make sure robo works on that computer
+     */
     public function dockertest()
     {
+        $this->stopOnFail(true);
+
         $this->taskDockerStop('robo_test')->run();
 
         $this->taskDockerRun('edyan/php:7.1')
@@ -26,7 +31,6 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-
     /**
      * Run All Unit Test
      * @param  array  $opts
@@ -34,8 +38,11 @@ class RoboFile extends \Robo\Tasks
     public function test(
         $opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false, 'wait' => 5]
     ) {
+        $this->stopOnFail(true);
+
         $this->setupDocker($opts['php'], $opts['db'], $opts['wait']);
 
+        // Run the tests
         $this->taskDockerExec('robo_php')
             ->interactive()
             ->option('--user', 'www-data')
@@ -48,95 +55,10 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function setupDocker(string $php = '7.1', string $dbType = 'mysql', int $wait)
-    {
-        $this->destroyDocker();
-
-        if (!in_array($dbType, ['mysql', 'postgres', 'sqlsrv'])) {
-            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlsrv');
-        }
-
-        $this->startDb($dbType);
-        $this->say("Waiting $wait seconds $dbType to start");
-        sleep($wait);
-        // Now create a DB For SQL Server
-        if ($dbType === 'sqlsrv') {
-            $createSqlQuery = '/opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"';
-            $this->taskDockerExec('robo_db')
-                 ->interactive()
-                 ->exec($this->taskExec($createSqlQuery))
-                 ->run();
-        }
-
-        $this->startPHP($php, $dbType);
-    }
-
-    private function startDb($type)
-    {
-        $image = $type;
-        if ($type === 'sqlsrv') {
-            $image = 'microsoft/mssql-server-linux:2017-latest';
-        }
-
-        $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
-        if ($type === 'mysql') {
-            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
-        } elseif ($type === 'postgres') {
-            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
-        } elseif ($type === 'sqlsrv') {
-            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
-        }
-
-        $dbCt->run();
-    }
-
-
-    private function startPHP(string $version, string $dbType)
-    {
-        $dbUser = 'root';
-        if ($dbType === 'postgres') {
-            $dbUser = 'postgres';
-        } elseif ($dbType === 'sqlsrv') {
-            $dbUser = 'sa';
-        }
-
-        $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
-            ->detached()->name('robo_php')->option('--rm')
-            ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
-            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
-            ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
-            ->volume(__DIR__, '/var/www/html')
-            ->link('robo_db', 'robo_db')
-            ->run();
-    }
-    
-
-    private function destroyDocker()
-    {
-        $cts = ['robo_db', 'robo_php'];
-        foreach ($cts as $ct) {
-            $this->stopContainer($ct);
-        }
-    }
-
-
-    private function stopContainer(string $ct)
-    {
-        $process = new \Symfony\Component\Process\Process("docker ps | grep $ct | wc -l");
-        $process->run();
-
-        if ((int)$process->getOutput() === 0) {
-            return;
-        }
-
-        $this->say('Destroying container ' . $ct);
-        $this->taskDockerStop($ct)->run();
-    }
-
     /**
-     * Build phar executable.
+     * Build an executable phar
      */
-    public function pharBuild()
+    public function phar()
     {
         // Create a collection builder to hold the temporary
         // directory until the pack phar task runs.
@@ -148,11 +70,7 @@ class RoboFile extends \Robo\Tasks
         $preparationResult = $prepTasks
             ->taskFilesystemStack()
                 ->mkdir($workDir)
-
-            ->taskCopyDir([
-                __DIR__ . '/src' => $buildDir . '/src'
-            ])
-
+                ->taskCopyDir([__DIR__ . '/src' => $buildDir . '/src'])
             ->taskFilesystemStack()
                 ->copy(__DIR__ . '/bin/neuralyzer', $buildDir . '/bin/neuralyzer')
                 ->copy(__DIR__ . '/composer.json', $buildDir . '/composer.json')
@@ -194,5 +112,139 @@ class RoboFile extends \Robo\Tasks
             ->taskFilesystemStack()
                 ->chmod(__DIR__ . '/neuralyzer.phar', 0755)
             ->run();
+    }
+
+
+    public function release()
+    {
+        $this->stopOnFail(true);
+
+        $version = null;
+        $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
+        while (empty($version)) {
+            $version = $this->ask("Whats the version number ? (current : $currentVersion)");
+        }
+        $this->say("Preparing version $version");
+
+        // Verify there is no file changed
+        $modifiedFiles = $this->taskGitStack()->exec('git status -s')->run();
+var_dump($modifiedFiles); die();
+        // Verify everything is pulled
+return;
+        // Patch the right files
+        $this->taskReplaceInFile(__DIR__ . '/src/Console/Application.php')
+             ->from("const VERSION = '$currentVersion';")
+             ->to("const VERSION = '$version';")
+             ->run();
+
+        // Commit a bump version
+
+        // Create a tag
+/*
+        $this->taskGitHubRelease($version)
+          ->uri('consolidation-org/Robo')
+          ->description('Add stuff people need.')
+          ->change('Fix #123')
+          ->change('Add frobulation method to all widgets')
+          ->run();
+*/
+
+        $this->say('Release ready, you can push');
+    }
+
+
+    private function setupDocker(
+        string $php = '7.1',
+        string $dbType = 'mysql',
+        int $wait = 10
+    ) {
+        $this->destroyDocker();
+
+        if (!in_array($dbType, ['mysql', 'postgres', 'sqlsrv'])) {
+            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlsrv');
+        }
+
+        $this->startDb($dbType);
+        $this->say("Waiting $wait seconds $dbType to start");
+        sleep($wait);
+        // Now create a DB For SQL Server as there is no option in the docker image
+        if ($dbType === 'sqlsrv') {
+            $this->createSQLServerDB();
+        }
+
+        $this->startPHP($php, $dbType);
+    }
+
+    private function startDb($type)
+    {
+        $image = $type;
+        if ($type === 'sqlsrv') {
+            $image = 'microsoft/mssql-server-linux:2017-latest';
+        }
+
+        $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
+        if ($type === 'mysql') {
+            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
+        } elseif ($type === 'postgres') {
+            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
+        } elseif ($type === 'sqlsrv') {
+            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
+        }
+
+        $dbCt->run();
+    }
+
+
+    private function createSQLServerDB()
+    {
+        $createSqlQuery = '/opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root ';
+        $createSqlQuery.= '-S localhost -Q "CREATE DATABASE test_db"';
+        $this->taskDockerExec('robo_db')
+             ->interactive()
+             ->exec($this->taskExec($createSqlQuery))
+             ->run();
+    }
+
+
+    private function startPHP(string $version, string $dbType)
+    {
+        $dbUser = 'root';
+        if ($dbType === 'postgres') {
+            $dbUser = 'postgres';
+        } elseif ($dbType === 'sqlsrv') {
+            $dbUser = 'sa';
+        }
+
+        $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
+            ->detached()->name('robo_php')->option('--rm')
+            ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
+            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
+            ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
+            ->volume(__DIR__, '/var/www/html')
+            ->link('robo_db', 'robo_db')
+            ->run();
+    }
+
+
+    private function destroyDocker()
+    {
+        $cts = ['robo_db', 'robo_php'];
+        foreach ($cts as $ct) {
+            $this->stopContainer($ct);
+        }
+    }
+
+
+    private function stopContainer(string $ct)
+    {
+        $process = new \Symfony\Component\Process\Process("docker ps | grep $ct | wc -l");
+        $process->run();
+
+        if ((int)$process->getOutput() === 0) {
+            return;
+        }
+
+        $this->say('Destroying container ' . $ct);
+        $this->taskDockerStop($ct)->run();
     }
 }

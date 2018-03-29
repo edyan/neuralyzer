@@ -20,5 +20,5 @@ $classLoader = require $autoloaderPath;
 
 use Edyan\Neuralyzer\Console\Application;
 
-$app = new Application('Anonmymization command line', '3.0');
+$app = new Application('Anonmymization command line', Application::VERSION);
 $app->run();
