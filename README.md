@@ -291,7 +291,7 @@ $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
 $ vendor/bin/robo test --php 7.1 --wait 10 --db postgres
 ```
 #### With SQL Server
-**Warning** : not all test work, because of strange behaviors of SQL Server ... or Doctrine / Dbal
+**Warning** : 2 tests 'fail', because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 15 --db sqlsrv
 ```
