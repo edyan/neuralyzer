@@ -119,35 +119,48 @@ class RoboFile extends \Robo\Tasks
     {
         $this->stopOnFail(true);
 
+        $this->gitVerifyEverythingIsCommited();
+        $this->gitVerifyBranchIsMaster();
+        $this->gitVerifyBranchIsUpToDate();
+
+        // Verify everything is pulled
+        $this->say('Need to implement a check to make sure everyhting has been pulled');
+
         $version = null;
         $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
         while (empty($version)) {
             $version = $this->ask("Whats the version number ? (current : $currentVersion)");
         }
+        $versionDesc = null;
+        while (empty($versionDesc)) {
+            $versionDesc = $this->ask('Describe your release');
+        }
+
         $this->say("Preparing version $version");
 
-        // Verify there is no file changed
-        $modifiedFiles = $this->taskGitStack()->exec('git status -s')->run();
-var_dump($modifiedFiles); die();
-        // Verify everything is pulled
-return;
         // Patch the right files
         $this->taskReplaceInFile(__DIR__ . '/src/Console/Application.php')
              ->from("const VERSION = '$currentVersion';")
              ->to("const VERSION = '$version';")
              ->run();
 
-        // Commit a bump version
+        $this->phar();
 
-        // Create a tag
-/*
+        // Commit a bump version
+        $this->taskGitStack()
+             ->add(__DIR__ . '/src/Console/Application.php')
+             ->add(__DIR__ . '/neuralyzer.phar')
+             ->commit("Bump version $version")
+             ->push('origin', 'master')
+             ->tag($version)
+             ->push('origin', $version)
+             ->run();
+
+        // Create a release
         $this->taskGitHubRelease($version)
-          ->uri('consolidation-org/Robo')
-          ->description('Add stuff people need.')
-          ->change('Fix #123')
-          ->change('Add frobulation method to all widgets')
-          ->run();
-*/
+             ->uri('edyan/neuralyzer')
+             ->description($versionDesc)
+             ->run();
 
         $this->say('Release ready, you can push');
     }
@@ -251,4 +264,39 @@ return;
         $this->say('Destroying container ' . $ct);
         $this->taskDockerStop($ct)->run();
     }
+
+    private function gitVerifyBranchIsMaster()
+    {
+        $branch = $this->taskGitStack()
+                        ->silent(true)
+                        ->exec('rev-parse --abbrev-ref HEAD')
+                        ->run();
+        if ($branch->getMessage() !== 'master') {
+            throw new \RuntimeException('You must be on the master branch');
+        }
+    }
+
+    private function gitVerifyEverythingIsCommited()
+    {
+        $modifiedFiles = $this->taskGitStack()
+                              ->silent(true)
+                              ->exec('status -s')
+                              ->run();
+        if (!empty($modifiedFiles->getMessage())) {
+            throw new \RuntimeException('Some files have not been commited yet');
+        }
+    }
+
+    private function gitVerifyBranchIsUpToDate()
+    {
+        $modifiedFiles = $this->taskGitStack()
+                              ->silent(true)
+                              ->exec('fetch --dry-run')
+                              ->run();
+        if ($modifiedFiles->getMessage() !== 'Is Up ToDate') {
+            throw new \RuntimeException('Your local repo is not up to date, run "git pull"');
+        }
+    }
+
+
 }
