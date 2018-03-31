@@ -123,9 +123,6 @@ class RoboFile extends \Robo\Tasks
         $this->gitVerifyBranchIsMaster();
         $this->gitVerifyBranchIsUpToDate();
 
-        // Verify everything is pulled
-        $this->say('Need to implement a check to make sure everyhting has been pulled');
-
         $version = null;
         $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
         while (empty($version)) {
