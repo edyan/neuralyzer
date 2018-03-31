@@ -7,7 +7,7 @@
     stopOnFailure="true"
     syntaxCheck="true">
     <php>
-        <env name='DB_DRIVER' value='mysql'/>
+        <env name='DB_DRIVER' value='pdo_mysql'/>
         <env name='DB_USER' value='root'/>
         <env name='DB_PASSWORD' value=''/>
         <env name='DB_HOST' value='127.0.0.1'/>
