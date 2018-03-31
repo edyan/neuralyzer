@@ -298,7 +298,13 @@ $ vendor/bin/robo test --php 7.1 --wait 15 --db sqlsrv
 
 
 
+### Build a release
+```bash
+$ php -d phar.readonly=0 vendor/bin/robo release
+```
+
+
 ### Build the phar
 ```bash
-$ php -d phar.readonly=0 vendor/bin/robo phar:build
+$ php -d phar.readonly=0 vendor/bin/robo phar
 ```
