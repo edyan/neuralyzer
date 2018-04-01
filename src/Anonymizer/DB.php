@@ -36,6 +36,13 @@ class DB extends AbstractAnonymizer
 
 
     /**
+     * Primary Key
+     * @var string
+     */
+    private $priKey;
+
+
+    /**
      * Init connection
      *
      * @param $params   Parameters to send to Doctrine DB
@@ -70,7 +77,8 @@ class DB extends AbstractAnonymizer
         string $entity,
         callable $callback = null,
         bool $pretend = true,
-        bool $returnRes = false
+        bool $returnRes = false,
+        int $limit = 0
     ): array {
         $schema = $this->conn->getSchemaManager();
         if ($schema->tablesExist($entity) === false) {
@@ -78,6 +86,9 @@ class DB extends AbstractAnonymizer
         }
 
         $this->entity = $entity;
+        $this->priKey = $this->getPrimaryKey();
+        $this->entityCols = $this->getTableCols();
+
         $queries = [];
 
         $actionsOnThatEntity = $this->whatToDoWithEntity();
@@ -89,29 +100,17 @@ class DB extends AbstractAnonymizer
         }
 
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
-            // I need to read line by line if I have to update the table
-            // to make sure I do update by update (slower but no other choice for now)
-            $rowNum = 0;
+            $queries = array_merge(
+                $queries,
+                $this->updateData($limit, $returnRes, $pretend, $callback)
+            );
+        }
 
-            $key = $this->getPrimaryKey();
-            $this->entityCols = $this->getTableCols();
-
-            $queryBuilder = $this->conn->createQueryBuilder();
-            $rows = $queryBuilder->select($key)->from($this->entity)->execute();
-
-            foreach ($rows as $row) {
-                $queryBuilder = $this->prepareUpdate($key, $row[$key]);
-
-                ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
-
-                if ($pretend === false) {
-                    $queryBuilder->execute();
-                }
-
-                if (!is_null($callback)) {
-                    $callback(++$rowNum);
-                }
-            }
+        if ($actionsOnThatEntity & self::INSERT_TABLE) {
+            $queries = array_merge(
+                $queries,
+                $this->insertData($limit, $returnRes, $pretend, $callback)
+            );
         }
 
         return $queries;
@@ -160,11 +159,10 @@ class DB extends AbstractAnonymizer
     /**
      * Execute the Update with Doctrine QueryBuilder
      *
-     * @param  string $primaryKey
      * @param  string $primaryKeyVal  Primary Key's Value
-     * @return string                 Doctrine DBAL QueryBuilder
+     * @return QueryBuilder           Doctrine DBAL QueryBuilder
      */
-    private function prepareUpdate(string $primaryKey, $primaryKeyVal): QueryBuilder
+    private function prepareUpdate($primaryKeyVal): QueryBuilder
     {
         $data = $this->generateFakeData();
 
@@ -174,8 +172,27 @@ class DB extends AbstractAnonymizer
             $queryBuilder = $queryBuilder->set($field, $this->getCondition($field));
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
-        $queryBuilder = $queryBuilder->where("$primaryKey = :$primaryKey");
-        $queryBuilder = $queryBuilder->setParameter(":$primaryKey", $primaryKeyVal);
+        $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
+        $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
+
+        return $queryBuilder;
+    }
+
+    /**
+     * Execute the Update with Doctrine QueryBuilder
+     *
+     * @return QueryBuilder       Doctrine DBAL QueryBuilder
+     */
+    private function prepareInsert(): QueryBuilder
+    {
+        $data = $this->generateFakeData();
+
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $queryBuilder->insert($this->entity);
+        foreach ($data as $field => $value) {
+            $queryBuilder = $queryBuilder->setValue($field, ":$field");
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+        }
 
         return $queryBuilder;
     }
@@ -251,7 +268,6 @@ class DB extends AbstractAnonymizer
             'bigint'   => $integerCast,
             'float'    => 'DECIMAL',
             'decimal'  => 'DECIMAL',
-
         ];
 
         // No cast required
@@ -277,5 +293,79 @@ class DB extends AbstractAnonymizer
         }
 
         return 'INTEGER';
+    }
+
+
+    /**
+     * Update data of table
+     *
+     * @param  int    $limit
+     * @param  bool   $returnRes
+     * @param  bool   $pretend
+     * @param  callable $callback
+     * @return array             [description]
+     */
+    private function updateData(int $limit, bool $returnRes, bool $pretend, $callback): array
+    {
+        // I need to read line by line if I have to update the table
+        // to make sure I do update by update (slower but no other choice for now)
+        $rowNum = 0;
+        $queries = [];
+
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $rows = $queryBuilder->select($this->priKey)->from($this->entity)->execute();
+
+        foreach ($rows as $row) {
+            $queryBuilder = $this->prepareUpdate($row[$this->priKey]);
+
+            ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
+
+            if ($pretend === false) {
+                $queryBuilder->execute();
+            }
+
+            if (!is_null($callback)) {
+                $callback(++$rowNum);
+            }
+
+            if ($limit > 0 && $rowNum >= $limit) {
+                break;
+            }
+        }
+
+        return $queries;
+    }
+
+
+    /**
+     * Insert data into table
+     *
+     * @param  int    $limit
+     * @param  bool   $returnRes
+     * @param  bool   $pretend
+     * @param  callable $callback
+     * @return array             [description]
+     */
+    private function insertData(int $limit, bool $returnRes, bool $pretend, $callback): array
+    {
+        $queries = [];
+
+        $queryBuilder = $this->conn->createQueryBuilder();
+
+        for ($rowNum = 0; $rowNum < $limit; $rowNum++) {
+            $queryBuilder = $this->prepareInsert();
+
+            ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
+
+            if ($pretend === false) {
+                $queryBuilder->execute();
+            }
+
+            if (!is_null($callback)) {
+                $callback($rowNum);
+            }
+        }
+
+        return $queries;
     }
 }

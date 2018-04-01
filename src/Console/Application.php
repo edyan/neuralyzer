@@ -36,7 +36,9 @@ class Application extends BaseApplication
     {
         $commands = parent::getDefaultCommands();
         $commands[] = new \Edyan\Neuralyzer\Console\Commands\RunCommand();
+        $commands[] = new \Edyan\Neuralyzer\Console\Commands\ConfigExampleCommand();
         $commands[] = new \Edyan\Neuralyzer\Console\Commands\ConfigGenerateCommand();
+        $commands[] = new \Edyan\Neuralyzer\Console\Commands\ConfigValidateCommand();
 
         return $commands;
     }

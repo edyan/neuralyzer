@@ -82,7 +82,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
     public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
     {
-        if (getenv('DB_DRIVER') === 'sqlsrv') {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
             $this->markTestSkipped(
                 "Can't compare dataset with SQLServer as the fields are in a random order"
             );
@@ -108,7 +108,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
     public function testWithPrimaryConfRightTableDeletePretendPlusResult()
     {
-        if (getenv('DB_DRIVER') === 'sqlsrv') {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
             $this->markTestSkipped(
                 "Can't compare dataset with SQLServer as the fields are in a random order"
             );
@@ -145,7 +145,6 @@ class AnonymizerDBTest extends ConfigurationDB
         }, true, true);
 
         $this->assertEquals($this->i, 2);
-
     }
 
 

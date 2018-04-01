@@ -170,8 +170,8 @@ class RoboFile extends \Robo\Tasks
     ) {
         $this->destroyDocker();
 
-        if (!in_array($dbType, ['mysql', 'postgres', 'sqlsrv'])) {
-            throw new \InvalidArgumentException('Database can be only mysql, postgres or sqlsrv');
+        if (!in_array($dbType, ['mysql', 'pgsql', 'sqlsrv'])) {
+            throw new \InvalidArgumentException('Database can be only mysql, pgsql or sqlsrv');
         }
 
         $this->startDb($dbType);
@@ -190,12 +190,14 @@ class RoboFile extends \Robo\Tasks
         $image = $type;
         if ($type === 'sqlsrv') {
             $image = 'microsoft/mssql-server-linux:2017-latest';
+        } elseif ($type === 'pgsql') {
+            $image = 'postgres';
         }
 
         $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
         if ($type === 'mysql') {
             $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
-        } elseif ($type === 'postgres') {
+        } elseif ($type === 'pgsql') {
             $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
         } elseif ($type === 'sqlsrv') {
             $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
@@ -223,7 +225,7 @@ class RoboFile extends \Robo\Tasks
         }
 
         $dbUser = 'root';
-        if ($dbType === 'postgres') {
+        if ($dbType === 'pgsql') {
             $dbUser = 'postgres';
         } elseif ($dbType === 'sqlsrv') {
             $dbUser = 'sa';
@@ -232,7 +234,7 @@ class RoboFile extends \Robo\Tasks
         $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
-            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', $dbType)
+            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $dbType)
             ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')
             ->link('robo_db', 'robo_db')

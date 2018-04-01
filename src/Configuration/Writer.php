@@ -19,6 +19,7 @@ namespace Edyan\Neuralyzer\Configuration;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Edyan\Neuralyzer\GuesserInterface;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -94,11 +95,13 @@ class Writer
             throw new NeuralizerConfigurationException('All tables or fields have been ignored');
         }
 
-        return [
-            'guesser_version' => $guesser->getVersion(),
-            'language' => 'en_US',
+        $config = [
             'entities' => $data
         ];
+
+        $processor = new Processor();
+
+        return $processor->processConfiguration(new ConfigDefinition, [$config]);
     }
 
 

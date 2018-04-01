@@ -38,7 +38,7 @@ class RunCommandTest extends ConfigurationDB
      */
     public function testExecuteWrongPass()
     {
-        if (getenv('DB_DRIVER') === 'sqlsrv') {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
             $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
         } else {
             $this->expectExceptionMessageRegExp("|Could not count records in 'guestbook' from your config : An exception occurred in driver.*|");

@@ -86,6 +86,20 @@ class Reader
 
 
     /**
+     * Getter
+     *
+     * @return array Config Values
+     */
+    public function getEntityConfig(string $entity)
+    {
+        if (!array_key_exists($entity, $this->configValues['entities'])) {
+            throw new \InvalidArgumentException("$entity is not set in config");
+        }
+        return $this->configValues['entities'][$entity];
+    }
+
+
+    /**
      * Return the list of entites
      *
      * @return array

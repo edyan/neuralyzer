@@ -2,6 +2,7 @@ guesser_version: '3.0'
 language: en_US
 entities:
     guestbook:
+        action: update
         cols:
             content: { method: sentence, params: [20] }
             username: { method: sentence, params: ['32'] }

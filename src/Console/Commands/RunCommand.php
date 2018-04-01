@@ -17,6 +17,7 @@
 
 namespace Edyan\Neuralyzer\Console\Commands;
 
+use Edyan\Neuralyzer\Configuration\Reader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -58,6 +59,13 @@ class RunCommand extends Command
      */
     private $output;
 
+    /**
+     * Neuralyzer reader
+     *
+     * @var Reader
+     */
+    private $reader;
+
 
     /**
      * Configure the command
@@ -68,10 +76,10 @@ class RunCommand extends Command
     {
         // First command : Test the DB Connexion
         $this->setName($this->command)
-            ->setDescription('Generate configuration for the Anonymizer')
+            ->setDescription('Run Anonymizer')
             ->setHelp(
                 'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
-                "Usage: ./bin/neuralyzer <info>{$this->command} -u app -p app -f neuralyzer.yml</info>"
+                "Usage: <info>./bin/neuralyzer {$this->command} -u app -p app -f neuralyzer.yml</info>"
             )->addOption(
                 'driver',
                 'D',
@@ -118,9 +126,14 @@ class RunCommand extends Command
                 "Don't run the queries"
             )->addOption(
                 'sql',
-                null,
+                's',
                 InputOption::VALUE_NONE,
                 'Display the SQL'
+            )->addOption(
+                'limit',
+                'l',
+                InputOption::VALUE_REQUIRED,
+                'Limit the number of written records (update or insert). 100 by default for insert'
             );
     }
 
@@ -151,7 +164,7 @@ class RunCommand extends Command
         $this->output = $output;
 
         // Anon READER
-        $reader = new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('config'));
+        $this->reader = new Reader($input->getOption('config'));
 
         // Now work on the DB
         $this->db = new \Edyan\Neuralyzer\Anonymizer\DB([
@@ -161,14 +174,15 @@ class RunCommand extends Command
             'user' => $input->getOption('user'),
             'password' => $password,
         ]);
-        $this->db->setConfiguration($reader);
+        $this->db->setConfiguration($this->reader);
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
         // Get tables
-        $tables = empty($input->getOption('table')) ? $reader->getEntities() : [$input->getOption('table')];
+        $table = $input->getOption('table');
+        $tables = empty($table) ? $this->reader->getEntities() : [$table];
         foreach ($tables as $table) {
-            $this->anonymizeTable($table, $input, $output);
+            $this->anonymizeTable($table);
         }
 
         // Get memory and execution time information
@@ -187,7 +201,7 @@ class RunCommand extends Command
      */
     private function anonymizeTable(string $table)
     {
-        $total = $this->countRecords($table);
+        $total = $this->getTotal($table);
         if ($total === 0) {
             $this->output->writeln("<info>$table is empty</info>");
             return;
@@ -201,7 +215,7 @@ class RunCommand extends Command
         try {
             $queries = $this->db->processEntity($table, function () use ($bar) {
                 $bar->advance();
-            }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+            }, $this->input->getOption('pretend'), $this->input->getOption('sql'), $total);
         // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
             $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
@@ -237,5 +251,32 @@ class RunCommand extends Command
         $data = $stmt->fetchAll();
 
         return (int)$data[0]['total'];
+    }
+
+
+    /**
+     * Define the total number of records to process for progress bar
+     *
+     * @param  string $table
+     * @return int
+     */
+    private function getTotal(string $table): int
+    {
+        $limit = $this->input->getOption('limit');
+        $config = $this->reader->getEntityConfig($table);
+        if ($config['action'] === 'insert') {
+            return empty($limit) ? 100 : $limit;
+        }
+
+        $rows = $this->countRecords($table);
+        if (empty($limit)) {
+            return $rows;
+        }
+
+        if (!empty($limit) && $limit > $rows) {
+            return $rows;
+        }
+
+        return $limit;
     }
 }

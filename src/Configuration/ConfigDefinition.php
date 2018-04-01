@@ -17,6 +17,7 @@
 
 namespace Edyan\Neuralyzer\Configuration;
 
+use Edyan\Neuralyzer\Guesser;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
@@ -47,26 +48,60 @@ class ConfigDefinition implements ConfigurationInterface
         $rootNode = $treeBuilder->root('config');
         $rootNode
             ->children()
-                ->scalarNode('guesser_version')->isRequired()->end()
-                ->scalarNode('language')->defaultValue('en_US')->end()
+                ->scalarNode('guesser')
+                    ->info('Set the guesser class')
+                    ->defaultValue(Guesser::class)
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('guesser_version')
+                    ->info('Set the version of the guesser the conf has been written with')
+                    ->defaultValue((new Guesser)->getVersion())
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('language')
+                    ->info("Faker's language, make sure all your methods have a translation")
+                    ->defaultValue('en_US')
+                ->end()
                 ->arrayNode('entities')
+                    ->info("List all entities, theirs cols and actions")
+                    ->example('people')
                     ->isRequired()
                     ->requiresAtLeastOneElement()
                     ->prototype('array')
                         ->children()
+                            ->scalarNode('action')
+                                ->info('Either "update" or "insert" data')
+                                ->defaultValue('update')
+                                ->validate()
+                                    ->ifNotInArray(['update', 'insert'])
+                                    ->thenInvalid('Action is either "update" or "insert"')
+                                ->end()
+                            ->end()
+                            ->scalarNode('delete')
+                                ->info('Should we delete data with what is defined in "delete_where" ?')
+                                ->defaultValue(false)
+                            ->end()
+                            ->scalarNode('delete_where')
+                                ->cannotBeEmpty()
+                                ->info('Condition applied in a WHERE if delete is set to "true"')
+                                ->example("'1 = 1'")
+                            ->end()
                             ->arrayNode('cols')
+                                ->example([
+                                    'first_name' => ['method' => 'firstName'],
+                                    'last_name' => ['method' => 'lastName']
+                                ])
                                 ->requiresAtLeastOneElement()
                                 ->prototype('array')
                                     ->children()
                                         ->scalarNode('method')->isRequired()->end()
                                         ->arrayNode('params')
-                                            ->requiresAtLeastOneElement()->prototype('variable')->end()
+                                            ->defaultValue([])
+                                            ->prototype('variable')->end()
                                         ->end()
                                     ->end()
                                 ->end()
                             ->end()
-                            ->scalarNode('delete')->defaultValue(false)->end()
-                            ->scalarNode('delete_where')->cannotBeEmpty()->end()
                         ->end()
                     ->end()
                 ->end()

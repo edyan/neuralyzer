@@ -29,14 +29,19 @@ use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 abstract class AbstractAnonymizer
 {
     /**
-     * Constant to define the type of action for that table
+     * Truncate table
      */
     const TRUNCATE_TABLE = 1;
 
     /**
-     * Constant to define the type of action for that table
+     * Update data into table
      */
     const UPDATE_TABLE = 2;
+
+    /**
+     * Insert data into table
+     */
+    const INSERT_TABLE = 4;
 
     /**
      * Contain the configuration object
@@ -110,7 +115,14 @@ abstract class AbstractAnonymizer
         }
 
         if (array_key_exists('cols', $entityConfig)) {
-            $actions |= self::UPDATE_TABLE;
+            switch ($entityConfig['action']) {
+                case 'update':
+                    $actions |= self::UPDATE_TABLE;
+                    break;
+                case 'insert':
+                    $actions |= self::INSERT_TABLE;
+                    break;
+            }
         }
 
         return $actions;
@@ -149,8 +161,11 @@ abstract class AbstractAnonymizer
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
             $this->checkColIsInEntity($colName);
-            $args = empty($colProps['params']) ? [] : $colProps['params'];
-            $data = call_user_func_array([$faker, $colProps['method']], $args);
+            $data = call_user_func_array(
+                [$faker, $colProps['method']],
+                $colProps['params']
+            );
+
             if (!is_scalar($data)) {
                 $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
                 throw new NeuralizerConfigurationException($msg);
