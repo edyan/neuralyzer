@@ -366,15 +366,16 @@ $ vendor/bin/robo test --php 7.1 --wait 10 --db postgres
 $ vendor/bin/robo test --php 7.1 --wait 15 --db sqlsrv
 ```
 
-
-
 ### Build a release
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo release
 ```
 
-
 ### Build the phar
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo phar
 ```
+
+
+## TODO
+* Manage Foreign Keys in data generation (action = insert). That can be done by doing a random query on the parent table. 
