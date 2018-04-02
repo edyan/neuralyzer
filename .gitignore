@@ -6,6 +6,9 @@
 /composer.lock
 /vendor/
 
-#PHPUnit/Phing
+# PHPUnit/Phing
 /phpunit.xml
 /reports/
+
+# Robo
+robo.yml

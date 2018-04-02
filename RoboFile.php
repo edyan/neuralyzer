@@ -159,6 +159,16 @@ class RoboFile extends \Robo\Tasks
              ->description($versionDesc)
              ->run();
 
+         // Create a release
+         $this->taskGitHubRelease($version)
+              ->name($versionDesc)
+              ->tag($version)
+              ->description('')
+              ->owner('edyan')
+              ->repo('neuralyzer')
+              ->accessToken(Robo::Config()->get('settings.github_token'))
+              ->run();
+
         $this->say('Release ready, you can push');
     }
 
@@ -296,6 +306,4 @@ class RoboFile extends \Robo\Tasks
             throw new \RuntimeException('Your local repo is not up to date, run "git pull"');
         }
     }
-
-
 }
