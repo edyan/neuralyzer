@@ -123,6 +123,9 @@ class RoboFile extends \Robo\Tasks
         $this->gitVerifyBranchIsMaster();
         $this->gitVerifyBranchIsUpToDate();
 
+        // Verify everything is pulled
+        $this->say('Need to implement a check to make sure everyhting has been pulled');
+
         $version = null;
         $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
         while (empty($version)) {
@@ -218,10 +221,6 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(string $version, string $dbType)
     {
-        if (!in_array($version, ['7.1', '7.2'])) {
-            throw new \InvalidArgumentException('PHP Version must be 7.1 or 7.2');
-        }
-
         $dbUser = 'root';
         if ($dbType === 'postgres') {
             $dbUser = 'postgres';
