@@ -172,7 +172,7 @@ class RoboFile extends \Robo\Tasks
               ->description('')
               ->owner('edyan')
               ->repo('neuralyzer')
-              ->accessToken(Robo::Config()->get('settings.github_token'))
+              ->accessToken(\Robo\Robo::config()->get('settings.github_token'))
               ->run();
 
         $this->say('Release ready, you can push');
