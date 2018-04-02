@@ -3,7 +3,6 @@
 *~
 
 # Composer
-/composer.lock
 /vendor/
 
 # PHPUnit/Phing
