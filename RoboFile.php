@@ -60,6 +60,12 @@ class RoboFile extends \Robo\Tasks
      */
     public function phar()
     {
+        if ((int)ini_get('phar.readonly') === 1) {
+            throw new \RuntimeException(
+                'You must have phar.readonly = 1 or run' . PHP_EOL .
+                'php -d phar.readonly=0 vendor/bin/robo release'
+            );
+        }
         // Create a collection builder to hold the temporary
         // directory until the pack phar task runs.
         $collection = $this->collectionBuilder();
