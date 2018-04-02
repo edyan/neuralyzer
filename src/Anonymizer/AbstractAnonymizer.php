@@ -77,12 +77,14 @@ abstract class AbstractAnonymizer
      * @param callable|null $callback       Callback function with current row num as parameter
      * @param bool          $pretend        Simulate update
      * @param bool          $returnRes      Return queries
+     * @param int           $limit          Limit the number of queries (insert or update)
      */
     abstract public function processEntity(
         string $entity,
         callable $callback = null,
         bool $pretend = true,
-        bool $returnRes = false
+        bool $returnRes = false,
+        int $limit = 0
     ): array;
 
 
