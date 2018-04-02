@@ -159,12 +159,6 @@ class RoboFile extends \Robo\Tasks
              ->push('origin', $version)
              ->run();
 
-        // Create a release
-        $this->taskGitHubRelease($version)
-             ->uri('edyan/neuralyzer')
-             ->description($versionDesc)
-             ->run();
-
          // Create a release
          $this->taskGitHubRelease($version)
               ->name($versionDesc)
