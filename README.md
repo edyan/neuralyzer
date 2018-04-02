@@ -352,6 +352,7 @@ Clone the project, run `composer install` then...
 ### Run the tests
 * Change the `--wait` option if you have a lot of errors because DB is not ready.
 * Change the `--php` option for `7.1` or `7.2`
+
 #### With MySQL
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
@@ -361,7 +362,7 @@ $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
 $ vendor/bin/robo test --php 7.1 --wait 10 --db postgres
 ```
 #### With SQL Server
-**Warning** : 2 tests 'fail', because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
+**Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 15 --db sqlsrv
 ```
@@ -378,4 +379,4 @@ $ php -d phar.readonly=0 vendor/bin/robo phar
 
 
 ## TODO
-* Manage Foreign Keys in data generation (action = insert). That can be done by doing a random query on the parent table. 
+* Manage Foreign Keys in data generation (action = insert). That can be done by doing a random query on the parent table.
