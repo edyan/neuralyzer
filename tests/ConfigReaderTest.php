@@ -57,4 +57,14 @@ class ConfigReaderTest extends TestCase
 
         return $reader;
     }
+
+    /**
+     * @expectedException InvalidArgumentException
+     * @expectedExceptionMessageRegExp |does_not_exist is not set in config|
+     */
+    public function testGetEntityNotInConfig()
+    {
+        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader->getEntityConfig('does_not_exist');
+    }
 }

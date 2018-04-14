@@ -259,6 +259,12 @@ class AnonymizerDBTest extends ConfigurationDB
 
     public function testWithPrimaryConfRightTableInsert()
     {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+            $this->markTestSkipped(
+                "Can't manage autoincrement field with SQLServer"
+            );
+        }
+
         $this->createPrimary();
         $this->truncateTable();
 
@@ -293,6 +299,12 @@ class AnonymizerDBTest extends ConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertDelete()
     {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+            $this->markTestSkipped(
+                "Can't manage autoincrement field with SQLServer"
+            );
+        }
+
         $this->createPrimary();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
@@ -320,6 +332,12 @@ class AnonymizerDBTest extends ConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertWithCallback()
     {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+            $this->markTestSkipped(
+                "Can't manage autoincrement field with SQLServer"
+            );
+        }
+
         $this->createPrimary();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);

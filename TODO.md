@@ -6,3 +6,4 @@
 * Make it work with Oracle
 * Set Host / user / password as an Url and not as independant options
 * Set url in config
+* Manager foreign keys values by creating a new Faker method : randomId which will run a random SQL Select to the parent table

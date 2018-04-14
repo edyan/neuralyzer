@@ -69,13 +69,14 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
 
     public function createPrimary()
     {
-        $schemaManager = $this->getDoctrine()->getSchemaManager();
-
-        $fromSchema = $schemaManager->createSchema();
+        $sm = $this->getDoctrine()->getSchemaManager();
+        $fromSchema = $sm->createSchema();
         $toSchema = clone $fromSchema;
         $table = $toSchema->getTable($this->tableName);
         $table->setPrimaryKey(['id']);
-        $table->changeColumn('id', ['autoincrement' => true]);
+        if (getenv('DB_DRIVER') !== 'pdo_sqlsrv') {
+            $table->changeColumn('id', ['autoincrement' => true]);
+        }
 
         $this->doctrineMigrate($fromSchema, $toSchema);
     }
@@ -83,12 +84,23 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
 
     public function dropTable()
     {
-        $schemaManager = $this->getDoctrine()->getSchemaManager();
+        $sm = $this->getDoctrine()->getSchemaManager();
 
-        $fromSchema = $schemaManager->createSchema();
+        $fromSchema = $sm->createSchema();
         $toSchema = clone $fromSchema;
+
+        // Remove Sequences else I'll be blocked by postgres
+        if (getenv('DB_DRIVER') === 'pdo_pgsql') {
+            $sequences = $sm->listSequences();
+            foreach ($sequences as $sequence) {
+                $toSchema->dropSequence($sequence->getName());
+            }
+        }
+
+        // Remove Table
         $toSchema->dropTable($this->tableName);
 
+        // Run
         $this->doctrineMigrate($fromSchema, $toSchema);
     }
 
