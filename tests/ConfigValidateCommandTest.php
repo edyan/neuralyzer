@@ -18,13 +18,54 @@ class ConfigValidateCommandTest extends ConfigurationDB
         $application->add(new Command());
 
         // We mock the DialogHelper
-        $command = $application->find('config:example');
+        $command = $application->find('config:validate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
+            '--file'  => __DIR__ . '/_files/config.right.yaml'
         ]);
 
-        $this->assertRegExp('|action:\s+update|', $commandTester->getDisplay());
-        $this->assertRegExp('|language:\s+en_US|', $commandTester->getDisplay());
+        $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
+    }
+
+    /**
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedExceptionMessageRegExp |The child node "entities" at path "config" must be configured|
+     */
+    public function testExecuteNotWorking()
+    {
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('config:validate');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--file'  => __DIR__ . '/_files/config.wrong.yaml'
+        ]);
+
+        $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
+    }
+
+
+    /**
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedExceptionMessageRegExp |The file ".*config.doesnotexist.yaml" does not exist.|
+     */
+    public function testExecuteFileDoesNotExist()
+    {
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('config:validate');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--file'  => __DIR__ . '/_files/config.doesnotexist.yaml'
+        ]);
+
+        $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
     }
 }
