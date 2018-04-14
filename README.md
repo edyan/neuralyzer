@@ -376,7 +376,3 @@ $ php -d phar.readonly=0 vendor/bin/robo release
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo phar
 ```
-
-
-## TODO
-* Manage Foreign Keys in data generation (action = insert). That can be done by doing a random query on the parent table.

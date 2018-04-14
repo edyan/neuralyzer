@@ -63,7 +63,7 @@ class RoboFile extends \Robo\Tasks
         if ((int)ini_get('phar.readonly') === 1) {
             throw new \RuntimeException(
                 'You must have phar.readonly = 1 or run' . PHP_EOL .
-                'php -d phar.readonly=0 vendor/bin/robo release'
+                'php -d phar.readonly=0 vendor/bin/robo (phar|release)'
             );
         }
         // Create a collection builder to hold the temporary
@@ -106,6 +106,10 @@ class RoboFile extends \Robo\Tasks
             ->path('vendor')
             ->notPath('docs')
             ->notPath('/vendor\/.*\/[Tt]est/')
+            // incomplete and need to reduce for phar compression
+            //->notPath('ro_MD')
+            //->notPath('sr_Cyrl_RS')
+            //->notPath('sr_Latn_RS')
             ->in(is_dir($buildDir) ? $buildDir : __DIR__);
 
         // Build the phar
