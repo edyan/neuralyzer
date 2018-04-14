@@ -40,7 +40,7 @@ class ConfigValidateCommand extends Command
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         // First command : Test the DB Connexion
         $this->setName($this->command)
@@ -66,7 +66,7 @@ class ConfigValidateCommand extends Command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('file'));
 

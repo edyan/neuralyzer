@@ -75,6 +75,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         $toSchema = clone $fromSchema;
         $table = $toSchema->getTable($this->tableName);
         $table->setPrimaryKey(['id']);
+        $table->changeColumn('id', ['autoincrement' => true]);
 
         $this->doctrineMigrate($fromSchema, $toSchema);
     }

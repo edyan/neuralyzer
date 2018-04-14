@@ -255,4 +255,84 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertInternalType('array', $data);
         $this->assertEmpty($data);
     }
+
+
+    public function testWithPrimaryConfRightTableInsert()
+    {
+        $this->createPrimary();
+        $this->truncateTable();
+
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+        $this->assertEmpty($data);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $db->setLimit(20);
+        $queries = $db->processEntity($this->tableName, null, false, true);
+        $this->assertInternalType('array', $queries);
+        $this->assertNotEmpty($queries);
+        $this->assertStringStartsWith('INSERT INTO guestbook', $queries[0]);
+
+        // check no data changed
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+        $this->assertInternalType('array', $data);
+        $this->assertNotEmpty($data);
+        $this->assertCount(20, $data);
+        $this->assertArrayHasKey(0, $data);
+        $data = $data[0];
+        $this->assertEquals(strlen('XXXX-XX-XX'), strlen($data['created']));
+        $this->assertEquals(strlen('XX:XX:XX'), strlen($data['a_time']));
+        $this->assertNotEmpty($data['username']);
+        $this->assertNotEmpty($data['content']);
+    }
+
+
+    public function testWithPrimaryConfRightTableInsertDelete()
+    {
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+        $this->assertCount(2, $data);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $db->setLimit(20);
+
+        $queries = $db->processEntity($this->tableName, null, false, false);
+        $this->assertInternalType('array', $queries);
+        $this->assertEmpty($queries);
+
+        // check no data changed
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+        $this->assertInternalType('array', $data);
+        $this->assertNotEmpty($data);
+        $this->assertCount(22, $data);
+    }
+
+
+    public function testWithPrimaryConfRightTableInsertWithCallback()
+    {
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+
+        $db = new Db($this->getDbParams());
+        $db->setLimit(2);
+        $db->setConfiguration($reader);
+        // check the callback works
+        $db->processEntity($this->tableName, function ($line) {
+            $this->assertGreaterThan($this->i, $line);
+            $this->i = $line;
+        }, true, true);
+
+        $this->assertEquals($this->i, 2);
+    }
 }

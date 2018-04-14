@@ -45,24 +45,24 @@ class Guesser implements GuesserInterface
         // can contain regexp
         return [
             // Internet
-            '.*email.*'                 => ['method' => 'email'],
-            '.*url'                     => ['method' => 'url'],
+            '.*email.*'                  => ['method' => 'email'],
+            '.*url'                      => ['method' => 'url'],
 
             // Adress and coordinates
-            '.*address.*'              => ['method' => 'streetAddress'],
-            '.*street.*'              => ['method' => 'streetAddress'],
-            '.*postalcode.*'          => ['method' => 'postcode'],
-            '.*city.*'                => ['method' => 'city'],
-            '.*state.*'               => ['method' => 'state'],
-            '.*country.*'             => ['method' => 'country'],
-            '.*phone.*'               => ['method' => 'phoneNumber'],
+            '.*address.*'                => ['method' => 'streetAddress'],
+            '.*street.*'                 => ['method' => 'streetAddress'],
+            '.*postalcode.*'             => ['method' => 'postcode'],
+            '.*city.*'                   => ['method' => 'city'],
+            '.*state.*'                  => ['method' => 'state'],
+            '.*country.*'                => ['method' => 'country'],
+            '.*phone.*'                  => ['method' => 'phoneNumber'],
 
             // Text
-            '.*\.(comments|description)'  => ['method' => 'sentence', 'params' => [20]],
+            '.*\.(comments|description)' => ['method' => 'sentence', 'params' => [20]],
 
             // Person
-            '.*first_?name'             => ['method' => 'firstName'],
-            '.*last_?name'              => ['method' => 'lastName'],
+            '.*first_?name'              => ['method' => 'firstName'],
+            '.*last_?name'               => ['method' => 'lastName'],
         ];
     }
 
@@ -77,7 +77,7 @@ class Guesser implements GuesserInterface
     {
         return [
             // Strings
-            'string'       => ['method' => 'sentence', 'params' => [$length]],
+            'string'     => ['method' => 'sentence', 'params' => [$length]],
 
             // Text & Blobs
             'text'       => ['method' => 'sentence', 'params' => [20]],

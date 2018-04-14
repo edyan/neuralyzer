@@ -17,6 +17,7 @@
 
 namespace Edyan\Neuralyzer\Anonymizer;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\DriverManager as DbalDriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -30,17 +31,24 @@ class DB extends AbstractAnonymizer
     /**
      * Doctrine DB Adapter
      *
-     * @var \Doctrine\DBAL\Connection
+     * @var Connection
      */
     private $conn;
 
 
     /**
      * Primary Key
+     *
      * @var string
      */
     private $priKey;
 
+    /**
+     * Limit the number of updates or create
+     *
+     * @var int
+     */
+    private $limit = 0;
 
     /**
      * Init connection
@@ -55,11 +63,23 @@ class DB extends AbstractAnonymizer
 
     /**
      * Get Doctrine Connection
-     * @return Doctrine\DBAL\Connection
+     *
+     * @return Connection
      */
-    public function getConn()
+    public function getConn(): Connection
     {
         return $this->conn;
+    }
+
+
+    /**
+     * Set the limit for updates and creates
+     *
+     * @param int $limit
+     */
+    public function setLimit(int $limit): void
+    {
+        $this->limit = $limit;
     }
 
 
@@ -77,8 +97,7 @@ class DB extends AbstractAnonymizer
         string $entity,
         callable $callback = null,
         bool $pretend = true,
-        bool $returnRes = false,
-        int $limit = 0
+        bool $returnRes = false
     ): array {
         $schema = $this->conn->getSchemaManager();
         if ($schema->tablesExist($entity) === false) {
@@ -102,14 +121,14 @@ class DB extends AbstractAnonymizer
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->updateData($limit, $returnRes, $pretend, $callback)
+                $this->updateData($returnRes, $pretend, $callback)
             );
         }
 
         if ($actionsOnThatEntity & self::INSERT_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->insertData($limit, $returnRes, $pretend, $callback)
+                $this->insertData($returnRes, $pretend, $callback)
             );
         }
 
@@ -122,7 +141,7 @@ class DB extends AbstractAnonymizer
      *
      * @return string Field's name
      */
-    private function getPrimaryKey()
+    private function getPrimaryKey(): string
     {
         $schema = $this->conn->getSchemaManager();
         $tableDetails = $schema->listTableDetails($this->entity);
@@ -139,7 +158,7 @@ class DB extends AbstractAnonymizer
      *
      * @return array $cols
      */
-    private function getTableCols()
+    private function getTableCols(): array
     {
         $schema = $this->conn->getSchemaManager();
         $tableCols = $schema->listTableColumns($this->entity);
@@ -299,13 +318,12 @@ class DB extends AbstractAnonymizer
     /**
      * Update data of table
      *
-     * @param  int    $limit
      * @param  bool   $returnRes
      * @param  bool   $pretend
      * @param  callable $callback
-     * @return array             [description]
+     * @return array
      */
-    private function updateData(int $limit, bool $returnRes, bool $pretend, $callback): array
+    private function updateData(bool $returnRes, bool $pretend, $callback): array
     {
         // I need to read line by line if I have to update the table
         // to make sure I do update by update (slower but no other choice for now)
@@ -328,7 +346,7 @@ class DB extends AbstractAnonymizer
                 $callback(++$rowNum);
             }
 
-            if ($limit > 0 && $rowNum >= $limit) {
+            if ($this->limit > 0 && $rowNum >= $this->limit) {
                 break;
             }
         }
@@ -340,19 +358,18 @@ class DB extends AbstractAnonymizer
     /**
      * Insert data into table
      *
-     * @param  int    $limit
      * @param  bool   $returnRes
      * @param  bool   $pretend
      * @param  callable $callback
-     * @return array             [description]
+     * @return array
      */
-    private function insertData(int $limit, bool $returnRes, bool $pretend, $callback): array
+    private function insertData(bool $returnRes, bool $pretend, $callback): array
     {
         $queries = [];
 
         $queryBuilder = $this->conn->createQueryBuilder();
 
-        for ($rowNum = 0; $rowNum < $limit; $rowNum++) {
+        for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
             $queryBuilder = $this->prepareInsert();
 
             ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');

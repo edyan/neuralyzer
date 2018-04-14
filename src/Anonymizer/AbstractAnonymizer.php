@@ -43,8 +43,9 @@ abstract class AbstractAnonymizer
      */
     const INSERT_TABLE = 4;
 
+
     /**
-     * Contain the configuration object
+     * Contains the configuration object
      *
      * @var Reader
      */
@@ -59,12 +60,14 @@ abstract class AbstractAnonymizer
 
     /**
      * Current table (entity) to process
+     *
      * @var string
      */
     protected $entity;
 
     /**
      * Current table (entity) Columns
+     *
      * @var array
      */
     protected $entityCols;
@@ -77,14 +80,12 @@ abstract class AbstractAnonymizer
      * @param callable|null $callback       Callback function with current row num as parameter
      * @param bool          $pretend        Simulate update
      * @param bool          $returnRes      Return queries
-     * @param int           $limit          Limit the number of queries (insert or update)
      */
     abstract public function processEntity(
         string $entity,
         callable $callback = null,
         bool $pretend = true,
-        bool $returnRes = false,
-        int $limit = 0
+        bool $returnRes = false
     ): array;
 
 
@@ -93,7 +94,7 @@ abstract class AbstractAnonymizer
      *
      * @param Reader $configuration
      */
-    public function setConfiguration(Reader $configuration)
+    public function setConfiguration(Reader $configuration): void
     {
         $this->configuration = $configuration;
         $this->configEntites = $configuration->getConfigValues()['entities'];
@@ -191,7 +192,7 @@ abstract class AbstractAnonymizer
      *
      * @throws NeuralizerConfigurationException
      */
-    private function checkEntityIsInConfig()
+    private function checkEntityIsInConfig(): void
     {
         if (empty($this->configEntites)) {
             throw new NeuralizerConfigurationException(
@@ -207,9 +208,11 @@ abstract class AbstractAnonymizer
 
     /**
      * Verify a column is defined in the real entityCols
-     * @param  string $colName
+     *
+     * @throws NeuralizerConfigurationException
+     * @param  string $colName [description]
      */
-    private function checkColIsInEntity(string $colName)
+    private function checkColIsInEntity(string $colName): void
     {
         if (!array_key_exists($colName, $this->entityCols)) {
             throw new NeuralizerConfigurationException("Col $colName does not exist");

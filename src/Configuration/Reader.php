@@ -79,18 +79,20 @@ class Reader
      *
      * @return array Config Values
      */
-    public function getConfigValues()
+    public function getConfigValues(): array
     {
         return $this->configValues;
     }
 
 
     /**
-     * Getter
+     * Get config values for an entity
      *
-     * @return array Config Values
+     * @param  string $entity
+     * @throws \InvalidArgumentException
+     * @return array            Config Values
      */
-    public function getEntityConfig(string $entity)
+    public function getEntityConfig(string $entity): array
     {
         if (!array_key_exists($entity, $this->configValues['entities'])) {
             throw new \InvalidArgumentException("$entity is not set in config");
@@ -113,7 +115,7 @@ class Reader
     /**
      * Parse and validate the configuration
      */
-    protected function parseAndValidateConfig()
+    protected function parseAndValidateConfig(): void
     {
         $config = Yaml::parse(file_get_contents($this->configFilePath));
 

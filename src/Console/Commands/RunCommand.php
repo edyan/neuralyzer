@@ -72,7 +72,7 @@ class RunCommand extends Command
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         // First command : Test the DB Connexion
         $this->setName($this->command)
@@ -145,7 +145,7 @@ class RunCommand extends Command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         // Throw an exception immediately if we dont have the required DB parameter
         if (empty($input->getOption('db'))) {
@@ -199,7 +199,7 @@ class RunCommand extends Command
      *
      * @param  string $table
      */
-    private function anonymizeTable(string $table)
+    private function anonymizeTable(string $table): void
     {
         $total = $this->getTotal($table);
         if ($total === 0) {
@@ -212,10 +212,11 @@ class RunCommand extends Command
 
         $this->output->writeln("<info>Anonymizing $table</info>");
 
+        $this->db->setLimit($total);
         try {
             $queries = $this->db->processEntity($table, function () use ($bar) {
                 $bar->advance();
-            }, $this->input->getOption('pretend'), $this->input->getOption('sql'), $total);
+            }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
         // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
             $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
@@ -233,8 +234,10 @@ class RunCommand extends Command
         }
     }
 
+
     /**
      * Count records on a table
+     *
      * @param  string $table
      * @return int
      */
