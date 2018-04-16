@@ -212,9 +212,8 @@ class RunCommand extends Command
 
         $this->output->writeln("<info>Anonymizing $table</info>");
 
-        $this->db->setLimit($total);
         try {
-            $queries = $this->db->processEntity($table, function () use ($bar) {
+            $queries = $this->db->setLimit($total)->processEntity($table, function () use ($bar) {
                 $bar->advance();
             }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
         // @codeCoverageIgnoreStart
@@ -265,7 +264,7 @@ class RunCommand extends Command
      */
     private function getTotal(string $table): int
     {
-        $limit = $this->input->getOption('limit');
+        $limit = (int)$this->input->getOption('limit');
         $config = $this->reader->getEntityConfig($table);
         if ($config['action'] === 'insert') {
             return empty($limit) ? 100 : $limit;

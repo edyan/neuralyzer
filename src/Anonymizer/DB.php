@@ -76,10 +76,13 @@ class DB extends AbstractAnonymizer
      * Set the limit for updates and creates
      *
      * @param int $limit
+     * @return DB
      */
-    public function setLimit(int $limit): void
+    public function setLimit(int $limit): DB
     {
         $this->limit = $limit;
+
+        return $this;
     }
 
 
@@ -331,9 +334,15 @@ class DB extends AbstractAnonymizer
         $queries = [];
 
         $queryBuilder = $this->conn->createQueryBuilder();
-        $rows = $queryBuilder->select($this->priKey)->from($this->entity)->execute();
+        $query = $queryBuilder->select($this->priKey)->from($this->entity);
+        if ($this->limit > 0) {
+            $query = $query->setMaxResults($this->limit);
+        }
 
-        foreach ($rows as $row) {
+        $rows = $query->execute();
+        $rows->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
+
+        while ($row = $rows->fetch()) {
             $queryBuilder = $this->prepareUpdate($row[$this->priKey]);
 
             ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
@@ -344,10 +353,6 @@ class DB extends AbstractAnonymizer
 
             if (!is_null($callback)) {
                 $callback(++$rowNum);
-            }
-
-            if ($this->limit > 0 && $rowNum >= $this->limit) {
-                break;
             }
         }
 
