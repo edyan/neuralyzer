@@ -33,15 +33,18 @@ class RunCommandTest extends ConfigurationDB
         ]);
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
+
     public function testExecuteWrongPass()
     {
         if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+            $this->expectException("\Doctrine\DBAL\Driver\PDOException");
             $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
+        } else if (getenv('DB_DRIVER') === 'pdo_pgsql') {
+            $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
+            $this->expectExceptionMessageRegExp("|password authentication failed for user|");
         } else {
-            $this->expectExceptionMessageRegExp("|Could not count records in 'guestbook' from your config : An exception occurred in driver.*|");
+            $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
+            $this->expectExceptionMessageRegExp("|Access denied for user.*|");
         }
 
         $this->createPrimary();
@@ -87,11 +90,16 @@ class RunCommandTest extends ConfigurationDB
     }
 
     /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |Could not count records in 'accounts' from your config : An exception occurred while .*|
+     * @expectedExceptionMessageRegExp |An exception occurred while executing.*|
      */
     public function testExecuteWrongTablePasswordOnCLI()
     {
+        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+            $this->expectException("\Doctrine\DBAL\DBALException");
+        } else {
+            $this->expectException("\Doctrine\DBAL\Exception\TableNotFoundException");
+        }
+
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());

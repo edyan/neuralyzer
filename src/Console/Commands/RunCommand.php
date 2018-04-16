@@ -235,28 +235,6 @@ class RunCommand extends Command
 
 
     /**
-     * Count records on a table
-     *
-     * @param  string $table
-     * @return int
-     */
-    private function countRecords(string $table): int
-    {
-        try {
-            $stmt = $this->db->getConn()->prepare("SELECT COUNT(1) AS total FROM $table");
-            $stmt->execute();
-        } catch (\Exception $e) {
-            $msg = "Could not count records in '$table' from your config : " . $e->getMessage();
-            throw new \InvalidArgumentException($msg);
-        }
-
-        $data = $stmt->fetchAll();
-
-        return (int)$data[0]['total'];
-    }
-
-
-    /**
      * Define the total number of records to process for progress bar
      *
      * @param  string $table
@@ -270,7 +248,7 @@ class RunCommand extends Command
             return empty($limit) ? 100 : $limit;
         }
 
-        $rows = $this->countRecords($table);
+        $rows = $this->db->countResults($table);
         if (empty($limit)) {
             return $rows;
         }

@@ -51,6 +51,13 @@ class DB extends AbstractAnonymizer
     private $limit = 0;
 
     /**
+     * Set the batch size for updates
+     * @var int
+     */
+    private $batchSize = 1000;
+
+
+    /**
      * Init connection
      *
      * @param $params   Parameters to send to Doctrine DB
@@ -58,6 +65,7 @@ class DB extends AbstractAnonymizer
     public function __construct(array $params)
     {
         $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
+        $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
     }
 
 
@@ -81,6 +89,9 @@ class DB extends AbstractAnonymizer
     public function setLimit(int $limit): DB
     {
         $this->limit = $limit;
+        if ($this->limit < $this->batchSize) {
+            $this->batchSize = $this->limit;
+        }
 
         return $this;
     }
@@ -136,6 +147,15 @@ class DB extends AbstractAnonymizer
         }
 
         return $queries;
+    }
+
+
+    public function countResults(string $table): int
+    {
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $rows = $queryBuilder->select('COUNT(1)')->from($table)->execute();
+
+        return (int)$rows->fetch(\Doctrine\DBAL\FetchMode::NUMERIC)[0];
     }
 
 
@@ -321,39 +341,50 @@ class DB extends AbstractAnonymizer
     /**
      * Update data of table
      *
-     * @param  bool   $returnRes
-     * @param  bool   $pretend
+     * @param  bool     $returnRes
+     * @param  bool     $pretend
      * @param  callable $callback
      * @return array
      */
-    private function updateData(bool $returnRes, bool $pretend, $callback): array
+    private function updateData(bool $returnRes, bool $pretend, $callback = null): array
     {
-        // I need to read line by line if I have to update the table
-        // to make sure I do update by update (slower but no other choice for now)
-        $rowNum = 0;
-        $queries = [];
-
         $queryBuilder = $this->conn->createQueryBuilder();
-        $query = $queryBuilder->select($this->priKey)->from($this->entity);
-        if ($this->limit > 0) {
-            $query = $query->setMaxResults($this->limit);
+        if ($this->limit === 0) {
+            $this->setLimit($this->countResults($this->entity));
         }
 
-        $rows = $query->execute();
-        $rows->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
+        $startAt = 0; // The first part of the limit (offset)
+        $num = 0; // The number of rows updated
+        $queries = [];
+        while ($num < $this->limit) {
+            $rows = $queryBuilder
+                        ->select($this->priKey)->from($this->entity)
+                        ->setFirstResult($startAt)->setMaxResults($this->batchSize)
+                        ->execute();
 
-        while ($row = $rows->fetch()) {
-            $queryBuilder = $this->prepareUpdate($row[$this->priKey]);
+            // I need to read line by line if I have to update the table
+            // to make sure I do update by update (slower but no other choice for now)
+            foreach ($rows as $row) {
+                $updateQuery = $this->prepareUpdate($row[$this->priKey]);
 
-            ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
+                ($returnRes === true ? array_push($queries, $this->getRawSQL($updateQuery)) : '');
 
-            if ($pretend === false) {
-                $queryBuilder->execute();
+                if ($pretend === false) {
+                    $updateQuery->execute();
+                }
+
+                if (!is_null($callback)) {
+                    $callback(++$num);
+                }
+
+                // Have to exit now as we have reached the max
+                if ($num >= $this->limit) {
+                    break 2;
+                }
             }
-
-            if (!is_null($callback)) {
-                $callback(++$rowNum);
-            }
+            // Move the offset
+            // Make sure the loop ends if we have nothing to process
+            $num = $startAt += $this->batchSize;
         }
 
         return $queries;
