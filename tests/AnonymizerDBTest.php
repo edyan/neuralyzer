@@ -205,6 +205,70 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEquals('Hello buddy!', $data['content']);
     }
 
+
+    public function testWithPrimaryConfRightTableUpdate1500records()
+    {
+        $this->createPrimary();
+        $this->truncateTable();
+
+        // Insert 2003 records
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        for ($i = 0; $i < 2003; $i++) {
+            $queryBuilder
+                ->insert($this->tableName)
+                ->setValue('username', '?')->setParameter(0, 'TestPHPUnit')
+                ->setValue('content', '?')->setParameter(1, 'TestPHPUnit')
+                ->setValue('created', '?')->setParameter(2, '2010-01-01')
+                ->setValue('a_bigint', '?')->setParameter(3, 99999999)
+                ->setValue('a_datetime', '?')->setParameter(4, '2011-01-01 00:00:00')
+                ->setValue('a_time', '?')->setParameter(5, '00:00:00')
+                ->setValue('a_decimal', '?')->setParameter(6, 3.45)
+                ->setValue('an_integer', '?')->setParameter(7, 3)
+                ->setValue('a_smallint', '?')->setParameter(8, 3)
+                ->setValue('a_float', '?')->setParameter(9, 3.56)
+                ->execute();
+        }
+
+        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $total = $db->countResults($this->tableName);
+
+        // Make sure my insert was ok
+        $this->assertSame(2003, $total);
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder->select('*')->from($this->tableName)->setMaxResults(2)->execute()->fetchAll();
+        $this->assertInternalType('array', $data);
+        $this->assertNotEmpty($data);
+        // First line is correct
+        $this->assertArrayHasKey(0, $data);
+        $this->assertEquals('TestPHPUnit', $data[0]['username']);
+        $this->assertEquals('TestPHPUnit', $data[0]['content']);
+        // Second line is correct
+        $this->assertArrayHasKey(1, $data);
+        $this->assertEquals('TestPHPUnit', $data[1]['username']);
+        $this->assertEquals('TestPHPUnit', $data[1]['content']);
+
+        // Process and check I have the right number of queries
+        $queries = $db->processEntity($this->tableName, null, false, true);
+        $this->assertInternalType('array', $queries);
+        $this->assertCount(2003, $queries);
+
+        // check all data changed, one by one
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $rows = $queryBuilder->select('username', 'content')->from($this->tableName)->execute();
+        foreach ($rows as $row) {
+            $this->assertInternalType('array', $row);
+            $this->assertArrayHasKey('username', $row);
+            $this->assertNotEquals('TestPHPUnit', $row['username']);
+            $this->assertNotEmpty($row['username']);
+            $this->assertArrayHasKey('content', $row);
+            $this->assertNotEquals('TestPHPUnit', $row['content']);
+            $this->assertNotEmpty($row['content']);
+        }
+    }
+
     public function testWithPrimaryConfRightTableDeleteOne()
     {
         $this->createPrimary();
