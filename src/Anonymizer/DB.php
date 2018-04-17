@@ -360,6 +360,7 @@ class DB extends AbstractAnonymizer
             $rows = $queryBuilder
                         ->select($this->priKey)->from($this->entity)
                         ->setFirstResult($startAt)->setMaxResults($this->batchSize)
+                        ->orderBy($this->priKey)
                         ->execute();
 
             // I need to read line by line if I have to update the table

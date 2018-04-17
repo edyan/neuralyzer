@@ -213,7 +213,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
         // Insert 2003 records
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
-        for ($i = 0; $i < 2003; $i++) {
+        for ($i = 1; $i <= 2003; $i++) {
             $queryBuilder
                 ->insert($this->tableName)
                 ->setValue('username', '?')->setParameter(0, 'TestPHPUnit')
@@ -226,6 +226,7 @@ class AnonymizerDBTest extends ConfigurationDB
                 ->setValue('an_integer', '?')->setParameter(7, 3)
                 ->setValue('a_smallint', '?')->setParameter(8, 3)
                 ->setValue('a_float', '?')->setParameter(9, 3.56)
+                ->setValue('id', '?')->setParameter(10, $i)
                 ->execute();
         }
 
@@ -257,14 +258,14 @@ class AnonymizerDBTest extends ConfigurationDB
 
         // check all data changed, one by one
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
-        $rows = $queryBuilder->select('username', 'content')->from($this->tableName)->execute();
+        $rows = $queryBuilder->select('id', 'username', 'content')->from($this->tableName)->execute();
         foreach ($rows as $row) {
             $this->assertInternalType('array', $row);
             $this->assertArrayHasKey('username', $row);
-            $this->assertNotEquals('TestPHPUnit', $row['username']);
+            $this->assertNotEquals('TestPHPUnit', $row['username'], "ID {$row['id']} is not correct");
             $this->assertNotEmpty($row['username']);
             $this->assertArrayHasKey('content', $row);
-            $this->assertNotEquals('TestPHPUnit', $row['content']);
+            $this->assertNotEquals('TestPHPUnit', $row['content'], "ID {$row['id']} is not correct");
             $this->assertNotEmpty($row['content']);
         }
     }
