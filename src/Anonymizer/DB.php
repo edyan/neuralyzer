@@ -204,29 +204,6 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Execute the Update with Doctrine QueryBuilder
-     *
-     * @param  string $primaryKeyVal  Primary Key's Value
-     * @return QueryBuilder           Doctrine DBAL QueryBuilder
-     */
-    private function prepareUpdate($primaryKeyVal): QueryBuilder
-    {
-        $data = $this->generateFakeData();
-
-        $queryBuilder = $this->conn->createQueryBuilder();
-        $queryBuilder = $queryBuilder->update($this->entity);
-        foreach ($data as $field => $value) {
-            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field));
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
-        }
-        $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
-        $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
-
-        return $queryBuilder;
-    }
-
-
-    /**
      * To debug, build the final SQL (can be approximative)
      * @param  QueryBuilder $queryBuilder
      * @return string
@@ -375,6 +352,29 @@ class DB extends AbstractAnonymizer
         }
 
         return $queries;
+    }
+
+
+    /**
+     * Execute the Update with Doctrine QueryBuilder
+     *
+     * @param  string $primaryKeyVal  Primary Key's Value
+     * @return QueryBuilder           Doctrine DBAL QueryBuilder
+     */
+    private function prepareUpdate($primaryKeyVal): QueryBuilder
+    {
+        $data = $this->generateFakeData();
+
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $queryBuilder->update($this->entity);
+        foreach ($data as $field => $value) {
+            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field));
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+        }
+        $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
+        $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
+
+        return $queryBuilder;
     }
 
 
