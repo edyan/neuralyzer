@@ -9,6 +9,11 @@ use Symfony\Component\Console\Helper\ProgressBar;
 
 class RoboFile extends \Robo\Tasks
 {
+    private $phpVersion = 7.1;
+    private $dbType = 'mysql';
+    private $dbVersion = 'latest';
+    private $dbWait = 10;
+
     /**
      * A test command just to make sure robo works on that computer
      */
@@ -47,7 +52,12 @@ class RoboFile extends \Robo\Tasks
     {
         $this->stopOnFail(true);
 
-        $this->setupDocker($opts['php'], $opts['db'], $opts['wait'], $opts['db-version']);
+        $this->phpVersion = $opts['php'];
+        $this->dbType = $opts['db'];
+        $this->dbVersion = $opts['db-version'];
+        $this->dbWait = $opts['wait'];
+
+        $this->setupDocker();
 
         // Run the tests
         $this->taskDockerExec('robo_php')
@@ -184,63 +194,39 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function setupDocker(
-        string $php = '7.1',
-        string $dbType = 'mysql',
-        int $wait = 10,
-        string $dbVersion = 'latest'
-    ) : void {
+    private function setupDocker() : void {
         $this->destroyDocker();
 
-        if (!in_array($dbType, ['mysql', 'pgsql', 'sqlsrv'])) {
+        if (!in_array($this->dbType, ['mysql', 'pgsql', 'sqlsrv'])) {
             throw new \InvalidArgumentException('Database can be only mysql, pgsql or sqlsrv');
         }
 
         // Start DB And display a progress bar
-        $this->startDb($dbType, $dbVersion);
-        $this->say("Waiting $wait seconds $dbType to start");
-        $progressBar = new ProgressBar($this->getOutput(), $wait);
-        $progressBar->start();
-        for ($i = 0; $i < $wait; ++$i) {
-            sleep(1);
-            $progressBar->advance();
-        }
-        $progressBar->finish();
-        echo PHP_EOL;
-
+        $this->startDb();
+        $this->waitForDB();
 
         // Now create a DB For SQL Server as there is no option in the docker image
-        if ($dbType === 'sqlsrv') {
+        if ($this->dbType === 'sqlsrv') {
             $this->createSQLServerDB();
         }
 
-        $this->startPHP($php, $dbType);
+        $this->startPHP();
     }
 
-    protected $steps = 10;
 
-    public function progressIndicatorSteps()
+    private function startDb(): void
     {
-        return $this->steps;
-    }
+        $dbCt = $this
+                    ->taskDockerRun($this->getDBImageName())
+                    ->detached()
+                    ->name('robo_db')
+                    ->option('--rm');
 
-    private function startDb(string $type, string $dbVersion): void
-    {
-        $image = $type . ':' . $dbVersion;
-        if ($type === 'sqlsrv') {
-            $dbVersion = $dbVersion === 'latest' ? '2017-latest' : $dbVersion;
-            $image = 'microsoft/mssql-server-linux:' . $dbVersion;
-        } elseif ($type === 'pgsql') {
-            $image = 'postgres:' . $dbVersion;
-        }
-
-        $this->say("Starting $type version $dbVersion");
-        $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
-        if ($type === 'mysql') {
+        if ($this->dbType === 'mysql') {
             $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
-        } elseif ($type === 'pgsql') {
+        } elseif ($this->dbType === 'pgsql') {
             $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
-        } elseif ($type === 'sqlsrv') {
+        } elseif ($this->dbType === 'sqlsrv') {
             $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
         }
 
@@ -248,7 +234,36 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function createSQLServerDB()
+    private function getDBImageName(): string
+    {
+        $image = $this->dbType . ':' . $this->dbVersion;
+        if ($this->dbType === 'sqlsrv') {
+            $dbVersion = $this->dbVersion === 'latest' ? '2017-latest' : $this->dbVersion;
+            $image = 'microsoft/mssql-server-linux:' . $dbVersion;
+        } elseif ($this->dbType === 'pgsql') {
+            $image = 'postgres:' . $this->dbVersion;
+        }
+
+        return $image;
+    }
+
+
+    private function waitForDB(): void
+    {
+        $this->say("Waiting {$this->dbWait} seconds for DB to start");
+        $progressBar = new ProgressBar($this->getOutput(), $this->dbWait);
+        $progressBar->start();
+        for ($i = 0; $i < $this->dbWait; ++$i) {
+            sleep(1);
+            $progressBar->advance();
+        }
+        $progressBar->finish();
+
+        echo PHP_EOL;
+    }
+
+
+    private function createSQLServerDB(): void
     {
         $createSqlQuery = '/opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root ';
         $createSqlQuery.= '-S localhost -Q "CREATE DATABASE test_db"';
@@ -259,23 +274,23 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function startPHP(string $version, string $dbType)
+    private function startPHP(): void
     {
-        if (!in_array($version, ['7.1', '7.2'])) {
+        if (!in_array($this->phpVersion, ['7.1', '7.2'])) {
             throw new \InvalidArgumentException('PHP Version must be 7.1 or 7.2');
         }
 
         $dbUser = 'root';
-        if ($dbType === 'pgsql') {
+        if ($this->dbType === 'pgsql') {
             $dbUser = 'postgres';
-        } elseif ($dbType === 'sqlsrv') {
+        } elseif ($this->dbType === 'sqlsrv') {
             $dbUser = 'sa';
         }
 
-        $this->taskDockerRun('edyan/php:' . $version . '-sqlsrv')
+        $this->taskDockerRun('edyan/php:' . $this->phpVersion . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
             ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
-            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $dbType)
+            ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $this->dbType)
             ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')
             ->link('robo_db', 'robo_db')
@@ -283,7 +298,7 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function destroyDocker()
+    private function destroyDocker(): void
     {
         $cts = ['robo_db', 'robo_php'];
         foreach ($cts as $ct) {
@@ -292,7 +307,7 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function stopContainer(string $ct)
+    private function stopContainer(string $ct): void
     {
         $process = new \Symfony\Component\Process\Process("docker ps | grep $ct | wc -l");
         $process->run();
@@ -305,7 +320,8 @@ class RoboFile extends \Robo\Tasks
         $this->taskDockerStop($ct)->run();
     }
 
-    private function gitVerifyBranchIsMaster()
+
+    private function gitVerifyBranchIsMaster(): void
     {
         $branch = $this->taskGitStack()
                         ->silent(true)
@@ -316,7 +332,8 @@ class RoboFile extends \Robo\Tasks
         }
     }
 
-    private function gitVerifyEverythingIsCommited()
+
+    private function gitVerifyEverythingIsCommited(): void
     {
         $modifiedFiles = $this->taskGitStack()
                               ->silent(true)
@@ -327,7 +344,8 @@ class RoboFile extends \Robo\Tasks
         }
     }
 
-    private function gitVerifyBranchIsUpToDate()
+
+    private function gitVerifyBranchIsUpToDate(): void
     {
         $modifiedFiles = $this->taskGitStack()
                               ->silent(true)
