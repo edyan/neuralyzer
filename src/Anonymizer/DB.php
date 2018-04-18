@@ -149,7 +149,12 @@ class DB extends AbstractAnonymizer
         return $queries;
     }
 
-
+    /**
+     * Do a simple count for a table
+     *
+     * @param  string $table
+     * @return int
+     */
     public function countResults(string $table): int
     {
         $queryBuilder = $this->conn->createQueryBuilder();
@@ -216,25 +221,6 @@ class DB extends AbstractAnonymizer
         }
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
         $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
-
-        return $queryBuilder;
-    }
-
-    /**
-     * Execute the Update with Doctrine QueryBuilder
-     *
-     * @return QueryBuilder       Doctrine DBAL QueryBuilder
-     */
-    private function prepareInsert(): QueryBuilder
-    {
-        $data = $this->generateFakeData();
-
-        $queryBuilder = $this->conn->createQueryBuilder();
-        $queryBuilder = $queryBuilder->insert($this->entity);
-        foreach ($data as $field => $value) {
-            $queryBuilder = $queryBuilder->setValue($field, ":$field");
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
-        }
 
         return $queryBuilder;
     }
@@ -421,5 +407,25 @@ class DB extends AbstractAnonymizer
         }
 
         return $queries;
+    }
+
+
+    /**
+     * Execute an INSERT with Doctrine QueryBuilder
+     *
+     * @return QueryBuilder       Doctrine DBAL QueryBuilder
+     */
+    private function prepareInsert(): QueryBuilder
+    {
+        $data = $this->generateFakeData();
+
+        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $queryBuilder->insert($this->entity);
+        foreach ($data as $field => $value) {
+            $queryBuilder = $queryBuilder->setValue($field, ":$field");
+            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+        }
+
+        return $queryBuilder;
     }
 }
