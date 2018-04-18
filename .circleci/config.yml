@@ -6,13 +6,11 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/php:7.1-browsers
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      - image: circleci/postgres:10-alpine-ram
+      - image: edyan/php:7.2
+      - image: mysql:5
+        environment:
+          MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
+          MYSQL_DATABASE: test_db
 
     working_directory: ~/repo
 
@@ -26,6 +24,12 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
+      # Setup Composer
+      - run: php -r "copy('https://getcomposer.org/download/1.6.4/composer.phar', '/usr/local/bin/composer');"
+      - run: chmod +x /usr/local/bin/composer
+      - run: composer self-update
+
+      # Install deps
       - run: composer install -n --prefer-dist
 
       - save_cache:
@@ -38,4 +42,6 @@ jobs:
           name: Run tests
           command: vendor/bin/phpunit
           environment:
-              DB_DRIVER: pdo_pgsql
+            DB_DRIVER: pdo_mysql
+            DB_PASSWORD: fjkekI8IeufjI8Ue56
+            DB_USER: root
