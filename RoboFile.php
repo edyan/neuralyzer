@@ -5,6 +5,8 @@
  * @see http://robo.li/
  */
 
+use Symfony\Component\Console\Helper\ProgressBar;
+
 class RoboFile extends \Robo\Tasks
 {
     /**
@@ -35,12 +37,17 @@ class RoboFile extends \Robo\Tasks
      * Run All Unit Test
      * @param  array  $opts
      */
-    public function test(
-        $opts = ['php' => '7.1', 'db' => 'mysql', 'keep-cts' => false, 'wait' => 5]
-    ) {
+    public function test($opts = [
+        'php' => '7.1',
+        'db' => 'mysql',
+        'keep-cts' => false,
+        'wait' => 5,
+        'db-version' => 'latest'
+    ]) : void
+    {
         $this->stopOnFail(true);
 
-        $this->setupDocker($opts['php'], $opts['db'], $opts['wait']);
+        $this->setupDocker($opts['php'], $opts['db'], $opts['wait'], $opts['db-version']);
 
         // Run the tests
         $this->taskDockerExec('robo_php')
@@ -67,7 +74,7 @@ class RoboFile extends \Robo\Tasks
             );
         }
         // Create a collection builder to hold the temporary
-        // directory until the pack phar task runs.
+        // directory until the pack phar task runs.Call to undefined method RoboFile::startProgressIndicator()
         $collection = $this->collectionBuilder();
         $workDir = $collection->tmpDir();
         $buildDir = "$workDir/neuralyzer";
@@ -180,17 +187,28 @@ class RoboFile extends \Robo\Tasks
     private function setupDocker(
         string $php = '7.1',
         string $dbType = 'mysql',
-        int $wait = 10
-    ) {
+        int $wait = 10,
+        string $dbVersion = 'latest'
+    ) : void {
         $this->destroyDocker();
 
         if (!in_array($dbType, ['mysql', 'pgsql', 'sqlsrv'])) {
             throw new \InvalidArgumentException('Database can be only mysql, pgsql or sqlsrv');
         }
 
-        $this->startDb($dbType);
+        // Start DB And display a progress bar
+        $this->startDb($dbType, $dbVersion);
         $this->say("Waiting $wait seconds $dbType to start");
-        sleep($wait);
+        $progressBar = new ProgressBar($this->getOutput(), $wait);
+        $progressBar->start();
+        for ($i = 0; $i < $wait; ++$i) {
+            sleep(1);
+            $progressBar->advance();
+        }
+        $progressBar->finish();
+        echo PHP_EOL;
+
+
         // Now create a DB For SQL Server as there is no option in the docker image
         if ($dbType === 'sqlsrv') {
             $this->createSQLServerDB();
@@ -199,15 +217,24 @@ class RoboFile extends \Robo\Tasks
         $this->startPHP($php, $dbType);
     }
 
-    private function startDb($type)
+    protected $steps = 10;
+
+    public function progressIndicatorSteps()
     {
-        $image = $type;
+        return $this->steps;
+    }
+
+    private function startDb(string $type, string $dbVersion): void
+    {
+        $image = $type . ':' . $dbVersion;
         if ($type === 'sqlsrv') {
-            $image = 'microsoft/mssql-server-linux:2017-latest';
+            $dbVersion = $dbVersion === 'latest' ? '2017-latest' : $dbVersion;
+            $image = 'microsoft/mssql-server-linux:' . $dbVersion;
         } elseif ($type === 'pgsql') {
-            $image = 'postgres';
+            $image = 'postgres:' . $dbVersion;
         }
 
+        $this->say("Starting $type version $dbVersion");
         $dbCt = $this->taskDockerRun($image)->detached()->name('robo_db')->option('--rm');
         if ($type === 'mysql') {
             $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');

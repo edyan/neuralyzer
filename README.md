@@ -355,11 +355,11 @@ Clone the project, run `composer install` then...
 
 #### With MySQL
 ```bash
-$ vendor/bin/robo test --php 7.1 --wait 10 --db mysql
+$ vendor/bin/robo test --php 7.1 --wait 10 --db mysql --db-version 5
 ```
 #### With PostgreSQL
 ```bash
-$ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql
+$ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql --db-version 10
 ```
 #### With SQL Server
 **Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
