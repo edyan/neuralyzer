@@ -342,7 +342,7 @@ class DB extends AbstractAnonymizer
      * @param  callable $callback
      * @return array
      */
-    private function insertData($callback): array
+    private function insertData($callback = null): array
     {
         $queries = [];
 
