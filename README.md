@@ -266,16 +266,24 @@ $db->setConfiguration(
 Once initialized, the method that anonymize the table is the following:
 ```php
 <?php
-public function processEntity($entity, $callback = null, $pretend = true, $returnRes = false, $limit = 0);
+public function processEntity($entity, $callback = null);
 ```
 
 Parameters:
 * `Entity`: such as table name (required)
 * `Callback` (callable / optional) to use a progressbar for example
-* `Pretend`: SQL Queries won't be executed
-* `ReturnRes`: SQL Queries will be returned
-* `Limit`: Limit the number of queries (insert or update)
 
+A few options can be set by calling :
+```php
+<?php
+// Limit of fake generated records for updates and creates.
+// Default : 0 = everything to update / nothing to insert
+public function setLimit(int $limit);
+// Don't do anything, default true
+public function setPretend(bool $pretend);
+// Return or not a result, default false
+public function setReturnRes(bool $returnRes);
+```
 
 Full Example:
 ```php
@@ -291,8 +299,8 @@ $db = new Edyan\Neuralyzer\Anonymizer\DB([
     'user' => 'root',
     'password' => 'root'
 ]);
-
 $db->setConfiguration($reader);
+$db->setPretend(false);
 
 // Get tables
 $tables = $reader->getEntities();

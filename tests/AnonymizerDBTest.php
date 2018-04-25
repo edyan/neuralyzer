@@ -76,7 +76,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity($this->tableName, null, false);
+        $db->processEntity($this->tableName);
     }
 
 
@@ -93,7 +93,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity($this->tableName, null, true, true);
+        $db->setPretend(true);
+        $db->setReturnRes(true);
+        $queries = $db->processEntity($this->tableName);
         // Check I have the queries returned
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
@@ -119,7 +121,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity($this->tableName, null, true, true);
+        $db->setPretend(true);
+        $db->setReturnRes(true);
+        $queries = $db->processEntity($this->tableName);
         // Check I have the queries returned
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
@@ -138,11 +142,13 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
+        $db->setPretend(true);
+        $db->setReturnRes(true);
         // check the callback works
         $db->processEntity($this->tableName, function ($line) {
             $this->assertGreaterThan($this->i, $line);
             $this->i = $line;
-        }, true, true);
+        });
 
         $this->assertEquals($this->i, 2);
     }
@@ -160,7 +166,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+        $db->processEntity($this->tableName);
     }
 
 
@@ -176,7 +184,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+        $db->processEntity($this->tableName);
     }
 
 
@@ -188,7 +198,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
@@ -234,6 +246,9 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+
         $total = $db->countResults($this->tableName);
 
         // Make sure my insert was ok
@@ -252,7 +267,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertEquals('TestPHPUnit', $data[1]['content']);
 
         // Process and check I have the right number of queries
-        $queries = $db->processEntity($this->tableName, null, false, true);
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertCount(2003, $queries);
 
@@ -278,7 +293,10 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
@@ -309,7 +327,10 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
-        $queries = $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertEquals('DELETE FROM guestbook', $queries[0]);
@@ -342,7 +363,10 @@ class AnonymizerDBTest extends ConfigurationDB
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setLimit(20);
-        $queries = $db->processEntity($this->tableName, null, false, true);
+        $db->setPretend(false);
+        $db->setReturnRes(true);
+
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('INSERT INTO guestbook', $queries[0]);
@@ -381,8 +405,10 @@ class AnonymizerDBTest extends ConfigurationDB
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setLimit(20);
+        $db->setPretend(false);
+        $db->setReturnRes(false);
 
-        $queries = $db->processEntity($this->tableName, null, false, false);
+        $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertEmpty($queries);
 
@@ -408,13 +434,16 @@ class AnonymizerDBTest extends ConfigurationDB
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
 
         $db = new Db($this->getDbParams());
-        $db->setLimit(2);
         $db->setConfiguration($reader);
+        $db->setLimit(2);
+        $db->setPretend(true);
+        $db->setReturnRes(true);
+
         // check the callback works
         $db->processEntity($this->tableName, function ($line) {
             $this->assertGreaterThan($this->i, $line);
             $this->i = $line;
-        }, true, true);
+        });
 
         $this->assertEquals($this->i, 2);
     }

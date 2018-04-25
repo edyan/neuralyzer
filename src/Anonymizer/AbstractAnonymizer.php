@@ -46,58 +46,110 @@ abstract class AbstractAnonymizer
 
     /**
      * Contains the configuration object
-     *
      * @var Reader
      */
     protected $configuration;
 
     /**
      * Configuration of entities
-     *
      * @var array
      */
     protected $configEntites = [];
 
     /**
      * Current table (entity) to process
-     *
      * @var string
      */
     protected $entity;
 
     /**
      * Current table (entity) Columns
-     *
      * @var array
      */
     protected $entityCols;
 
+    /**
+     * Limit the number of updates or create
+     * @var int
+     */
+    protected $limit = 0;
+
+    /**
+     * Pretend we do the update, but do nothing
+     * @var bool
+     */
+    protected $pretend = true;
+
+    /**
+     * Return the generated SQL
+     * @var bool
+     */
+    protected $returnRes = false;
+
 
     /**
      * Process the entity according to the anonymizer type
-     *
      * @param string        $entity         Entity's name
      * @param callable|null $callback       Callback function with current row num as parameter
-     * @param bool          $pretend        Simulate update
-     * @param bool          $returnRes      Return queries
+     * @return array
      */
     abstract public function processEntity(
         string $entity,
-        callable $callback = null,
-        bool $pretend = true,
-        bool $returnRes = false
+        callable $callback = null
     ): array;
 
 
     /**
      * Set the configuration
-     *
      * @param Reader $configuration
      */
     public function setConfiguration(Reader $configuration): void
     {
         $this->configuration = $configuration;
         $this->configEntites = $configuration->getConfigValues()['entities'];
+    }
+
+
+    /**
+     * Limit of fake generated records for updates and creates
+     * @param int $limit
+     * @return DB
+     */
+    public function setLimit(int $limit): DB
+    {
+        $this->limit = $limit;
+        if ($this->limit < $this->batchSize) {
+            $this->batchSize = $this->limit;
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * Activate or deactivate the pretending mode (dry run)
+     * @param  bool $pretend
+     * @return DB
+     */
+    public function setPretend(bool $pretend): DB
+    {
+        $this->pretend = $pretend;
+
+        return $this;
+    }
+
+
+    /**
+     * Return or not a result (like an SQL Query that has
+     * been generated with fake data)
+     * @param  bool $returnRes
+     * @return DB
+     */
+    public function setReturnRes(bool $returnRes): DB
+    {
+        $this->returnRes = $returnRes;
+
+        return $this;
     }
 
 

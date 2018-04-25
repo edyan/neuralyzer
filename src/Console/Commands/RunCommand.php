@@ -175,6 +175,8 @@ class RunCommand extends Command
             'password' => $password,
         ]);
         $this->db->setConfiguration($this->reader);
+        $this->db->setPretend($this->input->getOption('pretend'));
+        $this->db->setReturnRes($this->input->getOption('sql'));
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
@@ -215,7 +217,7 @@ class RunCommand extends Command
         try {
             $queries = $this->db->setLimit($total)->processEntity($table, function () use ($bar) {
                 $bar->advance();
-            }, $this->input->getOption('pretend'), $this->input->getOption('sql'));
+            });
         // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
             $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";

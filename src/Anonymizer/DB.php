@@ -30,25 +30,15 @@ class DB extends AbstractAnonymizer
 {
     /**
      * Doctrine DB Adapter
-     *
      * @var Connection
      */
     private $conn;
 
-
     /**
      * Primary Key
-     *
      * @var string
      */
     private $priKey;
-
-    /**
-     * Limit the number of updates or create
-     *
-     * @var int
-     */
-    private $limit = 0;
 
     /**
      * Set the batch size for updates
@@ -81,38 +71,16 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Set the limit for updates and creates
-     *
-     * @param int $limit
-     * @return DB
-     */
-    public function setLimit(int $limit): DB
-    {
-        $this->limit = $limit;
-        if ($this->limit < $this->batchSize) {
-            $this->batchSize = $this->limit;
-        }
-
-        return $this;
-    }
-
-
-    /**
      * Process an entity by reading / writing to the DB
      *
      * @param string        $entity
      * @param callable|null $callback
-     * @param bool          $pretend
      * @param bool          $returnRes
      *
      * @return void|array
      */
-    public function processEntity(
-        string $entity,
-        callable $callback = null,
-        bool $pretend = true,
-        bool $returnRes = false
-    ): array {
+    public function processEntity(string $entity, callable $callback = null): array
+    {
         $schema = $this->conn->getSchemaManager();
         if ($schema->tablesExist($entity) === false) {
             throw new NeuralizerException("Table $entity does not exist");
@@ -128,21 +96,21 @@ class DB extends AbstractAnonymizer
 
         if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
             $where = $this->getWhereConditionInConfig();
-            $query = $this->runDelete($where, $pretend);
+            $query = $this->runDelete($where);
             ($returnRes === true ? array_push($queries, $query) : '');
         }
 
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->updateData($returnRes, $pretend, $callback)
+                $this->updateData($returnRes, $callback)
             );
         }
 
         if ($actionsOnThatEntity & self::INSERT_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->insertData($returnRes, $pretend, $callback)
+                $this->insertData($returnRes, $callback)
             );
         }
 
@@ -223,11 +191,10 @@ class DB extends AbstractAnonymizer
      * Execute the Delete with Doctrine Query Builder
      *
      * @param string $where
-     * @param bool   $pretend
      *
      * @return string
      */
-    private function runDelete(string $where, bool $pretend): string
+    private function runDelete(string $where): string
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         $queryBuilder = $queryBuilder->delete($this->entity);
@@ -236,7 +203,7 @@ class DB extends AbstractAnonymizer
         }
         $sql = $queryBuilder->getSQL();
 
-        if ($pretend === true) {
+        if ($this->pretend === true) {
             return $sql;
         }
 
@@ -305,11 +272,10 @@ class DB extends AbstractAnonymizer
      * Update data of table
      *
      * @param  bool     $returnRes
-     * @param  bool     $pretend
      * @param  callable $callback
      * @return array
      */
-    private function updateData(bool $returnRes, bool $pretend, $callback = null): array
+    private function updateData(bool $returnRes, $callback = null): array
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         if ($this->limit === 0) {
@@ -333,7 +299,7 @@ class DB extends AbstractAnonymizer
 
                 ($returnRes === true ? array_push($queries, $this->getRawSQL($updateQuery)) : '');
 
-                if ($pretend === false) {
+                if ($this->pretend === false) {
                     $updateQuery->execute();
                 }
 
@@ -382,11 +348,10 @@ class DB extends AbstractAnonymizer
      * Insert data into table
      *
      * @param  bool   $returnRes
-     * @param  bool   $pretend
      * @param  callable $callback
      * @return array
      */
-    private function insertData(bool $returnRes, bool $pretend, $callback): array
+    private function insertData(bool $returnRes, $callback): array
     {
         $queries = [];
 
@@ -397,7 +362,7 @@ class DB extends AbstractAnonymizer
 
             ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
 
-            if ($pretend === false) {
+            if ($this->pretend === false) {
                 $queryBuilder->execute();
             }
 
