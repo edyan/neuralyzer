@@ -45,6 +45,12 @@ abstract class AbstractAnonymizer
 
 
     /**
+     * Set the batch size for updates
+     * @var int
+     */
+    protected $batchSize = 1000;
+
+    /**
      * Contains the configuration object
      * @var Reader
      */

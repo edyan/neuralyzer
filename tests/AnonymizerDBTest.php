@@ -76,6 +76,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
+        $db->setPretend(false);
         $db->processEntity($this->tableName);
     }
 

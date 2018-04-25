@@ -40,12 +40,6 @@ class DB extends AbstractAnonymizer
      */
     private $priKey;
 
-    /**
-     * Set the batch size for updates
-     * @var int
-     */
-    private $batchSize = 1000;
-
 
     /**
      * Init connection
@@ -75,7 +69,6 @@ class DB extends AbstractAnonymizer
      *
      * @param string        $entity
      * @param callable|null $callback
-     * @param bool          $returnRes
      *
      * @return void|array
      */
@@ -97,20 +90,20 @@ class DB extends AbstractAnonymizer
         if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
             $where = $this->getWhereConditionInConfig();
             $query = $this->runDelete($where);
-            ($returnRes === true ? array_push($queries, $query) : '');
+            ($this->returnRes === true ? array_push($queries, $query) : '');
         }
 
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->updateData($returnRes, $callback)
+                $this->updateData($callback)
             );
         }
 
         if ($actionsOnThatEntity & self::INSERT_TABLE) {
             $queries = array_merge(
                 $queries,
-                $this->insertData($returnRes, $callback)
+                $this->insertData($callback)
             );
         }
 
@@ -271,11 +264,10 @@ class DB extends AbstractAnonymizer
     /**
      * Update data of table
      *
-     * @param  bool     $returnRes
      * @param  callable $callback
      * @return array
      */
-    private function updateData(bool $returnRes, $callback = null): array
+    private function updateData($callback = null): array
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         if ($this->limit === 0) {
@@ -297,7 +289,7 @@ class DB extends AbstractAnonymizer
             foreach ($rows as $row) {
                 $updateQuery = $this->prepareUpdate($row[$this->priKey]);
 
-                ($returnRes === true ? array_push($queries, $this->getRawSQL($updateQuery)) : '');
+                ($this->returnRes === true ? array_push($queries, $this->getRawSQL($updateQuery)) : '');
 
                 if ($this->pretend === false) {
                     $updateQuery->execute();
@@ -347,11 +339,10 @@ class DB extends AbstractAnonymizer
     /**
      * Insert data into table
      *
-     * @param  bool   $returnRes
      * @param  callable $callback
      * @return array
      */
-    private function insertData(bool $returnRes, $callback): array
+    private function insertData($callback): array
     {
         $queries = [];
 
@@ -360,7 +351,7 @@ class DB extends AbstractAnonymizer
         for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
             $queryBuilder = $this->prepareInsert();
 
-            ($returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
+            ($this->returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
 
             if ($this->pretend === false) {
                 $queryBuilder->execute();
