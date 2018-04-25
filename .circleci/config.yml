@@ -37,6 +37,9 @@ jobs:
             - ./vendor
           key: v1-dependencies-{{ checksum "composer.json" }}
 
+      # Wait a little mysql ...
+      - run: sleep 7
+
       # run tests!
       - run:
           name: Run tests
