@@ -3,6 +3,7 @@
 namespace Edyan\Neuralyzer\Tests;
 
 use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Utils\DBUtils;
 use Edyan\Neuralyzer\Configuration\Reader;
 
 class AnonymizerDBTest extends ConfigurationDB
@@ -262,7 +263,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $db->setPretend(false);
         $db->setReturnRes(true);
 
-        $total = $db->countResults($this->tableName);
+        $total = (new DBUtils($db->getConn()))->countResults($this->tableName);
 
         // Make sure my insert was ok
         $this->assertSame(2003, $total);

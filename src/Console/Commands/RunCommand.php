@@ -18,6 +18,7 @@
 namespace Edyan\Neuralyzer\Console\Commands;
 
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -134,6 +135,12 @@ class RunCommand extends Command
                 'l',
                 InputOption::VALUE_REQUIRED,
                 'Limit the number of written records (update or insert). 100 by default for insert'
+            )->addOption(
+                'mode',
+                'm',
+                InputOption::VALUE_REQUIRED,
+                'Set the mode : batch or queries',
+                'batch'
             );
     }
 
@@ -150,6 +157,11 @@ class RunCommand extends Command
         // Throw an exception immediately if we dont have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
+        }
+
+        // Throw an exception immediately if we dont have the right mode
+        if (!in_array($input->getOption('mode'), ['queries', 'batch'])) {
+            throw new \InvalidArgumentException('--mode could be only "queries" or "batch"');
         }
 
         $password = $input->getOption('password');
@@ -175,6 +187,7 @@ class RunCommand extends Command
             'password' => $password,
         ]);
         $this->db->setConfiguration($this->reader);
+        $this->db->setMode($this->input->getOption('mode'));
         $this->db->setPretend($this->input->getOption('pretend'));
         $this->db->setReturnRes($this->input->getOption('sql'));
 
@@ -250,7 +263,7 @@ class RunCommand extends Command
             return empty($limit) ? 100 : $limit;
         }
 
-        $rows = $this->db->countResults($table);
+        $rows = (new DBUtils($this->db->getConn()))->countResults($table);
         if (empty($limit)) {
             return $rows;
         }

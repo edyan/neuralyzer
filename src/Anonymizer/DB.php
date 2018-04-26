@@ -22,6 +22,7 @@ use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\DriverManager as DbalDriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Utils\DBUtils;
 
 /**
  * Implement AbstractAnonymizer for DB, to read and write data via Doctrine DBAL
@@ -33,6 +34,8 @@ class DB extends AbstractAnonymizer
      * @var Connection
      */
     private $conn;
+
+    private $dbUtils;
 
     /**
      * Primary Key
@@ -80,6 +83,8 @@ class DB extends AbstractAnonymizer
     {
         $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
         $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
+
+        $this->dbUtils = new DBUtils($this->conn);
     }
 
 
@@ -105,6 +110,11 @@ class DB extends AbstractAnonymizer
             throw new NeuralizerException('Mode could be only queries or batch');
         }
 
+        if ($mode === 'batch') {
+            $filename = tempnam(sys_get_temp_dir(), 'neuralyzer');
+            $this->csvFile = fopen($filename, 'w');
+        }
+
         $this->mode = $mode;
 
         return $this;
@@ -126,9 +136,9 @@ class DB extends AbstractAnonymizer
             throw new NeuralizerException("Table $entity does not exist");
         }
 
+        $this->priKey = $this->dbUtils->getPrimaryKey($entity);
+        $this->entityCols = $this->dbUtils->getTableCols($entity);
         $this->entity = $entity;
-        $this->priKey = $this->getPrimaryKey();
-        $this->entityCols = $this->getTableCols();
 
         $actionsOnThatEntity = $this->whatToDoWithEntity();
         $this->queries = [];
@@ -147,59 +157,6 @@ class DB extends AbstractAnonymizer
         }
 
         return $this->queries;
-    }
-
-    /**
-     * Do a simple count for a table
-     *
-     * @param  string $table
-     * @return int
-     */
-    public function countResults(string $table): int
-    {
-        $queryBuilder = $this->conn->createQueryBuilder();
-        $rows = $queryBuilder->select('COUNT(1)')->from($table)->execute();
-
-        return (int)$rows->fetch(\Doctrine\DBAL\FetchMode::NUMERIC)[0];
-    }
-
-
-    /**
-     * Identify the primary key for a table
-     *
-     * @return string Field's name
-     */
-    private function getPrimaryKey(): string
-    {
-        $schema = $this->conn->getSchemaManager();
-        $tableDetails = $schema->listTableDetails($this->entity);
-        if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralizerException("Can't find a primary key for '{$this->entity}'");
-        }
-
-        return $tableDetails->getPrimaryKey()->getColumns()[0];
-    }
-
-
-    /**
-     * Retrieve columns list for a table with type and length
-     *
-     * @return array $cols
-     */
-    private function getTableCols(): array
-    {
-        $schema = $this->conn->getSchemaManager();
-        $tableCols = $schema->listTableColumns($this->entity);
-        $cols = [];
-        foreach ($tableCols as $col) {
-            $cols[$col->getName()] = [
-                'length' => $col->getLength(),
-                'type'   => $col->getType(),
-                'unsigned' => $col->getUnsigned(),
-            ];
-        }
-
-        return $cols;
     }
 
 
@@ -309,14 +266,14 @@ class DB extends AbstractAnonymizer
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         if ($this->limit === 0) {
-            $this->setLimit($this->countResults($this->entity));
+            $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
         while ($num < $this->limit) {
             $rows = $queryBuilder
-                        ->select($this->priKey)->from($this->entity)
+                        ->select('*')->from($this->entity)
                         ->setFirstResult($startAt)->setMaxResults($this->batchSize)
                         ->orderBy($this->priKey)
                         ->execute();
@@ -325,7 +282,7 @@ class DB extends AbstractAnonymizer
             // to make sure I do update by update (slower but no other choice for now)
             foreach ($rows as $row) {
                 // Call the right method according to the mode
-                $this->{$this->updateMode[$this->mode]}($row[$this->priKey]);
+                $this->{$this->updateMode[$this->mode]}($row);
 
                 if (!is_null($callback)) {
                     $callback(++$num);
@@ -344,10 +301,9 @@ class DB extends AbstractAnonymizer
 
     /**
      * Execute the Update with Doctrine QueryBuilder
-     *
-     * @param  string $primaryKeyVal  Primary Key's Value
+     * @param  array $row  Full row
      */
-    private function doUpdateByQueries($primaryKeyVal): void
+    private function doUpdateByQueries(array $row): void
     {
         $data = $this->generateFakeData();
 
@@ -358,7 +314,7 @@ class DB extends AbstractAnonymizer
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
-        $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
+        $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $row[$this->priKey]);
 
         $this->returnRes === true ?
             array_push($this->queries, $this->getRawSQL($queryBuilder)) :
@@ -367,6 +323,22 @@ class DB extends AbstractAnonymizer
         if ($this->pretend === false) {
             $queryBuilder->execute();
         }
+    }
+
+
+    /**
+     * Write the line required for a later LOAD DATA (or \copy)
+     * @param  array $row  Full row
+     */
+    private function doBatchUpdate(array $row): void
+    {
+        $data = $this->generateFakeData();
+        foreach ($row as $field => $value) {
+            if (empty($value)) {
+                $data[$field] = '';
+            }
+        }
+        fputcsv($this->csvFile, $data);
     }
 
 
@@ -408,5 +380,27 @@ class DB extends AbstractAnonymizer
         if ($this->pretend === false) {
             $queryBuilder->execute();
         }
+    }
+
+
+    /**
+     * Write the line required for a later LOAD DATA (or \copy)
+     */
+    private function doBatchInsert(): void
+    {
+        $data = $this->generateFakeData();
+        fputcsv($this->csvFile, $data);
+    }
+
+
+    /**
+     * If a file has been created for the batch mode, destroy it
+     */
+    private function loadDataInBatch(): void
+    {
+        // Run a query for each type of DB
+
+        // Destroy the file
+        unlink($this->csvFile);
     }
 }

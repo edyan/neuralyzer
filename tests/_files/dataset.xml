@@ -14,7 +14,6 @@
     />
     <guestbook
         id="2"
-        content="I like it!"
         username="nancy"
         created="2010-04-26"
         a_bigint="2222222222222222222"
@@ -26,4 +25,3 @@
         a_float="12.501"
     />
 </dataset>
-

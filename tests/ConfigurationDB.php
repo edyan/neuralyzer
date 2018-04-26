@@ -147,7 +147,7 @@ class ConfigurationDB extends \PHPUnit\Framework\TestCase
         $schema = new Schema();
         $myTable = $schema->createTable($this->tableName);
         $myTable->addColumn('id', 'integer', ['unsigned' => true]);
-        $myTable->addColumn('content', 'text');
+        $myTable->addColumn('content', 'text', ['notnull' => false]);
         $myTable->addColumn('username', 'string', ['length' => 32]);
         $myTable->addColumn('created', 'date');
         $myTable->addColumn('a_bigint', 'bigint');

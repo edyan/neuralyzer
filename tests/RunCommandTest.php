@@ -143,7 +143,8 @@ class RunCommandTest extends ConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
-            '--config' => __DIR__ . '/_files/config.right.yaml'
+            '--config' => __DIR__ . '/_files/config.right.yaml',
+            '--mode' => 'queries'
         ]);
 
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
@@ -175,7 +176,8 @@ class RunCommandTest extends ConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
-            '--config' => __DIR__ . '/_files/config.right.yaml'
+            '--config' => __DIR__ . '/_files/config.right.yaml',
+            '--mode' => 'queries'
         ]);
 
         $this->assertRegExp('|.*guestbook is empty.*|', $commandTester->getDisplay());
@@ -199,7 +201,8 @@ class RunCommandTest extends ConfigurationDB
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.yaml',
-            '--sql' => null
+            '--sql' => null,
+            '--mode' => 'queries'
         ]);
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
         $this->assertRegExp('|.*UPDATE guestbook SET.*|', $commandTester->getDisplay());
@@ -223,7 +226,8 @@ class RunCommandTest extends ConfigurationDB
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.yaml',
-            '--limit' => 1
+            '--limit' => 1,
+            '--mode' => 'queries'
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|1\/1 \[============================\] 100%|', $commandTester->getDisplay());
@@ -247,7 +251,8 @@ class RunCommandTest extends ConfigurationDB
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config.right.yaml',
-            '--limit' => 100000
+            '--limit' => 100000,
+            '--mode' => 'queries'
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|2\/2 \[============================\] 100%|', $commandTester->getDisplay());
@@ -277,7 +282,8 @@ class RunCommandTest extends ConfigurationDB
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/_files/config-insert.right.yaml',
-            '--limit' => 10
+            '--limit' => 10,
+            '--mode' => 'queries'
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|10\/10 \[============================\] 100%|', $commandTester->getDisplay());
