@@ -40,6 +40,36 @@ class DB extends AbstractAnonymizer
      */
     private $priKey;
 
+    /**
+     * Define the way we update / insert data
+     * @var string
+     */
+    private $mode = 'queries';
+
+    /**
+     * Contains queries if returnRes is true
+     * @var array
+     */
+    private $queries = [];
+
+    /**
+     * Define available update modes
+     * @var array
+     */
+    private $updateMode = [
+        'queries' => 'doUpdateByQueries',
+        'batch' => 'doBatchUpdate'
+    ];
+
+    /**
+     * Define available insert modes
+     * @var array
+     */
+    private $insertMode = [
+        'queries' => 'doInsertByQueries',
+        'batch' => 'doBatchInsert'
+    ];
+
 
     /**
      * Init connection
@@ -65,6 +95,23 @@ class DB extends AbstractAnonymizer
 
 
     /**
+     * Set the mode for update / insert
+     * @param string $mode
+     * @return DB
+     */
+    public function setMode(string $mode): DB
+    {
+        if (!in_array($mode, ['queries', 'batch'])) {
+            throw new NeuralizerException('Mode could be only queries or batch');
+        }
+
+        $this->mode = $mode;
+
+        return $this;
+    }
+
+
+    /**
      * Process an entity by reading / writing to the DB
      *
      * @param string        $entity
@@ -83,31 +130,23 @@ class DB extends AbstractAnonymizer
         $this->priKey = $this->getPrimaryKey();
         $this->entityCols = $this->getTableCols();
 
-        $queries = [];
-
         $actionsOnThatEntity = $this->whatToDoWithEntity();
-
+        $this->queries = [];
         if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
             $where = $this->getWhereConditionInConfig();
             $query = $this->runDelete($where);
-            ($this->returnRes === true ? array_push($queries, $query) : '');
+            ($this->returnRes === true ? array_push($this->queries, $query) : '');
         }
 
         if ($actionsOnThatEntity & self::UPDATE_TABLE) {
-            $queries = array_merge(
-                $queries,
-                $this->updateData($callback)
-            );
+            $this->updateData($callback);
         }
 
         if ($actionsOnThatEntity & self::INSERT_TABLE) {
-            $queries = array_merge(
-                $queries,
-                $this->insertData($callback)
-            );
+            $this->insertData($callback);
         }
 
-        return $queries;
+        return $this->queries;
     }
 
     /**
@@ -265,9 +304,8 @@ class DB extends AbstractAnonymizer
      * Update data of table
      *
      * @param  callable $callback
-     * @return array
      */
-    private function updateData($callback = null): array
+    private function updateData($callback = null): void
     {
         $queryBuilder = $this->conn->createQueryBuilder();
         if ($this->limit === 0) {
@@ -276,7 +314,6 @@ class DB extends AbstractAnonymizer
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
-        $queries = [];
         while ($num < $this->limit) {
             $rows = $queryBuilder
                         ->select($this->priKey)->from($this->entity)
@@ -287,18 +324,12 @@ class DB extends AbstractAnonymizer
             // I need to read line by line if I have to update the table
             // to make sure I do update by update (slower but no other choice for now)
             foreach ($rows as $row) {
-                $updateQuery = $this->prepareUpdate($row[$this->priKey]);
-
-                ($this->returnRes === true ? array_push($queries, $this->getRawSQL($updateQuery)) : '');
-
-                if ($this->pretend === false) {
-                    $updateQuery->execute();
-                }
+                // Call the right method according to the mode
+                $this->{$this->updateMode[$this->mode]}($row[$this->priKey]);
 
                 if (!is_null($callback)) {
                     $callback(++$num);
                 }
-
                 // Have to exit now as we have reached the max
                 if ($num >= $this->limit) {
                     break 2;
@@ -308,8 +339,6 @@ class DB extends AbstractAnonymizer
             // Make sure the loop ends if we have nothing to process
             $num = $startAt += $this->batchSize;
         }
-
-        return $queries;
     }
 
 
@@ -317,9 +346,8 @@ class DB extends AbstractAnonymizer
      * Execute the Update with Doctrine QueryBuilder
      *
      * @param  string $primaryKeyVal  Primary Key's Value
-     * @return QueryBuilder           Doctrine DBAL QueryBuilder
      */
-    private function prepareUpdate($primaryKeyVal): QueryBuilder
+    private function doUpdateByQueries($primaryKeyVal): void
     {
         $data = $this->generateFakeData();
 
@@ -332,46 +360,37 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
         $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $primaryKeyVal);
 
-        return $queryBuilder;
+        $this->returnRes === true ?
+            array_push($this->queries, $this->getRawSQL($queryBuilder)) :
+            '';
+
+        if ($this->pretend === false) {
+            $queryBuilder->execute();
+        }
     }
 
 
     /**
      * Insert data into table
-     *
      * @param  callable $callback
-     * @return array
      */
-    private function insertData($callback = null): array
+    private function insertData($callback = null): void
     {
-        $queries = [];
-
-        $queryBuilder = $this->conn->createQueryBuilder();
-
         for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
-            $queryBuilder = $this->prepareInsert();
-
-            ($this->returnRes === true ? array_push($queries, $this->getRawSQL($queryBuilder)) : '');
-
-            if ($this->pretend === false) {
-                $queryBuilder->execute();
-            }
+            // Call the right method according to the mode
+            $this->{$this->insertMode[$this->mode]}();
 
             if (!is_null($callback)) {
                 $callback($rowNum);
             }
         }
-
-        return $queries;
     }
 
 
     /**
      * Execute an INSERT with Doctrine QueryBuilder
-     *
-     * @return QueryBuilder       Doctrine DBAL QueryBuilder
      */
-    private function prepareInsert(): QueryBuilder
+    private function doInsertByQueries(): void
     {
         $data = $this->generateFakeData();
 
@@ -382,6 +401,12 @@ class DB extends AbstractAnonymizer
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
 
-        return $queryBuilder;
+        $this->returnRes === true ?
+            array_push($this->queries, $this->getRawSQL($queryBuilder)) :
+            '';
+
+        if ($this->pretend === false) {
+            $queryBuilder->execute();
+        }
     }
 }

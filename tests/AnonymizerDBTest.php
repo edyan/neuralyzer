@@ -23,6 +23,18 @@ class AnonymizerDBTest extends ConfigurationDB
     }
 
     /**
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedExceptionMessage Mode could be only queries or batch
+     */
+    public function testWrongMode()
+    {
+        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+
+        $db = new Db($this->getDbParams());
+        $db->setMode('wrong');
+    }
+
+    /**
     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
     * @expectedExceptionMessage Table guestook does not exist
      */
