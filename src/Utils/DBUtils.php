@@ -25,6 +25,10 @@ use Edyan\Neuralyzer\Exception\NeuralizerException;
  */
 class DBUtils
 {
+    /**
+     * Doctrine DBAL Connection
+     * @var Connection
+     */
     private $conn;
 
     /**
