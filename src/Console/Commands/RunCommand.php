@@ -185,6 +185,7 @@ class RunCommand extends Command
             'dbname' => $input->getOption('db'),
             'user' => $input->getOption('user'),
             'password' => $password,
+            'driverOptions' => [\PDO::MYSQL_ATTR_LOCAL_INFILE => true]
         ]);
         $this->db->setConfiguration($this->reader);
         $this->db->setMode($this->input->getOption('mode'));

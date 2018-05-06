@@ -35,6 +35,10 @@ class DB extends AbstractAnonymizer
      */
     private $conn;
 
+    /**
+     * Various generic utils
+     * @var DBUtils
+     */
     private $dbUtils;
 
     /**
@@ -56,6 +60,18 @@ class DB extends AbstractAnonymizer
     private $queries = [];
 
     /**
+     * Filename for the csv (batch mode)
+     * @var string
+     */
+    private $csvFileName;
+
+    /**
+     * File resource for the csv (batch mode)
+     * @var resource
+     */
+    private $csvFile;
+
+    /**
      * Define available update modes
      * @var array
      */
@@ -73,6 +89,14 @@ class DB extends AbstractAnonymizer
         'batch' => 'doBatchInsert'
     ];
 
+
+    /**
+     * Final method to launch once everything is done
+     * @var array
+     */
+    private $insertModeFinalize = [
+        'batch' => 'loadDataInBatch'
+    ];
 
     /**
      * Init connection
@@ -111,8 +135,8 @@ class DB extends AbstractAnonymizer
         }
 
         if ($mode === 'batch') {
-            $filename = tempnam(sys_get_temp_dir(), 'neuralyzer');
-            $this->csvFile = fopen($filename, 'w');
+            $this->csvFileName = tempnam(sys_get_temp_dir(), 'neuralyzer');
+            $this->csvFile = fopen($this->csvFileName, 'w');
         }
 
         $this->mode = $mode;
@@ -356,6 +380,11 @@ class DB extends AbstractAnonymizer
                 $callback($rowNum);
             }
         }
+
+        // Run a final method if defined
+        if (array_key_exists($this->mode, $this->insertModeFinalize)) {
+            $this->{$this->insertModeFinalize[$this->mode]}();
+        }
     }
 
 
@@ -399,8 +428,25 @@ class DB extends AbstractAnonymizer
     private function loadDataInBatch(): void
     {
         // Run a query for each type of DB
+        $fields = array_keys($this->configEntites[$this->entity]['cols']);
+        $fields = implode(', ', $fields);
+        $loadDataFor = [
+            'pdo_mysql' => "LOAD DATA LOCAL INFILE ? INTO TABLE {$this->entity} FIELDS TERMINATED BY ',' ENCLOSED BY '\"' ({$fields})",
+        ];
+
+        $driver = $this->getConn()->getDriver();
+
+        // Run the query if asked
+        if ($this->pretend === false) {
+            $stmt = $this->getConn()->prepare($loadDataFor[$driver->getName()]);
+            $stmt->bindValue(1, $this->csvFileName);
+            $stmt->execute();
+        }
+
+        $sql = str_replace('?', "'{$this->csvFileName}'", $loadDataFor[$driver->getName()]);
+        $this->returnRes === true ? array_push($this->queries, $sql) : '';
 
         // Destroy the file
-        unlink($this->csvFile);
+        unlink($this->csvFileName);
     }
 }
