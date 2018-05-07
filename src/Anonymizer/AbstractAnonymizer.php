@@ -232,12 +232,12 @@ abstract class AbstractAnonymizer
                 throw new NeuralizerConfigurationException($msg);
             }
 
-            $row[$colName] = $data;
+            $row[$colName] = trim($data);
 
             $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...
-            if (!empty($colLength) && strlen($data) > $colLength) {
-                $row[$colName] = substr($data, 0, $this->entityCols[$colName]['length']);
+            if (!empty($colLength) && strlen($row[$colName]) > $colLength) {
+                $row[$colName] = substr($row[$colName], 0, $colLength);
             }
         }
 

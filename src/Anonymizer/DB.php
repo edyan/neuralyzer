@@ -60,12 +60,6 @@ class DB extends AbstractAnonymizer
     private $queries = [];
 
     /**
-     * Filename for the csv (batch mode)
-     * @var string
-     */
-    private $csvFileName;
-
-    /**
      * File resource for the csv (batch mode)
      * @var resource
      */
@@ -88,7 +82,6 @@ class DB extends AbstractAnonymizer
         'queries' => 'doInsertByQueries',
         'batch' => 'doBatchInsert'
     ];
-
 
     /**
      * Final method to launch once everything is done
@@ -135,8 +128,8 @@ class DB extends AbstractAnonymizer
         }
 
         if ($mode === 'batch') {
-            $this->csvFileName = tempnam(sys_get_temp_dir(), 'neuralyzer');
-            $this->csvFile = fopen($this->csvFileName, 'w');
+            $this->csvFile = new \SplFileObject(tempnam(sys_get_temp_dir(), 'neuralyzer'), 'w');
+            $this->csvFile->setCsvControl('|');
         }
 
         $this->mode = $mode;
@@ -325,6 +318,7 @@ class DB extends AbstractAnonymizer
 
     /**
      * Execute the Update with Doctrine QueryBuilder
+     * @SuppressWarnings("unused") - Used dynamically
      * @param  array $row  Full row
      */
     private function doUpdateByQueries(array $row): void
@@ -352,6 +346,7 @@ class DB extends AbstractAnonymizer
 
     /**
      * Write the line required for a later LOAD DATA (or \copy)
+     * @SuppressWarnings("unused") - Used dynamically
      * @param  array $row  Full row
      */
     private function doBatchUpdate(array $row): void
@@ -362,7 +357,7 @@ class DB extends AbstractAnonymizer
                 $data[$field] = '';
             }
         }
-        fputcsv($this->csvFile, $data);
+        $this->csvFile->fputcsv($data);
     }
 
 
@@ -390,6 +385,7 @@ class DB extends AbstractAnonymizer
 
     /**
      * Execute an INSERT with Doctrine QueryBuilder
+     * @SuppressWarnings("unused") - Used dynamically
      */
     private function doInsertByQueries(): void
     {
@@ -414,39 +410,77 @@ class DB extends AbstractAnonymizer
 
     /**
      * Write the line required for a later LOAD DATA (or \copy)
+     * @SuppressWarnings("unused") - Used dynamically
      */
     private function doBatchInsert(): void
     {
         $data = $this->generateFakeData();
-        fputcsv($this->csvFile, $data);
+        $this->csvFile->fputcsv($data);
     }
 
 
     /**
      * If a file has been created for the batch mode, destroy it
+     * @SuppressWarnings("unused") - Used dynamically
      */
     private function loadDataInBatch(): void
     {
         // Run a query for each type of DB
         $fields = array_keys($this->configEntites[$this->entity]['cols']);
-        $fields = implode(', ', $fields);
-        $loadDataFor = [
-            'pdo_mysql' => "LOAD DATA LOCAL INFILE ? INTO TABLE {$this->entity} FIELDS TERMINATED BY ',' ENCLOSED BY '\"' ({$fields})",
-        ];
 
-        $driver = $this->getConn()->getDriver();
+        $method = 'loadDataFor' . ucfirst(substr($this->getConn()->getDriver()->getName(), 4));
+        $sql = $this->{$method}($fields);
 
-        // Run the query if asked
-        if ($this->pretend === false) {
-            $stmt = $this->getConn()->prepare($loadDataFor[$driver->getName()]);
-            $stmt->bindValue(1, $this->csvFileName);
-            $stmt->execute();
-        }
-
-        $sql = str_replace('?', "'{$this->csvFileName}'", $loadDataFor[$driver->getName()]);
         $this->returnRes === true ? array_push($this->queries, $sql) : '';
 
         // Destroy the file
-        unlink($this->csvFileName);
+        unlink($this->csvFile->getRealPath());
+    }
+
+
+    /**
+     * Load Data for MySQL (Specific Query)
+     * @SuppressWarnings("unused") - Used dynamically
+     * @param  array  $fields
+     * @return string
+     */
+    private function loadDataForMysql(array $fields)
+    {
+        $fields = implode(', ', $fields);
+        $filename = $this->csvFile->getRealPath();
+        $sql ="LOAD DATA LOCAL INFILE '{$filename}'
+     INTO TABLE {$this->entity}
+     FIELDS TERMINATED BY '|' ENCLOSED BY '\"'
+     ({$fields})";
+
+        // Run the query if asked
+        if ($this->pretend === false) {
+            $stmt = $this->getConn()->prepare($sql);
+            $stmt->execute();
+        }
+
+        return $sql;
+    }
+
+
+    /**
+     * Load Data for Postgres (Specific Query)
+     * @SuppressWarnings("unused") - Used dynamically
+     * @param  array  $fields
+     * @return string
+     */
+    private function loadDataForPgsql(array $fields)
+    {
+        if ($this->pretend === false) {
+            $this->getConn()->getWrappedConnection()->pgsqlCopyFromFile(
+                $this->entity,
+                $this->csvFile->getRealPath(),
+                '|',
+                '\\\\N',
+                implode(', ', $fields)
+            );
+        }
+
+        return '(Managed by pgsqlCopyFromFile)';
     }
 }
