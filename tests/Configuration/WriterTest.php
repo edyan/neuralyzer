@@ -1,13 +1,14 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Configuration;
 
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Writer;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Guesser;
+use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 
-class ConfigWriterTest extends ConfigurationDB
+class WriterTest extends AbstractConfigurationDB
 {
     private $protectedCols = ['.*\..*'];
     private $ignoredTables = ['guestbook'];

@@ -1,6 +1,6 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Exception;
 
 use Edyan\Neuralyzer\Exception as NeuralyzerExceptions;
 use PHPUnit\Framework\TestCase;

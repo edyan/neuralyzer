@@ -1,16 +1,14 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class ConfigGenerateCommandTest extends ConfigurationDB
+class ConfigGenerateCommandTest extends AbstractConfigurationDB
 {
     /**
      * @expectedException InvalidArgumentException

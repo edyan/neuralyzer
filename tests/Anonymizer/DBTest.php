@@ -1,12 +1,13 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Anonymizer;
 
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Utils\DBUtils;
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 
-class AnonymizerDBTest extends ConfigurationDB
+class DBTest extends AbstractConfigurationDB
 {
     private $i;
 
@@ -16,7 +17,7 @@ class AnonymizerDBTest extends ConfigurationDB
      */
     public function testWithoutPrimary()
     {
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -29,8 +30,6 @@ class AnonymizerDBTest extends ConfigurationDB
      */
     public function testWrongMode()
     {
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
-
         $db = new Db($this->getDbParams());
         $db->setMode('wrong');
     }
@@ -43,7 +42,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->dropTable();
 
-        $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -70,7 +69,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.notable.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.notable.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -85,7 +84,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -93,7 +92,9 @@ class AnonymizerDBTest extends ConfigurationDB
         $db->processEntity($this->tableName);
     }
 
-
+    /*
+     * THAT ONE CREATES THE PRIMARY
+     */
     public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
     {
         if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
@@ -103,7 +104,7 @@ class AnonymizerDBTest extends ConfigurationDB
         }
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -115,7 +116,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
         // check no data changed
-        $expectedDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
+        $expectedDataSet = $this->createFlatXmlDataSet(__DIR__ . '/../_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
 
         $this->assertDataSetsEqual($expectedDataSet, $queryTable);
@@ -131,7 +132,7 @@ class AnonymizerDBTest extends ConfigurationDB
         }
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -143,7 +144,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
         // check no data changed
-        $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
+        $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/../_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
@@ -152,7 +153,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -176,7 +177,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -194,7 +195,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -208,7 +209,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -256,7 +257,7 @@ class AnonymizerDBTest extends ConfigurationDB
                 ->execute();
         }
 
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -303,7 +304,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -337,7 +338,7 @@ class AnonymizerDBTest extends ConfigurationDB
     {
         $this->createPrimary();
 
-        $reader = new Reader('_files/config.right.deleteall.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.deleteall.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);
@@ -368,7 +369,7 @@ class AnonymizerDBTest extends ConfigurationDB
         $this->createPrimary();
         $this->truncateTable();
 
-        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
@@ -410,7 +411,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $this->createPrimary();
 
-        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
@@ -445,7 +446,7 @@ class AnonymizerDBTest extends ConfigurationDB
 
         $this->createPrimary();
 
-        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 
         $db = new Db($this->getDbParams());
         $db->setConfiguration($reader);

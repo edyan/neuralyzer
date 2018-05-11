@@ -4,7 +4,7 @@ namespace Edyan\Neuralyzer\Tests;
 
 use Doctrine\DBAL\Schema\Schema;
 
-class ConfigurationDB extends \PHPUnit\Framework\TestCase
+abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
     use \PHPUnit\DbUnit\TestCaseTrait;
 

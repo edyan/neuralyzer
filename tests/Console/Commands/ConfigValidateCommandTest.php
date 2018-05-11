@@ -1,16 +1,14 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class ConfigValidateCommandTest extends ConfigurationDB
+class ConfigValidateCommandTest extends AbstractConfigurationDB
 {
     public function testExecuteWorking()
     {
@@ -22,7 +20,7 @@ class ConfigValidateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
-            '--file'  => __DIR__ . '/_files/config.right.yaml'
+            '--file'  => __DIR__ . '/../../_files/config.right.yaml'
         ]);
 
         $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
@@ -42,7 +40,7 @@ class ConfigValidateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
-            '--file'  => __DIR__ . '/_files/config.wrong.yaml'
+            '--file'  => __DIR__ . '/../../_files/config.wrong.yaml'
         ]);
 
         $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
@@ -63,7 +61,7 @@ class ConfigValidateCommandTest extends ConfigurationDB
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
-            '--file'  => __DIR__ . '/_files/config.doesnotexist.yaml'
+            '--file'  => __DIR__ . '/../../_files/config.doesnotexist.yaml'
         ]);
 
         $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());

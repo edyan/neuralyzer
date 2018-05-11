@@ -1,11 +1,11 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Configuration;
 
 use Edyan\Neuralyzer\Configuration\Reader;
 use PHPUnit\Framework\TestCase;
 
-class ConfigReaderTest extends TestCase
+class ReaderTest extends TestCase
 {
     /**
      * @expectedException InvalidArgumentException
@@ -13,7 +13,7 @@ class ConfigReaderTest extends TestCase
      */
     public function testReadConfigurationWrongFile()
     {
-        new Reader('_files/config.doesntexist.yaml', [__DIR__]);
+        new Reader('_files/config.doesntexist.yaml', [__DIR__ . '/..']);
     }
 
     /**
@@ -22,12 +22,12 @@ class ConfigReaderTest extends TestCase
      */
     public function testReadConfigurationWrongConf()
     {
-        new Reader('_files/config.wrong.yaml', [__DIR__]);
+        new Reader('_files/config.wrong.yaml', [__DIR__ . '/..']);
     }
 
     public function testReadConfigurationRightConf()
     {
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
         $values = $reader->getConfigValues();
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);
@@ -43,7 +43,7 @@ class ConfigReaderTest extends TestCase
 
     public function testReadConfigurationRightConfWithEmpty()
     {
-        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
         $values = $reader->getConfigValues();
         $this->assertInternalType('array', $values);
         $this->assertArrayHasKey('entities', $values);
@@ -64,7 +64,7 @@ class ConfigReaderTest extends TestCase
      */
     public function testGetEntityNotInConfig()
     {
-        $reader = new Reader('_files/config.right.yaml', [__DIR__]);
+        $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
         $reader->getEntityConfig('does_not_exist');
     }
 }

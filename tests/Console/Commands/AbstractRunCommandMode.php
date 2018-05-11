@@ -1,123 +1,16 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests;
+namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
+use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class RunCommandTest extends ConfigurationDB
+abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 {
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |Database name is required \(--db\)|
-     */
-    public function testExecuteNoDB()
-    {
-        $application = new Application();
-        $application->add(new Command());
-
-        // We mock the DialogHelper
-        $command = $application->find('run');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            '--driver' => getenv('DB_DRIVER'),
-            '--user' => getenv('DB_USER'),
-            '--host' => getenv('DB_HOST'),
-            '--password' => 'toto',
-            '--config' => __DIR__ . '/_files/config.right.yaml'
-        ]);
-    }
-
-
-    public function testExecuteWrongPass()
-    {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->expectException("\Doctrine\DBAL\Driver\PDOException");
-            $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
-        } else if (getenv('DB_DRIVER') === 'pdo_pgsql') {
-            $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
-            $this->expectExceptionMessageRegExp("|password authentication failed for user|");
-        } else {
-            $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
-            $this->expectExceptionMessageRegExp("|Access denied for user.*|");
-        }
-
-        $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
-        // We mock the DialogHelper
-        $command = $application->find('run');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            '--driver' => getenv('DB_DRIVER'),
-            '--db' => getenv('DB_NAME'),
-            '--user' => getenv('DB_USER'),
-            '--host' => getenv('DB_HOST'),
-            '--password' => 'toto',
-            '--config' => __DIR__ . '/_files/config.right.yaml'
-        ]);
-    }
-
-    /**
-    * @expectedException Doctrine\DBAL\DBALException
-    * @expectedExceptionMessageRegExp |The given 'driver' wrong_driver is unknown.*|
-    */
-    public function testExecuteWrongDriver()
-    {
-        $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
-        // We mock the DialogHelper
-        $command = $application->find('run');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            '--driver' => 'wrong_driver',
-            '--db' => getenv('DB_NAME'),
-            '--user' => getenv('DB_USER'),
-            '--host' => getenv('DB_HOST'),
-            '--password' => 'toto',
-            '--config' => __DIR__ . '/_files/config.right.yaml'
-        ]);
-    }
-
-    /**
-     * @expectedExceptionMessageRegExp |An exception occurred while executing.*|
-     */
-    public function testExecuteWrongTablePasswordOnCLI()
-    {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->expectException("\Doctrine\DBAL\DBALException");
-        } else {
-            $this->expectException("\Doctrine\DBAL\Exception\TableNotFoundException");
-        }
-
-        $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
-        // We mock the DialogHelper
-        $command = $application->find('run');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
-            'command' => $command->getName(),
-            '--driver' => getenv('DB_DRIVER'),
-            '--db' => getenv('DB_NAME'),
-            '--user' => getenv('DB_USER'),
-            '--host' => getenv('DB_HOST'),
-            '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.notable.yaml'
-        ]);
-    }
-
+    protected $mode = null;
+    protected $exceptedSQLOutput = [];
 
     public function testExecuteRightTablePassPrompted()
     {
@@ -143,12 +36,14 @@ class RunCommandTest extends ConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
-            '--config' => __DIR__ . '/_files/config.right.yaml',
-            '--mode' => 'queries'
+            '--config' => __DIR__ . '/../../_files/config.right.yaml',
+            '--mode' => $this->mode
         ]);
-
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
-        $this->assertNotRegExp('|.*UPDATE guestbook.*|', $commandTester->getDisplay());
+        $this->assertNotRegExp(
+            $this->exceptedSQLOutput[getenv('DB_DRIVER')],
+            $commandTester->getDisplay()
+        );
     }
 
 
@@ -176,8 +71,8 @@ class RunCommandTest extends ConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
-            '--config' => __DIR__ . '/_files/config.right.yaml',
-            '--mode' => 'queries'
+            '--config' => __DIR__ . '/../../_files/config.right.yaml',
+            '--mode' => $this->mode
         ]);
 
         $this->assertRegExp('|.*guestbook is empty.*|', $commandTester->getDisplay());
@@ -187,6 +82,15 @@ class RunCommandTest extends ConfigurationDB
     public function testExecuteWithSQL()
     {
         $this->createPrimary();
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $oldData = $queryBuilder
+            ->select('*')->from($this->tableName)
+            ->orderBy('id')
+            ->execute()->fetchAll();
+        $this->assertInternalType('array', $oldData);
+        $this->assertNotEmpty($oldData);
+        $this->assertCount(2, $oldData);
+
         $application = new Application();
         $application->add(new Command());
 
@@ -200,12 +104,38 @@ class RunCommandTest extends ConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.yaml',
+            '--config' => __DIR__ . '/../../_files/config.right.yaml',
             '--sql' => null,
-            '--mode' => 'queries'
+            '--mode' => $this->mode
         ]);
         $this->assertRegExp('|Anonymizing guestbook.*|', $commandTester->getDisplay());
-        $this->assertRegExp('|.*UPDATE guestbook SET.*|', $commandTester->getDisplay());
+        $this->assertRegExp(
+            $this->exceptedSQLOutput[getenv('DB_DRIVER')],
+            $commandTester->getDisplay()
+        );
+
+        // Now verify by a query that my changed fields have been changed and
+        // other remain untouched
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $data = $queryBuilder
+            ->select('*')->from($this->tableName)
+            ->orderBy('id')
+            ->execute()->fetchAll();
+        $this->assertInternalType('array', $data);
+        $this->assertNotEmpty($data);
+        $this->assertCount(2, $data);
+
+        // Verify Data
+        $this->assertEquals($oldData[0]['id'], $data[0]['id']);
+        $this->assertEquals($oldData[0]['a_time'], $data[0]['a_time']);
+        $this->assertNotEquals($oldData[0]['username'], $data[0]['username']);
+        $this->assertNotEquals($oldData[0]['a_datetime'], $data[0]['a_datetime']);
+
+        $this->assertEquals($oldData[1]['id'], $data[1]['id']);
+        $this->assertEquals($oldData[1]['a_time'], $data[1]['a_time']);
+        $this->assertNotEquals($oldData[1]['username'], $data[1]['username']);
+        $this->assertNotEquals($oldData[1]['a_datetime'], $data[1]['a_datetime']);
+        $this->assertEquals($oldData[1]['content'], $data[1]['content']); // Content was empty
     }
 
 
@@ -225,9 +155,9 @@ class RunCommandTest extends ConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.yaml',
+            '--config' => __DIR__ . '/../../_files/config.right.yaml',
             '--limit' => 1,
-            '--mode' => 'queries'
+            '--mode' => $this->mode
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|1\/1 \[============================\] 100%|', $commandTester->getDisplay());
@@ -250,9 +180,9 @@ class RunCommandTest extends ConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config.right.yaml',
+            '--config' => __DIR__ . '/../../_files/config.right.yaml',
             '--limit' => 100000,
-            '--mode' => 'queries'
+            '--mode' => $this->mode
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|2\/2 \[============================\] 100%|', $commandTester->getDisplay());
@@ -281,9 +211,9 @@ class RunCommandTest extends ConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/_files/config-insert.right.yaml',
+            '--config' => __DIR__ . '/../../_files/config-insert.right.yaml',
             '--limit' => 10,
-            '--mode' => 'queries'
+            '--mode' => $this->mode
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|10\/10 \[============================\] 100%|', $commandTester->getDisplay());
