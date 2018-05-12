@@ -422,7 +422,11 @@ class DB extends AbstractAnonymizer
 
         // Run the query if asked
         if ($this->pretend === false) {
-            $this->conn->query($sql);
+            $query = $this->conn->query($sql);
+        }
+
+        if ($query === false) {
+            throw new NeuralizerException("Error trying to load data with $sql");
         }
 
         return $sql;
@@ -479,7 +483,11 @@ class DB extends AbstractAnonymizer
                 $this->conn->query("TRUNCATE TABLE {$this->entity}");
             }
 
-            $this->conn->query($sql);
+            $query = $this->conn->query($sql);
+        }
+
+        if ($query === false) {
+            throw new NeuralizerException("Error trying to load data with $sql");
         }
 
         return $sql;
