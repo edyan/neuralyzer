@@ -70,17 +70,23 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     public function createPrimary()
     {
         $sm = $this->getDoctrine()->getSchemaManager();
+
+        // Specific case of SQL Server
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
+            $this->getDoctrine()->query("ALTER TABLE {$this->tableName} DROP COLUMN id");
+            $this->getDoctrine()->query(
+                "ALTER TABLE {$this->tableName} ADD id INT IDENTITY CONSTRAINT id_pk PRIMARY KEY CLUSTERED"
+            );
+            return;
+        }
+
         $fromSchema = $sm->createSchema();
         $toSchema = clone $fromSchema;
         $table = $toSchema->getTable($this->tableName);
         $table->setPrimaryKey(['id']);
-        if (getenv('DB_DRIVER') !== 'pdo_sqlsrv') {
-            $table->changeColumn('id', ['autoincrement' => true]);
-        }
-
+        $table->changeColumn('id', ['autoincrement' => true]);
         $this->doctrineMigrate($fromSchema, $toSchema);
     }
-
 
     public function dropTable()
     {
@@ -90,7 +96,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         $toSchema = clone $fromSchema;
 
         // Remove Sequences else I'll be blocked by postgres
-        if (getenv('DB_DRIVER') === 'pdo_pgsql') {
+        if (strpos(getenv('DB_DRIVER'), 'pgsql')) {
             $sequences = $sm->listSequences();
             foreach ($sequences as $sequence) {
                 $toSchema->dropSequence($sequence->getName());
@@ -164,7 +170,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
 
         foreach ($queries as $query) {
-            $this->getDoctrine()->executeQuery($query);
+            $this->getDoctrine()->query($query);
         }
     }
 
@@ -177,7 +183,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
 
         foreach ($queries as $query) {
-            $this->getDoctrine()->executeQuery($query);
+            $this->getDoctrine()->query($query);
         }
     }
 }

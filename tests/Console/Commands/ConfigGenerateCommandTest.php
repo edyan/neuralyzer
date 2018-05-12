@@ -34,7 +34,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     {
         $except = \Doctrine\DBAL\Exception\ConnectionException::class;
         $exceptMsg = '|An exception occurred in driver: SQLSTATE.*|';
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $except = \Doctrine\DBAL\Driver\PDOException::class;
             $exceptMsg = "|.*Login failed for user 'sa'.*|";
         }

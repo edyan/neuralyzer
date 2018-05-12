@@ -33,16 +33,16 @@ class CSVWriter extends \SplFileObject
     public function write(array $fields)
     {
         $options = $this->getCsvControl();
+        $delimiter = $options[0];
         $enclosure = $options[1];
         if (!empty($enclosure)) {
-            return $this->fputcsv($fields);
+            return $this->fputcsv($fields, $delimiter, $enclosure);
         }
-        $delimiter = $options[0];
 
         $fields = array_map(function ($field) use ($delimiter, $enclosure) {
-            return str_replace([$delimiter, PHP_EOL], ['', ''], $field);
+            return str_replace([$delimiter, PHP_EOL, chr(10)], ['', '', ''], $field);
         }, $fields);
 
-        return $this->fwrite(implode($delimiter, $fields) . PHP_EOL);
+        return $this->fwrite(implode($delimiter, $fields) . chr(10));
     }
 }

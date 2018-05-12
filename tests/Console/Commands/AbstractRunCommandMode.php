@@ -189,14 +189,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     }
 
 
-    public function testExecuteWithLimitInsert()
+    public function executeWithLimitInsert($config)
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->markTestSkipped(
-                "Can't manage autoincrement field with SQLServer"
-            );
-        }
-
         $this->createPrimary();
         $application = new Application();
         $application->add(new Command());
@@ -211,12 +205,13 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/../../_files/config-insert.right.yaml',
+            '--config' => __DIR__ . '/../../_files/' . $config,
             '--limit' => 10,
             '--mode' => $this->mode
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|10\/10 \[============================\] 100%|', $commandTester->getDisplay());
+        $this->assertNotRegExp('|Error|', $commandTester->getDisplay());
 
         // check we have the right number of lines
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();

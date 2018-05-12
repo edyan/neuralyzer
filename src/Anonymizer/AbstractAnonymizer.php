@@ -217,6 +217,7 @@ abstract class AbstractAnonymizer
         $this->checkEntityIsInConfig();
 
         $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
+        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
 
         $colsInConfig = $this->configEntites[$this->entity]['cols'];
         $row = [];
@@ -237,7 +238,7 @@ abstract class AbstractAnonymizer
             $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...
             if (!empty($colLength) && strlen($row[$colName]) > $colLength) {
-                $row[$colName] = substr($row[$colName], 0, $colLength);
+                $row[$colName] = substr($row[$colName], 0, ($colLength - 1));
             }
         }
 

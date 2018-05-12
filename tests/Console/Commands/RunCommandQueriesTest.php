@@ -12,4 +12,10 @@ class RunCommandQueriesTest extends AbstractRunCommandMode
         'pdo_pgsql' => '|.*UPDATE guestbook SET.*|',
         'pdo_sqlsrv' => '|.*UPDATE guestbook SET.*|',
     ];
+
+
+    public function testExecuteWithLimitInsert()
+    {
+        $this->executeWithLimitInsert('config-insert.right.yaml');
+    }
 }

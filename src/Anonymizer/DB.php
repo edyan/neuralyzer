@@ -37,6 +37,14 @@ class DB extends AbstractAnonymizer
     private $conn;
 
     /**
+     * Various Options for drivers
+     * @var array
+     */
+    private $driverOptions = [
+        'pdo_mysql' => [1001 => true], // 1001 = \PDO::MYSQL_ATTR_LOCAL_INFILE
+    ];
+
+    /**
      * Various generic utils
      * @var DBUtils
      */
@@ -64,15 +72,7 @@ class DB extends AbstractAnonymizer
      * File resource for the csv (batch mode)
      * @var resource
      */
-    private $csvFile;
-
-    /**
-     * When we run a batch, with a replace (LOAD DATA REPLACE for MySQL)
-     * That's the field we keep the original data from
-     * @var array
-     */
-    private $keepFields = [];
-
+    private $csv;
 
     /**
      * Define available update modes
@@ -99,6 +99,11 @@ class DB extends AbstractAnonymizer
      */
     public function __construct(array $params)
     {
+        // Set specific options
+        $params['driverOptions'] = array_key_exists($params['driver'], $this->driverOptions)
+            ? $this->driverOptions[$params['driver']]
+            : [];
+
         $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
         $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
 
@@ -129,8 +134,12 @@ class DB extends AbstractAnonymizer
         }
 
         if ($mode === 'batch') {
-            $this->csvFile = new CSVWriter();
-            $this->csvFile->setCsvControl('|', chr(0)); // empty enclosure
+            $driver = $this->conn->getDriver()->getName();
+            $enclosure = (strpos($driver, 'pgsql') || strpos($driver, 'sqlsrv'))
+                ? chr(0)
+                : '"';
+            $this->csv = new CSVWriter();
+            $this->csv->setCsvControl('|', $enclosure);
         }
 
         $this->mode = $mode;
@@ -149,10 +158,7 @@ class DB extends AbstractAnonymizer
      */
     public function processEntity(string $entity, callable $callback = null): array
     {
-        $schema = $this->conn->getSchemaManager();
-        if ($schema->tablesExist($entity) === false) {
-            throw new NeuralizerException("Table $entity does not exist");
-        }
+        $this->dbUtils->assertTableExists($entity);
 
         $this->priKey = $this->dbUtils->getPrimaryKey($entity);
         $this->entityCols = $this->dbUtils->getTableCols($entity);
@@ -160,37 +166,34 @@ class DB extends AbstractAnonymizer
 
         $actionsOnThatEntity = $this->whatToDoWithEntity();
         $this->queries = [];
-        if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
-            $where = $this->getWhereConditionInConfig();
-            $query = $this->runDelete($where);
-            ($this->returnRes === true ? array_push($this->queries, $query) : '');
-        }
 
-        if ($actionsOnThatEntity & self::UPDATE_TABLE) {
-            $this->updateData($callback);
-        }
+        // Wrap everything in a transaction
+        try {
+            $this->conn->beginTransaction();
 
-        if ($actionsOnThatEntity & self::INSERT_TABLE) {
-            $this->insertData($callback);
+            if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
+                $where = $this->getWhereConditionInConfig();
+                $query = $this->runDelete($where);
+                ($this->returnRes === true ? array_push($this->queries, $query) : '');
+            }
+
+            if ($actionsOnThatEntity & self::UPDATE_TABLE) {
+                $this->updateData($callback);
+            }
+
+            if ($actionsOnThatEntity & self::INSERT_TABLE) {
+                $this->insertData($callback);
+            }
+
+            $this->conn->commit();
+        } catch (\Exception $e) {
+            $this->conn->rollback();
+            $this->conn->close(); // To avoid locks
+
+            throw $e;
         }
 
         return $this->queries;
-    }
-
-
-    /**
-     * To debug, build the final SQL (can be approximative)
-     * @param  QueryBuilder $queryBuilder
-     * @return string
-     */
-    private function getRawSQL(QueryBuilder $queryBuilder)
-    {
-        $sql = $queryBuilder->getSQL();
-        foreach ($queryBuilder->getParameters() as $parameter => $value) {
-            $sql = str_replace($parameter, "'$value'", $sql);
-        }
-
-        return $sql;
     }
 
 
@@ -214,64 +217,9 @@ class DB extends AbstractAnonymizer
             return $sql;
         }
 
-        try {
-            $queryBuilder->execute();
-        } catch (\Exception $e) {
-            throw new NeuralizerException('Query DELETE Error (' . $e->getMessage() . ')');
-        }
+        $queryBuilder->execute();
 
         return $sql;
-    }
-
-
-    /**
-     * Build the condition by casting the value if needed
-     *
-     * @param  string $field
-     * @return string
-     */
-    private function getCondition(string $field): string
-    {
-        $type = strtolower($this->entityCols[$field]['type']);
-
-        $integerCast = $this->getIntegerCast($field);
-
-        $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
-
-        $typeToCast = [
-            'date'     => 'DATE',
-            'datetime' => 'DATE',
-            'time'     => 'TIME',
-            'smallint' => $integerCast,
-            'integer'  => $integerCast,
-            'bigint'   => $integerCast,
-            'float'    => 'DECIMAL',
-            'decimal'  => 'DECIMAL',
-        ];
-
-        // No cast required
-        if (!array_key_exists($type, $typeToCast)) {
-            return $condition;
-        }
-
-        return "CAST($condition AS {$typeToCast[$type]})";
-    }
-
-
-    /**
-     * Get the right CAST for an INTEGER
-     *
-     * @param  string $field
-     * @return string
-     */
-    private function getIntegerCast(string $field): string
-    {
-        $driver = $this->getConn()->getDriver();
-        if ($driver->getName() === 'pdo_mysql') {
-            return $this->entityCols[$field]['unsigned'] === true ? 'UNSIGNED' : 'SIGNED';
-        }
-
-        return 'INTEGER';
     }
 
 
@@ -286,11 +234,6 @@ class DB extends AbstractAnonymizer
         if ($this->limit === 0) {
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
-
-        $this->keepFields = array_diff(
-            array_keys($this->entityCols),
-            array_keys($this->configEntites[$this->entity]['cols'])
-        );
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
@@ -319,7 +262,6 @@ class DB extends AbstractAnonymizer
             // Make sure the loop ends if we have nothing to process
             $num = $startAt += $this->batchSize;
         }
-
         // Run a final method if defined
         if ($this->mode === 'batch') {
             $this->loadDataInBatch('update');
@@ -340,14 +282,17 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
             $value = empty($row[$field]) ? '' : $value;
-            $queryBuilder = $queryBuilder->set($field, $this->getCondition($field));
+            $queryBuilder = $queryBuilder->set(
+                $field,
+                $this->dbUtils->getCondition($field, $this->entityCols[$field])
+            );
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
         $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $row[$this->priKey]);
 
         $this->returnRes === true ?
-            array_push($this->queries, $this->getRawSQL($queryBuilder)) :
+            array_push($this->queries, $this->dbUtils->getRawSQL($queryBuilder)) :
             '';
 
         if ($this->pretend === false) {
@@ -363,23 +308,18 @@ class DB extends AbstractAnonymizer
      */
     private function doBatchUpdate(array $row): void
     {
-        $data = $this->generateFakeData();
-        // Values to change, take values from the SELECT
-        // Change it for the one generated by faker
-        // only if it's not empty
-        foreach ($row as $field => $value) {
-            if (empty($value)) {
-                $data[$field] = '';
+        $fakeData = $this->generateFakeData();
+        $data = [];
+        // Go trough all fields, and take a value by priority
+        foreach (array_keys($this->entityCols) as $field) {
+            // First take the fake data
+            $data[$field] = $row[$field];
+            if (!empty($row[$field]) && array_key_exists($field, $fakeData)) {
+                $data[$field] = $fakeData[$field];
             }
         }
 
-        // Now handle extra fields, to keep
-        // That's the primary key + other fields not anonymized
-        foreach ($this->keepFields as $field) {
-            $data[$field] = $row[$field];
-        }
-
-        $this->csvFile->write($data);
+        $this->csv->write($data);
     }
 
 
@@ -391,7 +331,7 @@ class DB extends AbstractAnonymizer
     {
         for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
             // Call the right method according to the mode
-            $this->{$this->insertMode[$this->mode]}();
+            $this->{$this->insertMode[$this->mode]}($rowNum);
 
             if (!is_null($callback)) {
                 $callback($rowNum);
@@ -421,7 +361,7 @@ class DB extends AbstractAnonymizer
         }
 
         $this->returnRes === true ?
-            array_push($this->queries, $this->getRawSQL($queryBuilder)) :
+            array_push($this->queries, $this->dbUtils->getRawSQL($queryBuilder)) :
             '';
 
         if ($this->pretend === false) {
@@ -437,22 +377,24 @@ class DB extends AbstractAnonymizer
     private function doBatchInsert(): void
     {
         $data = $this->generateFakeData();
-        $this->csvFile->write($data);
+        $this->csv->write($data);
     }
 
 
     /**
      * If a file has been created for the batch mode, destroy it
      * @SuppressWarnings("unused") - Used dynamically
+     * @param string $mode "update" or "insert"
      */
     private function loadDataInBatch(string $mode): void
     {
-        $dbType = substr($this->getConn()->getDriver()->getName(), 4);
+        $dbType = substr($this->conn->getDriver()->getName(), 4);
         $method = 'loadDataFor' . ucfirst($dbType);
 
         $fields = array_keys($this->configEntites[$this->entity]['cols']);
+        // Replace by all fields if update as we have to load everything
         if ($mode === 'update') {
-            $fields = array_merge($fields, $this->keepFields);
+            $fields = array_keys($this->entityCols);
         }
 
         $sql = $this->{$method}($fields, $mode);
@@ -460,35 +402,27 @@ class DB extends AbstractAnonymizer
         $this->returnRes === true ? array_push($this->queries, $sql) : '';
 
         // Destroy the file
-        unlink($this->csvFile->getRealPath());
+        unlink($this->csv->getRealPath());
     }
 
 
     /**
      * Load Data for MySQL (Specific Query)
      * @SuppressWarnings("unused") - Used dynamically
-     * @param  array  $fields
+     * @param  array   $fields
+     * @param  string  $mode  Not in used here
      * @return string
      */
     private function loadDataForMysql(array $fields, string $mode): string
     {
-        $sql ="LOAD DATA LOCAL INFILE '" . $this->csvFile->getRealPath() . "'
+        $sql ="LOAD DATA LOCAL INFILE '" . $this->csv->getRealPath() . "'
      REPLACE INTO TABLE {$this->entity}
-     FIELDS TERMINATED BY '|' ENCLOSED BY ''
+     FIELDS TERMINATED BY '|' ENCLOSED BY '\"'
      (`" . implode("`, `", $fields) . "`)";
 
         // Run the query if asked
-        $conn = $this->getConn();
         if ($this->pretend === false) {
-            $conn->beginTransaction();
-            try {
-                $conn->query($sql);
-            } catch (\Exception $e) {
-                $conn->rollBack();
-                throw $e;
-            }
-
-            $conn->commit();
+            $this->conn->query($sql);
         }
 
         return $sql;
@@ -498,34 +432,57 @@ class DB extends AbstractAnonymizer
     /**
      * Load Data for Postgres (Specific Query)
      * @SuppressWarnings("unused") - Used dynamically
-     * @param  array  $fields
+     * @param  array   $fields
+     * @param  string  $mode   "update" or "insert" to know if we truncate or not
      * @return string
      */
     private function loadDataForPgsql(array $fields, string $mode): string
     {
-        $conn = $this->getConn();
-        $pdo = $conn->getWrappedConnection();
         $fields = implode(', ', $fields);
 
-        $conn->beginTransaction();
-        try {
+        $filename = $this->csv->getRealPath();
+        if ($this->pretend === false) {
             if ($mode === 'update') {
-                $conn->query("TRUNCATE {$this->entity}");
+                $this->conn->query("TRUNCATE {$this->entity}");
             }
-
-            $filename = $this->csvFile->getRealPath();
-            if ($this->pretend === false) {
-                $pdo->pgsqlCopyFromFile($this->entity, $filename, '|', '\\\\N', $fields);
-            }
-        } catch (\Exception $e) {
-            $conn->rollBack();
-            throw $e;
+            $pdo = $this->conn->getWrappedConnection();
+            $pdo->pgsqlCopyFromFile($this->entity, $filename, '|', '\\\\N', $fields);
         }
-
-        $conn->commit();
 
         $sql = "COPY {$this->entity} ($fields) FROM '{$filename}' ";
         $sql.= '... Managed by pgsqlCopyFromFile';
+
+        return $sql;
+    }
+
+
+    /**
+     * Load Data for SQLServer (Specific Query)
+     * @SuppressWarnings("unused") - Used dynamically
+     * @param  array   $fields
+     * @param  string  $mode   "update" or "insert" to know if we truncate or not
+     * @return string
+     */
+    private function loadDataForSqlsrv(array $fields, string $mode): string
+    {
+        if (substr(gethostbyname($this->conn->getHost()), 0, 3) !== '127') {
+            throw new NeuralizerException('SQL Server must be on the same host than PHP');
+        }
+
+        $fields = implode(',', $fields);
+        $sql ="BULK INSERT {$this->entity}
+     FROM '" . $this->csv->getRealPath() . "' WITH (
+         FIELDTERMINATOR = '|', DATAFILETYPE = 'widechar', ROWTERMINATOR = '" . PHP_EOL . "'
+     )";
+
+        $filename = $this->csv->getRealPath();
+        if ($this->pretend === false) {
+            if ($mode === 'update') {
+                $this->conn->query("TRUNCATE TABLE {$this->entity}");
+            }
+
+            $this->conn->query($sql);
+        }
 
         return $sql;
     }

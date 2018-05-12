@@ -1,0 +1,17 @@
+guesser_version: '3.0'
+language: en_US
+entities:
+    guestbook:
+        action: insert
+        cols:
+            content: { method: sentence, params: [20] }
+            username: { method: sentence, params: ['32'] }
+            created: { method: date, params: [Y-m-d] }
+            a_bigint: { method: randomNumber, params: [9] }
+            a_datetime: { method: date, params: [Y-m-d H:i:s] }
+            a_time: { method: time, params: ['H:i:s'] }
+            a_decimal: { method: randomFloat, params: [2, 0, 999] }
+            an_integer: { method: randomNumber, params: [9] }
+            a_smallint: { method: randomNumber, params: [4] }
+            a_float: { method: randomFloat, params: [2, 0, 999] }
+            id: { method: nullValue }

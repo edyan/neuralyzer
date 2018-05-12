@@ -18,6 +18,7 @@
 namespace Edyan\Neuralyzer\Utils;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
 
 /**
@@ -91,5 +92,82 @@ class DBUtils
         }
 
         return $cols;
+    }
+
+
+    /**
+     * To debug, build the final SQL (can be approximative)
+     * @param  QueryBuilder $queryBuilder
+     * @return string
+     */
+    public function getRawSQL(QueryBuilder $queryBuilder)
+    {
+        $sql = $queryBuilder->getSQL();
+        foreach ($queryBuilder->getParameters() as $parameter => $value) {
+            $sql = str_replace($parameter, "'$value'", $sql);
+        }
+
+        return $sql;
+    }
+
+
+    public function assertTableExists(string $table)
+    {
+        $schema = $this->conn->getSchemaManager();
+        if ($schema->tablesExist($table) === false) {
+            throw new NeuralizerException("Table $table does not exist");
+        }
+    }
+
+
+    /**
+     * Build the condition by casting the value if needed
+     *
+     * @param  string $field
+     * @return string
+     */
+    public function getCondition(string $field, array $fieldConf): string
+    {
+        $type = strtolower($fieldConf['type']);
+        $unsigned = $fieldConf['unsigned'];
+
+        $integerCast = $this->getIntegerCast($unsigned);
+
+        $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
+
+        $typeToCast = [
+            'date'     => 'DATE',
+            'datetime' => 'DATE',
+            'time'     => 'TIME',
+            'smallint' => $integerCast,
+            'integer'  => $integerCast,
+            'bigint'   => $integerCast,
+            'float'    => 'DECIMAL',
+            'decimal'  => 'DECIMAL',
+        ];
+
+        // No cast required
+        if (!array_key_exists($type, $typeToCast)) {
+            return $condition;
+        }
+
+        return "CAST($condition AS {$typeToCast[$type]})";
+    }
+
+
+    /**
+     * Get the right CAST for an INTEGER
+     *
+     * @param  string $field
+     * @return string
+     */
+    private function getIntegerCast(bool $unsigned): string
+    {
+        $driver = $this->conn->getDriver();
+        if (strpos($driver->getName(), 'mysql')) {
+            return $unsigned === true ? 'UNSIGNED' : 'SIGNED';
+        }
+
+        return 'INTEGER';
     }
 }

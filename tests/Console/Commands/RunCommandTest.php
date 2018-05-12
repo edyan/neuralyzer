@@ -59,10 +59,10 @@ class RunCommandTest extends AbstractConfigurationDB
 
     public function testExecuteWrongPass()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectException("\Doctrine\DBAL\Driver\PDOException");
             $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
-        } else if (getenv('DB_DRIVER') === 'pdo_pgsql') {
+        } else if (strpos(getenv('DB_DRIVER'), 'pgsql')) {
             $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
             $this->expectExceptionMessageRegExp("|password authentication failed for user|");
         } else {
@@ -117,7 +117,7 @@ class RunCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteWrongTablePasswordOnCLI()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectException("\Doctrine\DBAL\DBALException");
         } else {
             $this->expectException("\Doctrine\DBAL\Exception\TableNotFoundException");

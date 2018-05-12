@@ -76,12 +76,15 @@ class DBTest extends AbstractConfigurationDB
         $db->processEntity($this->tableName);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
-     * @expectedExceptionMessageRegExp |.*SQLSTATE.*|
-     */
+
     public function testWithPrimaryConfWrongWhere()
     {
+        $this->expectException("Doctrine\DBAL\Exception\InvalidFieldNameException");
+        $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE youzer = 'joe'.*|");
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
+            $this->expectException("\Doctrine\DBAL\DBALException");
+        }
+
         $this->createPrimary();
 
         $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__ . '/..']);
@@ -97,7 +100,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWithPrimaryConfRightTableUpdatePretendPlusResult()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->markTestSkipped(
                 "Can't compare dataset with SQLServer as the fields are in a random order"
             );
@@ -125,7 +128,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableDeletePretendPlusResult()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->markTestSkipped(
                 "Can't compare dataset with SQLServer as the fields are in a random order"
             );
@@ -166,6 +169,60 @@ class DBTest extends AbstractConfigurationDB
         });
 
         $this->assertEquals($this->i, 2);
+    }
+
+    public function testWithPrimaryConfRightTableLoadDataCrash()
+    {
+        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')
+          && substr(gethostbyname(getenv('DB_HOST')), 0, 3) !== '127') {
+            $this->markTestSkipped(
+                "Can't run a batch query if the file is remote with SQL Server"
+            );
+        }
+
+        $this->createPrimary();
+
+        $reader = new Reader('_files/config.rightAndDelete.yaml', [__DIR__ . '/..']);
+
+        // Get Old Data
+        $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+        $oldData = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+        $this->assertInternalType('array', $oldData);
+        $this->assertCount(2, $oldData);
+
+        $db = new Db($this->getDbParams());
+        $db->setConfiguration($reader);
+        $db->setPretend(false);
+        $db->setLimit(2);
+        $db->setReturnRes(true);
+        $db->setMode('batch');
+        // Destroy the file in the middle to make sure the transaction
+        // hasn't been committed
+        $exception = false;
+        try {
+            $db->processEntity($this->tableName, function ($line) {
+                $this->assertGreaterThan($this->i, $line);
+                $this->i = $line;
+
+                if ($line === 2) {
+                    $finder = new \Symfony\Component\Finder\Finder;
+                    $files = $finder
+                        ->name('neuralyzer*')->in(sys_get_temp_dir())
+                        ->date('since 1 hour ago');
+                    foreach ($files as $file) {
+                        file_put_contents($file->getRealPath(), '1;2;3');
+                    }
+                }
+            });
+        } catch (\Exception $e) {
+            $exception = true;
+            // everything is fine, make sure data hasn't changed
+            $queryBuilder = $this->getDoctrine()->createQueryBuilder();
+            $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
+            $this->assertSame($oldData, $data);
+        }
+
+        $this->assertTrue($exception);
     }
 
 
@@ -253,7 +310,6 @@ class DBTest extends AbstractConfigurationDB
                 ->setValue('an_integer', '?')->setParameter(7, 3)
                 ->setValue('a_smallint', '?')->setParameter(8, 3)
                 ->setValue('a_float', '?')->setParameter(9, 3.56)
-                ->setValue('id', '?')->setParameter(10, $i)
                 ->execute();
         }
 
@@ -360,12 +416,6 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsert()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->markTestSkipped(
-                "Can't manage autoincrement field with SQLServer"
-            );
-        }
-
         $this->createPrimary();
         $this->truncateTable();
 
@@ -403,12 +453,6 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertDelete()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->markTestSkipped(
-                "Can't manage autoincrement field with SQLServer"
-            );
-        }
-
         $this->createPrimary();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
@@ -438,12 +482,6 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertWithCallback()
     {
-        if (getenv('DB_DRIVER') === 'pdo_sqlsrv') {
-            $this->markTestSkipped(
-                "Can't manage autoincrement field with SQLServer"
-            );
-        }
-
         $this->createPrimary();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
