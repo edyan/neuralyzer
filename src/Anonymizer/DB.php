@@ -70,7 +70,7 @@ class DB extends AbstractAnonymizer
 
     /**
      * File resource for the csv (batch mode)
-     * @var resource
+     * @var CSVWriter
      */
     private $csv;
 
@@ -469,13 +469,11 @@ class DB extends AbstractAnonymizer
             throw new NeuralizerException('SQL Server must be on the same host than PHP');
         }
 
-        $fields = implode(',', $fields);
         $sql ="BULK INSERT {$this->entity}
      FROM '" . $this->csv->getRealPath() . "' WITH (
          FIELDTERMINATOR = '|', DATAFILETYPE = 'widechar', ROWTERMINATOR = '" . PHP_EOL . "'
      )";
 
-        $filename = $this->csv->getRealPath();
         if ($this->pretend === false) {
             if ($mode === 'update') {
                 $this->conn->query("TRUNCATE TABLE {$this->entity}");
