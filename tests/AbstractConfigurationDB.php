@@ -175,6 +175,16 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     }
 
 
+    protected function tearDown()
+    {
+        $finder = new \Symfony\Component\Finder\Finder;
+        $files = $finder
+            ->name('neuralyzer*')->in(sys_get_temp_dir());
+        foreach ($files as $file) {
+            unlink($file->getRealPath());
+        }
+    }
+
     private function doctrineMigrate(Schema $fromSchema, Schema $toSchema)
     {
         $queries = $fromSchema->getMigrateToSql($toSchema, $this->getDoctrine()->getDatabasePlatform());

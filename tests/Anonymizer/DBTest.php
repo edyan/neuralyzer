@@ -200,7 +200,9 @@ class DBTest extends AbstractConfigurationDB
         // hasn't been committed
         $exception = false;
         try {
-            $db->processEntity($this->tableName, function ($line) {
+            $lastFile = '';
+
+            $db->processEntity($this->tableName, function ($line) use ($lastFile) {
                 $this->assertGreaterThan($this->i, $line);
                 $this->i = $line;
 
@@ -211,6 +213,7 @@ class DBTest extends AbstractConfigurationDB
                         ->date('since 1 hour ago');
                     foreach ($files as $file) {
                         file_put_contents($file->getRealPath(), '1;2;3');
+                        $lastFile = $file->getRealPath();
                     }
                 }
             });
@@ -222,7 +225,7 @@ class DBTest extends AbstractConfigurationDB
             $this->assertSame($oldData, $data);
         }
 
-        $this->assertTrue($exception);
+        $this->assertTrue($exception, "File {$lastFile} hasn't crashed the test");
     }
 
 
