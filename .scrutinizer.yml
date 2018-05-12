@@ -5,9 +5,10 @@ build:
     project_setup:
         before:
             - mysql -e "CREATE DATABASE test_db"
-            
+
 filter:
     excluded_paths:
+        - RoboFile*
         - tests/*
 checks:
     php:
