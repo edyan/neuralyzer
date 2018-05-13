@@ -21,6 +21,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\DriverManager as DbalDriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Edyan\Neuralyzer\Helper\DB as DBHelper;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
 use Edyan\Neuralyzer\Utils\CSVWriter;
 use Edyan\Neuralyzer\Utils\DBUtils;
@@ -37,12 +38,10 @@ class DB extends AbstractAnonymizer
     private $conn;
 
     /**
-     * Various Options for drivers
-     * @var array
+     * A helper for the current driver
+     * @var DBHelper\AbstractDBHelper
      */
-    private $driverOptions = [
-        'pdo_mysql' => [1001 => true], // 1001 = \PDO::MYSQL_ATTR_LOCAL_INFILE
-    ];
+    private $dbHelper;
 
     /**
      * Various generic utils
@@ -99,15 +98,15 @@ class DB extends AbstractAnonymizer
      */
     public function __construct(array $params)
     {
-        // Set specific options
-        $params['driverOptions'] = array_key_exists($params['driver'], $this->driverOptions)
-            ? $this->driverOptions[$params['driver']]
-            : [];
+        $dbHelperClass = DBHelper\DriverGuesser::getDBHelper($params['driver']);
 
+        // Set specific options
+        $params['driverOptions'] = $dbHelperClass::getDriverOptions();
         $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
         $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
 
         $this->dbUtils = new DBUtils($this->conn);
+        $this->dbHelper = new $dbHelperClass($this->conn);
     }
 
 
@@ -134,12 +133,8 @@ class DB extends AbstractAnonymizer
         }
 
         if ($mode === 'batch') {
-            $driver = $this->conn->getDriver()->getName();
-            $enclosure = (strpos($driver, 'pgsql') || strpos($driver, 'sqlsrv'))
-                ? chr(0)
-                : '"';
             $this->csv = new CSVWriter();
-            $this->csv->setCsvControl('|', $enclosure);
+            $this->csv->setCsvControl('|', $this->dbHelper->getEnclosureForCSV());
         }
 
         $this->mode = $mode;
@@ -282,10 +277,8 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
             $value = empty($row[$field]) ? '' : $value;
-            $queryBuilder = $queryBuilder->set(
-                $field,
-                $this->dbUtils->getCondition($field, $this->entityCols[$field])
-            );
+            $condition = $this->dbUtils->getCondition($field, $this->entityCols[$field]);
+            $queryBuilder = $queryBuilder->set($field, $condition);
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);
         }
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
@@ -388,99 +381,20 @@ class DB extends AbstractAnonymizer
      */
     private function loadDataInBatch(string $mode): void
     {
-        $dbType = substr($this->conn->getDriver()->getName(), 4);
-        $method = 'loadDataFor' . ucfirst($dbType);
-
         $fields = array_keys($this->configEntites[$this->entity]['cols']);
         // Replace by all fields if update as we have to load everything
         if ($mode === 'update') {
             $fields = array_keys($this->entityCols);
         }
 
-        $sql = $this->{$method}($fields, $mode);
+        // Load the data from the helper, only if pretend is false
+        $filename = $this->csv->getRealPath();
+        $this->dbHelper->setPretend($this->pretend);
+        $sql = $this->dbHelper->loadData($this->entity, $filename, $fields, $mode);
 
         $this->returnRes === true ? array_push($this->queries, $sql) : '';
 
         // Destroy the file
         unlink($this->csv->getRealPath());
-    }
-
-
-    /**
-     * Load Data for MySQL (Specific Query)
-     * @SuppressWarnings("unused") - Used dynamically
-     * @param  array   $fields
-     * @param  string  $mode  Not in used here
-     * @return string
-     */
-    private function loadDataForMysql(array $fields, string $mode): string
-    {
-        $sql ="LOAD DATA LOCAL INFILE '" . $this->csv->getRealPath() . "'
-     REPLACE INTO TABLE {$this->entity}
-     FIELDS TERMINATED BY '|' ENCLOSED BY '\"' LINES TERMINATED BY '" . PHP_EOL . "'
-     (`" . implode("`, `", $fields) . "`)";
-        // Run the query if asked
-        if ($this->pretend === false) {
-            $this->conn->query($sql);
-        }
-
-        return $sql;
-    }
-
-
-    /**
-     * Load Data for Postgres (Specific Query)
-     * @SuppressWarnings("unused") - Used dynamically
-     * @param  array   $fields
-     * @param  string  $mode   "update" or "insert" to know if we truncate or not
-     * @return string
-     */
-    private function loadDataForPgsql(array $fields, string $mode): string
-    {
-        $fields = implode(', ', $fields);
-
-        $filename = $this->csv->getRealPath();
-        if ($this->pretend === false) {
-            if ($mode === 'update') {
-                $this->conn->query("TRUNCATE {$this->entity}");
-            }
-            $pdo = $this->conn->getWrappedConnection();
-            $pdo->pgsqlCopyFromFile($this->entity, $filename, '|', '\\\\N', $fields);
-        }
-
-        $sql = "COPY {$this->entity} ($fields) FROM '{$filename}' ";
-        $sql.= '... Managed by pgsqlCopyFromFile';
-
-        return $sql;
-    }
-
-
-    /**
-     * Load Data for SQLServer (Specific Query)
-     * @SuppressWarnings("unused") - Used dynamically
-     * @param  array   $fields
-     * @param  string  $mode   "update" or "insert" to know if we truncate or not
-     * @return string
-     */
-    private function loadDataForSqlsrv(array $fields, string $mode): string
-    {
-        if (substr(gethostbyname($this->conn->getHost()), 0, 3) !== '127') {
-            throw new NeuralizerException('SQL Server must be on the same host than PHP');
-        }
-
-        $sql ="BULK INSERT {$this->entity}
-     FROM '" . $this->csv->getRealPath() . "' WITH (
-         FIELDTERMINATOR = '|', DATAFILETYPE = 'widechar', ROWTERMINATOR = '" . PHP_EOL . "'
-     )";
-
-        if ($this->pretend === false) {
-            if ($mode === 'update') {
-                $this->conn->query("TRUNCATE TABLE {$this->entity}");
-            }
-
-            $this->conn->query($sql);
-        }
-
-        return $sql;
     }
 }

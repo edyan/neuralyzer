@@ -89,8 +89,8 @@ class RunCommandTest extends AbstractConfigurationDB
     }
 
     /**
-    * @expectedException Doctrine\DBAL\DBALException
-    * @expectedExceptionMessageRegExp |The given 'driver' wrong_driver is unknown.*|
+    * @expectedException InvalidArgumentException
+    * @expectedExceptionMessageRegExp |wrong_driver unknown.*|
     */
     public function testExecuteWrongDriver()
     {
