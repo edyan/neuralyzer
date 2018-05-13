@@ -417,16 +417,11 @@ class DB extends AbstractAnonymizer
     {
         $sql ="LOAD DATA LOCAL INFILE '" . $this->csv->getRealPath() . "'
      REPLACE INTO TABLE {$this->entity}
-     FIELDS TERMINATED BY '|' ENCLOSED BY '\"'
+     FIELDS TERMINATED BY '|' ENCLOSED BY '\"' LINES TERMINATED BY '" . PHP_EOL . "'
      (`" . implode("`, `", $fields) . "`)";
-
         // Run the query if asked
         if ($this->pretend === false) {
-            $query = $this->conn->query($sql);
-        }
-
-        if ($query === false) {
-            throw new NeuralizerException("Error trying to load data with $sql");
+            $this->conn->query($sql);
         }
 
         return $sql;
@@ -483,11 +478,7 @@ class DB extends AbstractAnonymizer
                 $this->conn->query("TRUNCATE TABLE {$this->entity}");
             }
 
-            $query = $this->conn->query($sql);
-        }
-
-        if ($query === false) {
-            throw new NeuralizerException("Error trying to load data with $sql");
+            $this->conn->query($sql);
         }
 
         return $sql;

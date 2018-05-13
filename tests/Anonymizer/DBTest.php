@@ -210,7 +210,7 @@ class DBTest extends AbstractConfigurationDB
                         ->name('neuralyzer*')->in(sys_get_temp_dir())
                         ->date('since 1 hour ago');
                     foreach ($files as $file) {
-                        file_put_contents($file->getRealPath(), '1;2;3');
+                        unlink($file->getRealPath());
                     }
                 }
             });

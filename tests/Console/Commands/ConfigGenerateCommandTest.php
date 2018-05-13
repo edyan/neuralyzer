@@ -54,7 +54,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
-            '--password' => 'toto',
+            '--password' => time(),
         ]);
     }
 
