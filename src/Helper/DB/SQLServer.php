@@ -16,6 +16,8 @@
 
 namespace Edyan\Neuralyzer\Helper\DB;
 
+use Edyan\Neuralyzer\Exception\NeuralizerException;
+
 /**
  * Various methods related to SQLServer
  */

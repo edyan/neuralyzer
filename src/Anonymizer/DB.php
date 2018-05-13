@@ -94,7 +94,7 @@ class DB extends AbstractAnonymizer
     /**
      * Init connection
      *
-     * @param $params   Parameters to send to Doctrine DB
+     * @param array $params   Parameters to send to Doctrine DB
      */
     public function __construct(array $params)
     {
