@@ -52,6 +52,8 @@ abstract class AbstractDBHelper
     public function setPretend(bool $pretend)
     {
         $this->pretend = $pretend;
+
+        return $this;
     }
 
     /**

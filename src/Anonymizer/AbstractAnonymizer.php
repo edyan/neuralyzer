@@ -135,9 +135,9 @@ abstract class AbstractAnonymizer
     /**
      * Activate or deactivate the pretending mode (dry run)
      * @param  bool $pretend
-     * @return DB
+     * @return mixed
      */
-    public function setPretend(bool $pretend): DB
+    public function setPretend(bool $pretend): mixed
     {
         $this->pretend = $pretend;
 
@@ -149,9 +149,9 @@ abstract class AbstractAnonymizer
      * Return or not a result (like an SQL Query that has
      * been generated with fake data)
      * @param  bool $returnRes
-     * @return DB
+     * @return mixed
      */
-    public function setReturnRes(bool $returnRes): DB
+    public function setReturnRes(bool $returnRes): mixed
     {
         $this->returnRes = $returnRes;
 
