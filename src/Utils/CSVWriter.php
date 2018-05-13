@@ -39,7 +39,7 @@ class CSVWriter extends \SplFileObject
             return $this->fputcsv($fields, $delimiter, $enclosure);
         }
 
-        $fields = array_map(function ($field) use ($delimiter, $enclosure) {
+        $fields = array_map(function ($field) use ($delimiter) {
             return str_replace([$delimiter, PHP_EOL], ['', ''], $field);
         }, $fields);
 

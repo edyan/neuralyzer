@@ -119,9 +119,9 @@ abstract class AbstractAnonymizer
     /**
      * Limit of fake generated records for updates and creates
      * @param int $limit
-     * @return DB
+     * @return mixed
      */
-    public function setLimit(int $limit): DB
+    public function setLimit(int $limit)
     {
         $this->limit = $limit;
         if ($this->limit < $this->batchSize) {
