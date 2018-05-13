@@ -137,7 +137,7 @@ abstract class AbstractAnonymizer
      * @param  bool $pretend
      * @return mixed
      */
-    public function setPretend(bool $pretend): mixed
+    public function setPretend(bool $pretend)
     {
         $this->pretend = $pretend;
 
@@ -151,7 +151,7 @@ abstract class AbstractAnonymizer
      * @param  bool $returnRes
      * @return mixed
      */
-    public function setReturnRes(bool $returnRes): mixed
+    public function setReturnRes(bool $returnRes)
     {
         $this->returnRes = $returnRes;
 
