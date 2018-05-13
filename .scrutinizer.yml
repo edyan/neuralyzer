@@ -1,4 +1,9 @@
 build:
+    nodes:
+        analysis:
+            tests:
+                override:
+                    - php-scrutinizer-run    
     environment:
         php:
             version: 7.1
