@@ -43,7 +43,13 @@ class SQLServerTest extends AbstractConfigurationDB
      */
     public function testLoadDataOtherHost()
     {
-        $db = new SQLServer($this->getDoctrine());
+        $params = $this->getDbParams();
+        $params['host'] = '8.8.8.8';
+        $conn = \Doctrine\DBAL\DriverManager::getConnection(
+            $params,
+            new \Doctrine\DBAL\Configuration
+        );
+        $db = new SQLServer($conn);
         $db->setPretend(true);
         $sql = $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
     }
