@@ -51,6 +51,6 @@ class SQLServerTest extends AbstractConfigurationDB
         );
         $db = new SQLServer($conn);
         $db->setPretend(true);
-        $sql = $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
+        $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
     }
 }

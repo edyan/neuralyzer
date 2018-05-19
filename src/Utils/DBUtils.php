@@ -116,7 +116,7 @@ class DBUtils
      */
     public function assertTableExists(string $table): void
     {
-        if ($this->conn->getSchemaManager()->tablesExist($table) === false) {
+        if ($this->conn->getSchemaManager()->tablesExist([$table]) === false) {
             throw new NeuralizerException("Table $table does not exist");
         }
     }
