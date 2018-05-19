@@ -9,6 +9,6 @@ class BaseTest extends TestCase
 {
     public function testNullValue()
     {
-        $this->assertEmpty(BaseProvider::nullValue());
+        $this->assertEmpty(BaseProvider::emptyString());
     }
 }

@@ -110,11 +110,13 @@ class DBUtils
         return $sql;
     }
 
-
-    public function assertTableExists(string $table)
+    /**
+     * Make sure a table exists
+     * @param  string $table [description]
+     */
+    public function assertTableExists(string $table): void
     {
-        $schema = $this->conn->getSchemaManager();
-        if ($schema->tablesExist($table) === false) {
+        if ($this->conn->getSchemaManager()->tablesExist($table) === false) {
             throw new NeuralizerException("Table $table does not exist");
         }
     }
@@ -124,6 +126,7 @@ class DBUtils
      * Build the condition by casting the value if needed
      *
      * @param  string $field
+     * @param  array  $fieldConf   Various values about the field
      * @return string
      */
     public function getCondition(string $field, array $fieldConf): string
@@ -158,7 +161,7 @@ class DBUtils
     /**
      * Get the right CAST for an INTEGER
      *
-     * @param  string $field
+     * @param  bool   $unsigned
      * @return string
      */
     private function getIntegerCast(bool $unsigned): string

@@ -21,6 +21,11 @@ namespace Edyan\Neuralyzer\Helper\DB;
  */
 class DriverGuesser
 {
+    /**
+     * Find the right local driver from a php extension
+     * @param  string $driver
+     * @return mixed
+     */
     public static function getDBHelper(string $driver)
     {
         $drivers = [

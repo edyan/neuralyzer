@@ -25,12 +25,20 @@ use Edyan\Neuralyzer\Exception\NeuralizerException;
  */
 class CSVWriter extends \SplFileObject
 {
+    /**
+     * Create a temporary file
+     */
     public function __construct()
     {
         parent::__construct(tempnam(sys_get_temp_dir(), 'neuralyzer'), 'w');
     }
 
-    public function write(array $fields)
+    /**
+     * Write a CSV line either by PHP standard or manually when no $enclosure
+     * @param  array  $fields
+     * @return int
+     */
+    public function write(array $fields): int
     {
         $options = $this->getCsvControl();
         $delimiter = $options[0];
