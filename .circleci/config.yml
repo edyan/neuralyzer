@@ -53,6 +53,7 @@ jobs:
             DB_DRIVER: pdo_sqlsrv
             DB_PASSWORD: rootRoot44root
             DB_USER: sa
+            DB_HOST: sqlserver
             # DB_DRIVER: pdo_mysql
             # DB_PASSWORD: fjkekI8IeufjI8Ue56
             # DB_USER: root
