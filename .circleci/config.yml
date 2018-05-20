@@ -5,7 +5,6 @@
 version: 2
 jobs:
   build:
-    machine: true
     docker:
       - image: edyan/php:7.2
       # - image: mysql:5
@@ -21,6 +20,8 @@ jobs:
     working_directory: ~/repo
 
     steps:
+      - setup_remote_docker
+
       - checkout
 
       # Download and cache dependencies
