@@ -9,6 +9,9 @@ class MySQLTest extends AbstractConfigurationDB
 {
     public function testDriverOptions()
     {
+        if (defined('\PDO::MYSQL_ATTR_LOCAL_INFILE') === false) {
+            $this->markTestSkipped('No MySQL driver installed');
+        }
         $options = MySQL::getDriverOptions();
         $this->assertInternalType('array', $options);
         $this->assertNotEmpty($options);

@@ -6,7 +6,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: edyan/php:7.2
+      - image: edyan/php:7.2-sqlsrv
       # - image: mysql:5
       #   environment:
       #     MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
