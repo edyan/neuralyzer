@@ -13,7 +13,7 @@ services:
 
 env:
   - DB_DRIVER=pdo_mysql DB_USER=root
-  - DB_DRIVER=pdo_pgsql DB_USER=postgres
+  - DB_DRIVER=pdo_pgsql DB_USER=phpunit DB_PASSWORD=phpunit
 
 before_install:
   - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c 'CREATE DATABASE test_db;' -U postgres; fi"
