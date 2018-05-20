@@ -37,9 +37,10 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
             $driver = substr($driver, 4);
         }
 
-        $conString = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
+        $conString = $conString2 = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
         if ($driver === 'sqlsrv') {
             $conString = $driver . ':Database=' . $this->dbName . ';Server=' . getenv('DB_HOST');
+            $conString2 = $driver . ':Server=' . getenv('DB_HOST');
         }
 
         // From : https://phpunit.de/manual/current/en/database.html#database.implementing-getdataset
@@ -47,6 +48,9 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         if ($this->conn === null) {
             // Pdo has never been initialized
             if (self::$pdo == null) {
+                // first connection without db to create DB
+                $this->connectAndCreateDB($conString2);
+                // Second connection
                 self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
             }
             $this->conn = $this->createDefaultDBConnection(self::$pdo);
@@ -195,5 +199,17 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         foreach ($queries as $query) {
             $this->getDoctrine()->query($query);
         }
+    }
+
+    private function connectAndCreateDB(string $conString)
+    {
+        $pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
+        try {
+            $pdo->query('CREATE DATABASE test_db');
+        } catch (\Exception $e) {
+            // Nothing, it's to avoid creating the DB if it exists
+        }
+        $pdo = null;
+        unset($pdo);
     }
 }

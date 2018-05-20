@@ -20,8 +20,6 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - setup_remote_docker
-
       - checkout
 
       # Download and cache dependencies
@@ -46,8 +44,6 @@ jobs:
 
       # Wait a little mysql ...
       - run: sleep 10
-      # Create DB
-      - run: docker exec -it sqlserver /opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"
 
       # run tests!
       - run:

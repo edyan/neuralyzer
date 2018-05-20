@@ -209,9 +209,11 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--limit' => 10,
             '--mode' => $this->mode
         ]);
-        $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
-        $this->assertRegExp('|10\/10 \[============================\] 100%|', $commandTester->getDisplay());
-        $this->assertNotRegExp('|Error|', $commandTester->getDisplay());
+
+        $output = $commandTester->getDisplay();
+        $this->assertRegExp('|Anonymizing guestbook|', $output);
+        $this->assertRegExp('|10\/10 \[============================\] 100%|', $output);
+        $this->assertNotRegExp('|.*Error.*|', $output);
 
         // check we have the right number of lines
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();

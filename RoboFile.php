@@ -204,12 +204,6 @@ class RoboFile extends \Robo\Tasks
         // Start DB And display a progress bar
         $this->startDb();
         $this->waitForDB();
-
-        // Now create a DB For SQL Server as there is no option in the docker image
-        if ($this->dbType === 'sqlsrv') {
-            $this->createSQLServerDB();
-        }
-
         $this->startPHP();
     }
 
@@ -260,17 +254,6 @@ class RoboFile extends \Robo\Tasks
         $progressBar->finish();
 
         echo PHP_EOL;
-    }
-
-
-    private function createSQLServerDB(): void
-    {
-        $createSqlQuery = '/opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root ';
-        $createSqlQuery.= '-S localhost -Q "CREATE DATABASE test_db"';
-        $this->taskDockerExec('robo_db')
-             ->interactive()
-             ->exec($this->taskExec($createSqlQuery))
-             ->run();
     }
 
 

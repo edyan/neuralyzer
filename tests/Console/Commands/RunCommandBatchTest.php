@@ -31,6 +31,12 @@ class RunCommandBatchTest extends AbstractRunCommandMode
         // and send an empty value to postgres
         // so 2 different methods
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
+            if (substr(gethostbyname(getenv('DB_HOST')), 0, 3) !== '127') {
+                $this->markTestSkipped(
+                    "Can't run a batch query if the file is remote with SQL Server"
+                );
+            }
+
             $this->executeWithLimitInsert('config-insert-batch.right.yaml');
             return;
         }
