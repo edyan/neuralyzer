@@ -12,6 +12,7 @@ jobs:
       #     MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
       #     MYSQL_DATABASE: test_db
       - image: microsoft/mssql-server-linux:2017-latest
+        name: sqlserver
         environment:
           ACCEPT_EULA: Y
           SA_PASSWORD: rootRoot44root
@@ -44,7 +45,7 @@ jobs:
       # Wait a little mysql ...
       - run: sleep 10
       # Create DB
-      - run: /opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"
+      - run: docker exec -it sqlserver /opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"
 
       # run tests!
       - run:
