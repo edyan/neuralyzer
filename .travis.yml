@@ -17,6 +17,7 @@ env:
 
 before_install:
   - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c 'CREATE DATABASE test_db;' -U postgres; fi"
+  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c 'CREATE USER phpunit WITH PASSWORD \'phpunit\';' -U postgres; fi"
   - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS test_db;'; fi"
 
 before_script:
