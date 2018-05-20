@@ -7,10 +7,14 @@ jobs:
   build:
     docker:
       - image: edyan/php:7.2
-      - image: mysql:5
+      # - image: mysql:5
+      #   environment:
+      #     MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
+      #     MYSQL_DATABASE: test_db
+      - image: microsoft/mssql-server-linux:2017-latest
         environment:
-          MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
-          MYSQL_DATABASE: test_db
+          ACCEPT_EULA: Y
+          SA_PASSWORD: rootRoot44root
 
     working_directory: ~/repo
 
@@ -38,13 +42,18 @@ jobs:
           key: v1-dependencies-{{ checksum "composer.json" }}
 
       # Wait a little mysql ...
-      - run: sleep 7
+      - run: sleep 10
+      # Create DB
+      - run: /opt/mssql-tools/bin/sqlcmd -U sa -P rootRoot44root -S localhost -Q "CREATE DATABASE test_db"
 
       # run tests!
       - run:
           name: Run tests
           command: vendor/bin/phpunit
           environment:
-            DB_DRIVER: pdo_mysql
-            DB_PASSWORD: fjkekI8IeufjI8Ue56
-            DB_USER: root
+            DB_DRIVER: pdo_sqlsrv
+            DB_PASSWORD: rootRoot44root
+            DB_USER: sa
+            # DB_DRIVER: pdo_mysql
+            # DB_PASSWORD: fjkekI8IeufjI8Ue56
+            # DB_USER: root
