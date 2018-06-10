@@ -276,7 +276,10 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $this->conn->createQueryBuilder();
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
-            $value = empty($row[$field]) ? '' : $value;
+            $value = empty($row[$field]) ?
+                $this->dbUtils->getEmptyValue($this->entityCols[$field]['type']) :
+                $value;
+
             $condition = $this->dbUtils->getCondition($field, $this->entityCols[$field]);
             $queryBuilder = $queryBuilder->set($field, $condition);
             $queryBuilder = $queryBuilder->setParameter(":$field", $value);

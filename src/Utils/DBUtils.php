@@ -159,6 +159,34 @@ class DBUtils
 
 
     /**
+     * Gives an empty value according to the field (example : numeric = 0)
+     * @param  string $type
+     * @return mixed
+     */
+    public function getEmptyValue(string $type)
+    {
+        $type = strtolower($type);
+        $typeToValue = [
+            'date' => '1970-01-01',
+            'datetime' => '1970-01-01 00:00:00',
+            'time' => '00:00:00',
+            'smallint' => 0,
+            'integer'  => 0,
+            'bigint'   => 0,
+            'float'    => 0,
+            'decimal'  => 0,
+        ];
+
+        // Value is simply an empty string
+        if (!array_key_exists($type, $typeToValue)) {
+            return '';
+        }
+
+        return $typeToValue[$type];
+    }
+
+
+    /**
      * Get the right CAST for an INTEGER
      *
      * @param  bool   $unsigned

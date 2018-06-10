@@ -9,14 +9,16 @@ edyan/neuralyzer
 =====
 
 ## Summary
-This project is a library and a command line tool that **anonymizes** a database (action = update in config). It uses [Faker](https://github.com/fzaninotto/Faker) to generate data and replace the rows in tables.
+This project is a library and a command line tool that **anonymizes** a database by updating data
+or generating fake data (update vs insert). It uses [Faker](https://github.com/fzaninotto/Faker)
+to generate data from rules defined in a configuration file.
 
-It is also able to **generate** fake data to insert it into tables (action = insert in config). For example, you can load
-a table with millions of fake records for load tests.
+As it can do row per row or use batch mechanisms, you can load tables with
+dozens of millions of fake records.
 
 It uses [Doctrine DBAL](https://github.com/doctrine/dbal) to abstract interactions with
 databases. It's then supposed to be able to work with any database type.
-Currently it works with MySQL, PostgreSQL and SQLServer.
+Currently it works (tested extensively) with MySQL, PostgreSQL and SQLServer.
 
 Neuralyzer has an option to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
 before launching the anonymization (see the config parameters `delete` and `delete_from`).
@@ -29,9 +31,9 @@ composer require edyan/neuralyzer
 
 
 ## Installation as an executable
-You can even download the executable directly :
+You can even download the executable directly (example with v3.1):
 ```bash
-$ wget https://raw.githubusercontent.com/edyan/neuralyzer/master/neuralyzer.phar
+$ wget https://github.com/edyan/neuralyzer/raw/v3.1.0/neuralyzer.phar
 $ sudo mv neuralyzer.phar /usr/local/bin/neuralyzer
 $ sudo chmod +x /usr/local/bin/neuralyzer
 $ neuralyzer
@@ -39,7 +41,8 @@ $ neuralyzer
 
 
 ## Usage
-The easiest way to use that tool is to start with the command line tool. After cloning the project, run:
+The easiest way to use that tool is to start with the command line tool.
+After cloning the project and running a `composer install`, try:
 ```bash
 bin/neuralyzer
 ```
@@ -50,66 +53,54 @@ Neuralyzer is able to read a database and generate the configuration for you.
 The command `config:generate` accepts the following options:
 ```
 Options:
-  -D, --driver=DRIVER              Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
-  -H, --host=HOST                  Host [default: "127.0.0.1"]
-  -d, --db=DB                      Database Name
-  -u, --user=USER                  User Name [default: "www-data"]
-  -p, --password=PASSWORD          Password (or it'll be prompted)
-  -f, --file=FILE                  File [default: "neuralyzer.yml"]
-      --protect                    Protect IDs and other fields
-      --ignore-table=IGNORE-TABLE  Table to ignore. Can be repeated (multiple values allowed)
-      --ignore-field=IGNORE-FIELD  Field to ignore. Regexp in the form "table.field". Can be repeated (multiple values allowed)
+    -D, --driver=DRIVER              Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
+    -H, --host=HOST                  Host [default: "127.0.0.1"]
+    -d, --db=DB                      Database Name
+    -u, --user=USER                  User Name [default: "www-data"]
+    -p, --password=PASSWORD          Password (or it'll be prompted)
+    -f, --file=FILE                  File [default: "neuralyzer.yml"]
+        --protect                    Protect IDs and other fields
+        --ignore-table=IGNORE-TABLE  Table to ignore. Can be repeated (multiple values allowed)
+        --ignore-field=IGNORE-FIELD  Field to ignore. Regexp in the form "table.field". Can be repeated (multiple values allowed)
 ```
 
 #### Example
 ```bash
-bin/neuralyzer config:generate --db test -u root --ignore-table config --ignore-field ".*\.id.*"
+bin/neuralyzer config:generate --db test_db -u root -p root --ignore-table config --ignore-field ".*\.id.*"
 ```
 
 That produces a file which looks like:
 ```yaml
-guesser_version: '3.0'
-language: en_US
 entities:
     authors:
         cols:
             first_name: { method: firstName }
             last_name: { method: lastName }
         action: update # Will update existing data, "insert" would create new data
+        delete: false
     books:
         cols:
             name: { method: sentence, params: [8] }
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
         action: update
+        delete: false
+guesser: Edyan\Neuralyzer\Guesser
+guesser_version: '3.0'
+language: en_US
 ```
 
-You have to modify the file to change its configuration.
-For example, if you need to remove data while anonymizing and change the
-language (see [Faker's doc](https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider)
-for available languages), do :
+You have to modify the file to change its configuration. For example, if you need to remove data
+while anonymizing and change the language
+(see [Faker's doc](https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider) for available languages), do :
 
 ```yaml
-guesser_version: '3.0'
 # be careful that some languages have only a few methods.
 # Example : https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider/fr_FR
-language: en_US
-entities:
-    authors:
-        cols:
-            first_name: { method: firstName }
-            last_name: { method: lastName }
-        action: update
-    books:
-        action: update
-        delete: true
-        delete_where: "name LIKE 'Bad Book%'"
-        cols:
-            name: { method: sentence, params: [8] }
+language: fr_FR
 ```
 
 **INFO**: You can also use delete in standalone, without anonymizing anything. That will delete everything in books:
 ```yaml
-guesser_version: '3.0'
 entities:
     authors:
         cols:
@@ -141,20 +132,22 @@ entities:
 To run the anonymizer, the command is simply "run" and expects:
 ```
 Options:
-  -D, --driver=DRIVER      Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
-  -H, --host=HOST          Host [default: "127.0.0.1"]
-  -d, --db=DB              Database Name
-  -u, --user=USER          User Name [default: "www-data"]
-  -p, --password=PASSWORD  Password (or prompted)
-  -c, --config=CONFIG      Configuration File [default: "neuralyzer.yml"]
-  -t, --table=TABLE        Do a single table
-      --pretend            Don't run the queries
-  -s, --sql                Display the SQL
-  -l, --limit=LIMIT        Limit the number of written records (update or insert). 100 by default for insert
+    -D, --driver=DRIVER      Driver (check Doctrine documentation to have the list) [default: "pdo_mysql"]
+    -H, --host=HOST          Host [default: "127.0.0.1"]
+    -d, --db=DB              Database Name
+    -u, --user=USER          User Name [default: "www-data"]
+    -p, --password=PASSWORD  Password (or prompted)
+    -c, --config=CONFIG      Configuration File [default: "neuralyzer.yml"]
+    -t, --table=TABLE        Do a single table
+        --pretend            Don't run the queries
+    -s, --sql                Display the SQL
+
+    -l, --limit=LIMIT        Limit the number of written records (update or insert). 100 by default for insert
+    -m, --mode=MODE          Set the mode : batch or queries [default: "batch"]
 ```
 #### Example
 ```bash
-bin/neuralyzer run --db test -u root --sql
+bin/neuralyzer run --db test_db -u root -p root
 ```
 
 That produces that kind of output:
@@ -191,27 +184,30 @@ The writer is helpful to generate a yaml file that contains all tables and field
 
 ```php
 <?php
-// You need to instanciate a \PDO Object first
-$writer = new Edyan\Neuralyzer\Configuration\Writer;
-$data = $writer->generateConfFromDB($pdo, new Edyan\Neuralyzer\Guesser);
+
+require_once 'vendor/autoload.php';
+
+// See Doctrine DBAL configuration :
+// https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/configuration.html
+$db = new \Edyan\Neuralyzer\Anonymizer\DB([
+    'driver' => 'pdo_mysql',
+    'host' => '127.0.0.1',
+    'dbname' => 'test_db',
+    'user' => 'root',
+    'password' => 'root',
+]);
+
+$writer = new \Edyan\Neuralyzer\Configuration\Writer;
+$data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'neuralyzer.yml');
 ```
+
 
 If you need, you can protect some cols (with regexp) or tables:
 ```php
 <?php
-// You need to pass some parameters required by Doctrine DBAL
-// See : http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html
-$db = new Edyan\Neuralyzer\Anonymizer\DB([
-    'driver' => 'pdo_mysql',
-    'host' => '127.0.0.1',
-    'dbname' => 'test',
-    'user' => 'root',
-    'password' => 'root'
-]);
-
-// Then call the writer
-$writer = new Edyan\Neuralyzer\Configuration\Writer;
+// ...
+$writer = new \Edyan\Neuralyzer\Configuration\Writer;
 $writer->protectCols(true); // will protect primary keys
 // define cols to protect (must be prefixed with the table name)
 $writer->setProtectedCols([
@@ -229,9 +225,10 @@ $writer->setIgnoredTables([
     'email_cache',
 ]);
 // Write the configuration
-$data = $writer->generateConfFromDB($db, new Edyan\Neuralyzer\Guesser);
+$data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'neuralyzer.yml');
 ```
+
 
 ### Configuration Reader
 The configuration Reader is the exact opposite of the Writer. Its main job is to validate that the configuration
@@ -243,35 +240,36 @@ $reader = new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
 $tables = $reader->getEntities();
 ```
 
+
 ### DB Anonymizer
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
 <?php
-// You need to pass some parameters required by Doctrine DBAL
-// See : http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html
-$db = new Edyan\Neuralyzer\Anonymizer\DB([
+// See Doctrine DBAL configuration :
+// https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/configuration.html
+$db = new \Edyan\Neuralyzer\Anonymizer\DB([
     'driver' => 'pdo_mysql',
     'host' => '127.0.0.1',
-    'dbname' => 'test',
+    'dbname' => 'test_db',
     'user' => 'root',
-    'password' => 'root'
+    'password' => 'root',
 ]);
-
 $db->setConfiguration(
-    new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml')
+    new \Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml')
 );
 
 ```
 
+
 Once initialized, the method that anonymize the table is the following:
 ```php
 <?php
-public function processEntity($entity, $callback = null);
+public function processEntity(string $entity, callable $callback = null): array;
 ```
 
 Parameters:
 * `Entity`: such as table name (required)
-* `Callback` (callable / optional) to use a progressbar for example
+* `Callback` (callable / optional) to use a progress bar for example
 
 A few options can be set by calling :
 ```php
@@ -285,37 +283,41 @@ public function setPretend(bool $pretend);
 public function setReturnRes(bool $returnRes);
 ```
 
+
 Full Example:
 ```php
 <?php
 
 require_once 'vendor/autoload.php';
 
-$reader = new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
-$db = new Edyan\Neuralyzer\Anonymizer\DB([
+$reader = new \Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
+$db = new \Edyan\Neuralyzer\Anonymizer\DB([
     'driver' => 'pdo_mysql',
     'host' => '127.0.0.1',
-    'dbname' => 'test',
+    'dbname' => 'test_db',
     'user' => 'root',
     'password' => 'root'
 ]);
 $db->setConfiguration($reader);
 $db->setPretend(false);
 
+
+$dbUtils = new \Edyan\Neuralyzer\Utils\DBUtils($db->getConn());
 // Get tables
 $tables = $reader->getEntities();
 foreach ($tables as $table) {
-    $res = $db->getConn()->createQueryBuilder()
-              ->select('COUNT(1) AS total')->from($table)->execute()->fetchAll()[0];
+    $total = $dbUtils->countResults($table);
 
-    if ((int)$res['total'] === 0) {
+    if ($total === 0) {
         $output->writeln("<info>$table is empty</info>");
         continue;
     }
 
-    $queries = $db->processEntity($table);
+    $db->processEntity($table);
 }
+
 ```
+
 
 ## Configuration Reference
 `bin/neuralyzer config:example` provides a default configuration with all parameters explained :
