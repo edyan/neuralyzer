@@ -100,6 +100,15 @@ class Reader
         return $this->configValues['entities'][$entity];
     }
 
+    /**
+     * Return the list of pre queries
+     *
+     * @return array
+     */
+    public function getPreQueries(): array
+    {
+        return $this->configValues['pre_queries'];
+    }
 
     /**
      * Return the list of entites
@@ -111,6 +120,15 @@ class Reader
         return array_keys($this->configValues['entities']);
     }
 
+    /**
+     * Return the list of post queries
+     *
+     * @return array
+     */
+    public function getPostQueries(): array
+    {
+        return $this->configValues['post_queries'];
+    }
 
     /**
      * Parse and validate the configuration

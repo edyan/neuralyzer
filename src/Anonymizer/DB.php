@@ -4,25 +4,25 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Anonymizer;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager as DbalDriverManager;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Edyan\Neuralyzer\Helper\DB as DBHelper;
+use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Helper\DB as DBHelper;
 use Edyan\Neuralyzer\Utils\CSVWriter;
 use Edyan\Neuralyzer\Utils\DBUtils;
 
@@ -33,68 +33,77 @@ class DB extends AbstractAnonymizer
 {
     /**
      * Doctrine DB Adapter
+     *
      * @var Connection
      */
     private $conn;
 
     /**
      * A helper for the current driver
+     *
      * @var DBHelper\AbstractDBHelper
      */
     private $dbHelper;
 
     /**
      * Various generic utils
+     *
      * @var DBUtils
      */
     private $dbUtils;
 
     /**
      * Primary Key
+     *
      * @var string
      */
     private $priKey;
 
     /**
      * Define the way we update / insert data
+     *
      * @var string
      */
     private $mode = 'queries';
 
     /**
      * Contains queries if returnRes is true
+     *
      * @var array
      */
     private $queries = [];
 
     /**
      * File resource for the csv (batch mode)
+     *
      * @var CSVWriter
      */
     private $csv;
 
     /**
      * Define available update modes
+     *
      * @var array
      */
     private $updateMode = [
         'queries' => 'doUpdateByQueries',
-        'batch' => 'doBatchUpdate'
+        'batch' => 'doBatchUpdate',
     ];
 
     /**
      * Define available insert modes
+     *
      * @var array
      */
     private $insertMode = [
         'queries' => 'doInsertByQueries',
-        'batch' => 'doBatchInsert'
+        'batch' => 'doBatchInsert',
     ];
 
     /**
      * Init connection
      *
-     * @param array $params   Parameters to send to Doctrine DB
+     * @param array $params Parameters to send to Doctrine DB
      */
     public function __construct(array $params)
     {
@@ -123,7 +132,9 @@ class DB extends AbstractAnonymizer
 
     /**
      * Set the mode for update / insert
+     *
      * @param string $mode
+     *
      * @return DB
      */
     public function setMode(string $mode): DB
@@ -219,9 +230,11 @@ class DB extends AbstractAnonymizer
 
 
     /**
-     * Update data of table
+     * Update data of db table.
      *
      * @param  callable $callback
+     *
+     * @throws NeuralizerException
      */
     private function updateData($callback = null): void
     {
@@ -230,14 +243,22 @@ class DB extends AbstractAnonymizer
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
+        foreach ($this->configuration->getPreQueries() as $preQuery) {
+            try {
+                $this->conn->query($preQuery);
+            } catch (\Exception $e) {
+                throw new NeuralizerException($e->getMessage());
+            }
+        }
+
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
         while ($num < $this->limit) {
             $rows = $queryBuilder
-                        ->select('*')->from($this->entity)
-                        ->setFirstResult($startAt)->setMaxResults($this->batchSize)
-                        ->orderBy($this->priKey)
-                        ->execute();
+                ->select('*')->from($this->entity)
+                ->setFirstResult($startAt)->setMaxResults($this->batchSize)
+                ->orderBy($this->priKey)
+                ->execute();
 
             // I need to read line by line if I have to update the table
             // to make sure I do update by update (slower but no other choice for now)
@@ -261,13 +282,22 @@ class DB extends AbstractAnonymizer
         if ($this->mode === 'batch') {
             $this->loadDataInBatch('update');
         }
+
+        foreach ($this->configuration->getPostQueries() as $postQuery) {
+            try {
+                $this->conn->query($postQuery);
+            } catch (\Exception $e) {
+                throw new NeuralizerException($e->getMessage());
+            }
+        }
     }
 
 
     /**
      * Execute the Update with Doctrine QueryBuilder
      * @SuppressWarnings("unused") - Used dynamically
-     * @param  array $row  Full row
+     *
+     * @param  array $row Full row
      */
     private function doUpdateByQueries(array $row): void
     {
@@ -300,7 +330,8 @@ class DB extends AbstractAnonymizer
     /**
      * Write the line required for a later LOAD DATA (or \copy)
      * @SuppressWarnings("unused") - Used dynamically
-     * @param  array $row  Full row
+     *
+     * @param  array $row Full row
      */
     private function doBatchUpdate(array $row): void
     {
@@ -321,6 +352,7 @@ class DB extends AbstractAnonymizer
 
     /**
      * Insert data into table
+     *
      * @param  callable $callback
      */
     private function insertData($callback = null): void
@@ -380,6 +412,7 @@ class DB extends AbstractAnonymizer
     /**
      * If a file has been created for the batch mode, destroy it
      * @SuppressWarnings("unused") - Used dynamically
+     *
      * @param string $mode "update" or "insert"
      */
     private function loadDataInBatch(string $mode): void
@@ -400,4 +433,60 @@ class DB extends AbstractAnonymizer
         // Destroy the file
         unlink($this->csv->getRealPath());
     }
+
+    /**
+     * Generate fake data for an entity and return it as an Array
+     *
+     * @return array
+     * @throws NeuralizerConfigurationException
+     */
+    protected function generateFakeData(): array
+    {
+        $this->checkEntityIsInConfig();
+
+        $colsInConfig = $this->configEntites[$this->entity]['cols'];
+        $row = [];
+        foreach ($colsInConfig as $colName => $colProps) {
+            $this->checkColIsInEntity($colName);
+
+            // Check if faker is already used for this column name, so we can use the same faker.
+            if (!isset($this->fakers[$colName][$colProps['method']])) {
+                $language = $this->configuration->getConfigValues()['language'];
+                $faker = \Faker\Factory::create($language);
+                $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
+
+                // Check if column should be unique.
+                if ($colProps['method'] === 'uniqueWord') {
+                    // Count number of unique words to be taken from the dictionary.
+                    $count = $this->dbUtils->countResults($this->entity);
+                    $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker, $count, $language));
+                    $faker = $faker->unique(true);
+                }
+                $this->fakers[$colName][$colProps['method']] = $faker;
+            }
+
+            $faker = $this->fakers[$colName][$colProps['method']];
+
+            $data = \call_user_func_array(
+                [$faker, $colProps['method']],
+                $colProps['params']
+            );
+
+            if (!is_scalar($data)) {
+                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
+                throw new NeuralizerConfigurationException($msg);
+            }
+
+            $row[$colName] = trim($data);
+
+            $colLength = $this->entityCols[$colName]['length'];
+            // Cut the value if too long ...
+            if (!empty($colLength) && strlen($row[$colName]) > $colLength) {
+                $row[$colName] = substr($row[$colName], 0, ($colLength - 1));
+            }
+        }
+
+        return $row;
+    }
+
 }

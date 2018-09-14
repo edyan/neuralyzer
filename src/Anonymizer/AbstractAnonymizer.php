@@ -63,6 +63,12 @@ abstract class AbstractAnonymizer
     protected $configEntites = [];
 
     /**
+     * List of used fakers
+     * @var array
+     */
+    protected $fakers = [];
+
+    /**
      * Current table (entity) to process
      * @var string
      */
@@ -91,7 +97,6 @@ abstract class AbstractAnonymizer
      * @var bool
      */
     protected $returnRes = false;
-
 
     /**
      * Process the entity according to the anonymizer type
@@ -163,6 +168,7 @@ abstract class AbstractAnonymizer
      * Evaluate, from the configuration if I have to update or Truncate the table
      *
      * @return int
+     * @throws NeuralizerConfigurationException
      */
     protected function whatToDoWithEntity(): int
     {
@@ -206,52 +212,12 @@ abstract class AbstractAnonymizer
         return $this->configEntites[$this->entity]['delete_where'];
     }
 
-
-    /**
-     * Generate fake data for an entity and return it as an Array
-     *
-     * @return array
-     */
-    protected function generateFakeData(): array
-    {
-        $this->checkEntityIsInConfig();
-
-        $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
-        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
-
-        $colsInConfig = $this->configEntites[$this->entity]['cols'];
-        $row = [];
-        foreach ($colsInConfig as $colName => $colProps) {
-            $this->checkColIsInEntity($colName);
-            $data = call_user_func_array(
-                [$faker, $colProps['method']],
-                $colProps['params']
-            );
-
-            if (!is_scalar($data)) {
-                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
-                throw new NeuralizerConfigurationException($msg);
-            }
-
-            $row[$colName] = trim($data);
-
-            $colLength = $this->entityCols[$colName]['length'];
-            // Cut the value if too long ...
-            if (!empty($colLength) && strlen($row[$colName]) > $colLength) {
-                $row[$colName] = substr($row[$colName], 0, ($colLength - 1));
-            }
-        }
-
-        return $row;
-    }
-
-
     /**
      * Make sure that entity is defined in the configuration
      *
      * @throws NeuralizerConfigurationException
      */
-    private function checkEntityIsInConfig(): void
+    protected function checkEntityIsInConfig(): void
     {
         if (empty($this->configEntites)) {
             throw new NeuralizerConfigurationException(
@@ -271,7 +237,7 @@ abstract class AbstractAnonymizer
      * @throws NeuralizerConfigurationException
      * @param  string $colName [description]
      */
-    private function checkColIsInEntity(string $colName): void
+    protected function checkColIsInEntity(string $colName): void
     {
         if (!array_key_exists($colName, $this->entityCols)) {
             throw new NeuralizerConfigurationException("Col $colName does not exist");
