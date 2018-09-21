@@ -34,6 +34,8 @@ class UniqueWord extends Base
     }
 
     /**
+     * Get a random element from the loaded dictionary.
+     *
      * @return string
      */
     public function uniqueWord()
@@ -43,6 +45,9 @@ class UniqueWord extends Base
         return static::randomElement(static::$wordList);
     }
 
+    /**
+     *  Load the current language dictionary with a lot of words to always be able to get a unique value.
+     */
     public function loadFullDictionary()
     {
         static $loaded = false;

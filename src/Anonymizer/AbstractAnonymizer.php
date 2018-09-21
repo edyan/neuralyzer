@@ -4,15 +4,15 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Anonymizer;
@@ -46,62 +46,73 @@ abstract class AbstractAnonymizer
 
     /**
      * Set the batch size for updates
+     *
      * @var int
      */
     protected $batchSize = 1000;
 
     /**
      * Contains the configuration object
+     *
      * @var Reader
      */
     protected $configuration;
 
     /**
      * Configuration of entities
+     *
      * @var array
      */
     protected $configEntites = [];
 
     /**
      * List of used fakers
+     *
      * @var array
      */
     protected $fakers = [];
 
     /**
      * Current table (entity) to process
+     *
      * @var string
      */
     protected $entity;
 
     /**
      * Current table (entity) Columns
+     *
      * @var array
      */
     protected $entityCols;
 
     /**
      * Limit the number of updates or create
+     *
      * @var int
      */
     protected $limit = 0;
 
     /**
      * Pretend we do the update, but do nothing
+     *
      * @var bool
      */
     protected $pretend = true;
 
     /**
      * Return the generated SQL
+     *
      * @var bool
      */
     protected $returnRes = false;
 
     /**
      * Process the entity according to the anonymizer type
-     * @param string        $entity         Entity's name
-     * @param callable|null $callback       Callback function with current row num as parameter
+     *
+     * @param string        $entity   Entity's name
+     * @param callable|null $callback Callback function with current row num as parameter
+     *
      * @return array
      */
     abstract public function processEntity(
@@ -112,6 +123,7 @@ abstract class AbstractAnonymizer
 
     /**
      * Set the configuration
+     *
      * @param Reader $configuration
      */
     public function setConfiguration(Reader $configuration): void
@@ -123,7 +135,9 @@ abstract class AbstractAnonymizer
 
     /**
      * Limit of fake generated records for updates and creates
+     *
      * @param int $limit
+     *
      * @return mixed
      */
     public function setLimit(int $limit)
@@ -139,7 +153,9 @@ abstract class AbstractAnonymizer
 
     /**
      * Activate or deactivate the pretending mode (dry run)
+     *
      * @param  bool $pretend
+     *
      * @return mixed
      */
     public function setPretend(bool $pretend)
@@ -153,7 +169,9 @@ abstract class AbstractAnonymizer
     /**
      * Return or not a result (like an SQL Query that has
      * been generated with fake data)
+     *
      * @param  bool $returnRes
+     *
      * @return mixed
      */
     public function setReturnRes(bool $returnRes)
@@ -200,6 +218,7 @@ abstract class AbstractAnonymizer
      * Returns the 'delete_where' parameter for an entity in config (or empty)
      *
      * @return string
+     * @throws NeuralizerConfigurationException
      */
     public function getWhereConditionInConfig(): string
     {
@@ -211,6 +230,41 @@ abstract class AbstractAnonymizer
 
         return $this->configEntites[$this->entity]['delete_where'];
     }
+
+    /**
+     * Generate fake data for an entity and return it as an Array
+     *
+     * @return array
+     * @throws NeuralizerConfigurationException
+     */
+    protected function generateFakeData(): array
+    {
+        $this->checkEntityIsInConfig();
+        $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
+        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
+        $colsInConfig = $this->configEntites[$this->entity]['cols'];
+        $row = [];
+        foreach ($colsInConfig as $colName => $colProps) {
+            $this->checkColIsInEntity($colName);
+            $data = \call_user_func_array(
+                [$faker, $colProps['method']],
+                $colProps['params']
+            );
+            if (!is_scalar($data)) {
+                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
+                throw new NeuralizerConfigurationException($msg);
+            }
+            $row[$colName] = trim($data);
+            $colLength = $this->entityCols[$colName]['length'];
+            // Cut the value if too long ...
+            if (!empty($colLength) && \strlen($row[$colName]) > $colLength) {
+                $row[$colName] = substr($row[$colName], 0, $colLength - 1);
+            }
+        }
+
+        return $row;
+    }
+
 
     /**
      * Make sure that entity is defined in the configuration
@@ -235,6 +289,7 @@ abstract class AbstractAnonymizer
      * Verify a column is defined in the real entityCols
      *
      * @throws NeuralizerConfigurationException
+     *
      * @param  string $colName [description]
      */
     protected function checkColIsInEntity(string $colName): void

@@ -481,8 +481,8 @@ class DB extends AbstractAnonymizer
 
             $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...
-            if (!empty($colLength) && strlen($row[$colName]) > $colLength) {
-                $row[$colName] = substr($row[$colName], 0, ($colLength - 1));
+            if (!empty($colLength) && \strlen($row[$colName]) > $colLength) {
+                $row[$colName] = substr($row[$colName], 0, $colLength - 1);
             }
         }
 
