@@ -19,6 +19,7 @@ namespace Edyan\Neuralyzer\Console\Commands;
 
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
+use Edyan\Neuralyzer\Utils\FileLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -141,7 +142,13 @@ class RunCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Set the mode : batch or queries',
                 'batch'
-            );
+            )->addOption(
+                'bootstrap',
+                'b',
+                InputOption::VALUE_REQUIRED,
+                'Provide a bootstrap file to load a custom setup before executing the command. Format /path/to/bootstrap.php'
+            )
+        ;
     }
 
     /**
@@ -154,6 +161,10 @@ class RunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
+        if (!empty($input->getOption('bootstrap'))) {
+            FileLoader::checkAndLoad($input->getOption('bootstrap'));
+        }
+
         // Throw an exception immediately if we dont have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
