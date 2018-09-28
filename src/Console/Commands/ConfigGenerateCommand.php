@@ -4,19 +4,20 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Console\Commands;
 
+use Edyan\Neuralyzer\Anonymizer\DB;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -29,12 +30,31 @@ use Symfony\Component\Console\Question\Question;
 class ConfigGenerateCommand extends Command
 {
     /**
+     * Store the DB Object
+     *
+     * @var DB
+     */
+    private $db;
+
+    /**
      * Set the command shortcut to be used in configuration
      *
      * @var string
      */
     protected $command = 'config:generate';
 
+
+    /**
+     * RunCommand constructor.
+     *
+     * @param DB $db
+     */
+    public function __construct(DB $db)
+    {
+        parent::__construct();
+
+        $this->db = $db;
+    }
 
     /**
      * Configure the command
@@ -48,7 +68,7 @@ class ConfigGenerateCommand extends Command
             ->setDescription(
                 'Generate configuration for the Anonymizer'
             )->setHelp(
-                'This command will connect to a DB and extract a list of tables / fields to a yaml file' . PHP_EOL .
+                'This command will connect to a DB and extract a list of tables / fields to a yaml file'.PHP_EOL.
                 "Usage: neuralyzer <info>{$this->command} -u app -p app -f neuralyzer.yml</info>"
             )->addOption(
                 'driver',
@@ -103,12 +123,11 @@ class ConfigGenerateCommand extends Command
     }
 
     /**
-     * Execute the command
-     *
      * @param InputInterface  $input
      * @param OutputInterface $output
      *
-     * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
@@ -118,7 +137,7 @@ class ConfigGenerateCommand extends Command
         }
 
         $password = $input->getOption('password');
-        if (is_null($password)) {
+        if (null === $password){
             $question = new Question('Password: ');
             $question->setHidden(true)->setHiddenFallback(false);
 
@@ -128,13 +147,15 @@ class ConfigGenerateCommand extends Command
         $ignoreFields = $input->getOption('ignore-field');
 
         // Now work on the DB
-        $db = new \Edyan\Neuralyzer\Anonymizer\DB([
-            'driver' => $input->getOption('driver'),
-            'host' => $input->getOption('host'),
-            'dbname' => $input->getOption('db'),
-            'user' => $input->getOption('user'),
-            'password' => $password,
-        ]);
+        $this->db->initDatabaseConnection(
+            [
+                'driver' => $input->getOption('driver'),
+                'host' => $input->getOption('host'),
+                'dbname' => $input->getOption('db'),
+                'user' => $input->getOption('user'),
+                'password' => $password,
+            ]
+        );
 
         $writer = new \Edyan\Neuralyzer\Configuration\Writer;
         $writer->protectCols($input->getOption('protect'));
@@ -146,9 +167,9 @@ class ConfigGenerateCommand extends Command
         }
 
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($this->db, new \Edyan\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
-        $output->writeln('<comment>Configuration written to ' . $input->getOption('file') . '</comment>');
+        $output->writeln('<comment>Configuration written to '.$input->getOption('file').'</comment>');
     }
 }

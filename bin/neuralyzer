@@ -1,8 +1,15 @@
 #!/usr/bin/env php
 <?php
 
+use Edyan\Neuralyzer\Console\Application;
+use Edyan\Neuralyzer\ExpressionUtils\UtilsInterface;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
+
 if (PHP_SAPI !== 'cli') {
-    echo 'Error: neuralyzer should be invoked via the CLI version of PHP, not the ' . PHP_SAPI . ' SAPI.' . PHP_EOL;
+    echo 'Error: neuralyzer should be invoked via the CLI version of PHP, not the '.PHP_SAPI.' SAPI.'.PHP_EOL;
     exit(1);
 }
 
@@ -11,14 +18,23 @@ if (!strpos(basename(__FILE__), 'phar')) {
     if (file_exists(__DIR__.'/vendor/autoload.php')) {
         $autoloaderPath = __DIR__.'/vendor/autoload.php';
     } elseif (file_exists(__DIR__.'/../../../autoload.php')) {
-        $autoloaderPath = __DIR__ . '/../../../autoload.php';
+        $autoloaderPath = __DIR__.'/../../../autoload.php';
     } elseif (file_exists(__DIR__.'/../vendor/autoload.php')) {
-        $autoloaderPath = __DIR__ . '/../vendor/autoload.php';
+        $autoloaderPath = __DIR__.'/../vendor/autoload.php';
     }
 }
 $classLoader = require $autoloaderPath;
 
-use Edyan\Neuralyzer\Console\Application;
+$container = new ContainerBuilder();
+$loader = new YamlFileLoader($container, new FileLocator(__DIR__));
+$loader->load('../config/services.yml');
+$container->registerForAutoconfiguration(UtilsInterface::class)
+    ->addTag('app.neuralyzer_util');
+$container->addCompilerPass(new AddConsoleCommandPass());
+$container->compile();
 
 $app = new Application('Anonmymization command line', Application::VERSION);
+foreach ($container->getParameter('console.command.ids') as $id) {
+    $app->add($container->get($id));
+}
 $app->run();

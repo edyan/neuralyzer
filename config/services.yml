@@ -1,0 +1,33 @@
+# config/services.yml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Edyan\Neuralyzer\:
+        resource: '../src/*'
+
+    Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer:
+        arguments: [!tagged app.neuralyzer_util]
+        abstract: true
+
+    Edyan\Neuralyzer\Anonymizer\DB:
+        parent: Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer
+        autowire: true
+        autoconfigure: false
+
+    Edyan\Neuralyzer\Console\Commands\RunCommand:
+        tags:
+            - { name: 'console.command' }
+
+    Edyan\Neuralyzer\Console\Commands\ConfigGenerateCommand:
+        tags:
+            - { name: 'console.command' }
+
+    Edyan\Neuralyzer\Console\Commands\ConfigValidateCommand:
+        tags:
+            - { name: 'console.command' }
+
+    Edyan\Neuralyzer\Console\Commands\ConfigExampleCommand:
+        tags:
+            - { name: 'console.command' }

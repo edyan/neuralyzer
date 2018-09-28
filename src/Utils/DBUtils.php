@@ -4,15 +4,15 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Utils;
@@ -28,12 +28,14 @@ class DBUtils
 {
     /**
      * Doctrine DBAL Connection
+     *
      * @var Connection
      */
     private $conn;
 
     /**
      * Set the connection (dependency)
+     *
      * @param Connection $conn
      */
     public function __construct(Connection $conn)
@@ -44,7 +46,9 @@ class DBUtils
 
     /**
      * Do a simple count for a table
+     *
      * @param  string $table
+     *
      * @return int
      */
     public function countResults(string $table): int
@@ -52,14 +56,17 @@ class DBUtils
         $queryBuilder = $this->conn->createQueryBuilder();
         $rows = $queryBuilder->select('COUNT(1)')->from($table)->execute();
 
-        return (int)$rows->fetch(\Doctrine\DBAL\FetchMode::NUMERIC)[0];
+        return (int) $rows->fetch(\Doctrine\DBAL\FetchMode::NUMERIC)[0];
     }
 
 
     /**
      * Identify the primary key for a table
-     * @param  string $table
-     * @return string Field's name
+     *
+     * @param string $table
+     *
+     * @return string
+     * @throws NeuralizerException
      */
     public function getPrimaryKey(string $table): string
     {
@@ -75,7 +82,9 @@ class DBUtils
 
     /**
      * Retrieve columns list for a table with type and length
+     *
      * @param  string $table
+     *
      * @return array $cols
      */
     public function getTableCols(string $table): array
@@ -86,7 +95,7 @@ class DBUtils
         foreach ($tableCols as $col) {
             $cols[$col->getName()] = [
                 'length' => $col->getLength(),
-                'type'   => $col->getType(),
+                'type' => $col->getType(),
                 'unsigned' => $col->getUnsigned(),
             ];
         }
@@ -97,7 +106,9 @@ class DBUtils
 
     /**
      * To debug, build the final SQL (can be approximative)
+     *
      * @param  QueryBuilder $queryBuilder
+     *
      * @return string
      */
     public function getRawSQL(QueryBuilder $queryBuilder)
@@ -112,6 +123,7 @@ class DBUtils
 
     /**
      * Make sure a table exists
+     *
      * @param  string $table [description]
      */
     public function assertTableExists(string $table): void
@@ -126,7 +138,8 @@ class DBUtils
      * Build the condition by casting the value if needed
      *
      * @param  string $field
-     * @param  array  $fieldConf   Various values about the field
+     * @param  array  $fieldConf Various values about the field
+     *
      * @return string
      */
     public function getCondition(string $field, array $fieldConf): string
@@ -139,14 +152,14 @@ class DBUtils
         $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
 
         $typeToCast = [
-            'date'     => 'DATE',
+            'date' => 'DATE',
             'datetime' => 'DATE',
-            'time'     => 'TIME',
+            'time' => 'TIME',
             'smallint' => $integerCast,
-            'integer'  => $integerCast,
-            'bigint'   => $integerCast,
-            'float'    => 'DECIMAL',
-            'decimal'  => 'DECIMAL',
+            'integer' => $integerCast,
+            'bigint' => $integerCast,
+            'float' => 'DECIMAL',
+            'decimal' => 'DECIMAL',
         ];
 
         // No cast required
@@ -160,7 +173,9 @@ class DBUtils
 
     /**
      * Gives an empty value according to the field (example : numeric = 0)
+     *
      * @param  string $type
+     *
      * @return mixed
      */
     public function getEmptyValue(string $type)
@@ -171,10 +186,10 @@ class DBUtils
             'datetime' => '1970-01-01 00:00:00',
             'time' => '00:00:00',
             'smallint' => 0,
-            'integer'  => 0,
-            'bigint'   => 0,
-            'float'    => 0,
-            'decimal'  => 0,
+            'integer' => 0,
+            'bigint' => 0,
+            'float' => 0,
+            'decimal' => 0,
         ];
 
         // Value is simply an empty string
@@ -189,7 +204,8 @@ class DBUtils
     /**
      * Get the right CAST for an INTEGER
      *
-     * @param  bool   $unsigned
+     * @param  bool $unsigned
+     *
      * @return string
      */
     private function getIntegerCast(bool $unsigned): string

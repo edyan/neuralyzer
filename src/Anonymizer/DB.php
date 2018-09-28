@@ -101,11 +101,11 @@ class DB extends AbstractAnonymizer
     ];
 
     /**
-     * Init connection
-     *
      * @param array $params Parameters to send to Doctrine DB
+     *
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public function __construct(array $params)
+    public function initDatabaseConnection(array $params)
     {
         $dbHelperClass = DBHelper\DriverGuesser::getDBHelper($params['driver']);
 
@@ -117,7 +117,6 @@ class DB extends AbstractAnonymizer
         $this->dbUtils = new DBUtils($this->conn);
         $this->dbHelper = new $dbHelperClass($this->conn);
     }
-
 
     /**
      * Get Doctrine Connection
@@ -243,13 +242,7 @@ class DB extends AbstractAnonymizer
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
-        foreach ($this->configuration->getPreQueries() as $preQuery) {
-            try {
-                $this->conn->query($preQuery);
-            } catch (\Exception $e) {
-                throw new NeuralizerException($e->getMessage());
-            }
-        }
+        $this->evaluateExpressionUtils($this->configuration->getPreActions());
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
@@ -283,13 +276,7 @@ class DB extends AbstractAnonymizer
             $this->loadDataInBatch('update');
         }
 
-        foreach ($this->configuration->getPostQueries() as $postQuery) {
-            try {
-                $this->conn->query($postQuery);
-            } catch (\Exception $e) {
-                throw new NeuralizerException($e->getMessage());
-            }
-        }
+        $this->evaluateExpressionUtils($this->configuration->getPostActions());
     }
 
 
@@ -488,5 +475,4 @@ class DB extends AbstractAnonymizer
 
         return $row;
     }
-
 }

@@ -19,6 +19,8 @@ namespace Edyan\Neuralyzer\Anonymizer;
 
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\ExpressionUtils\UtilsInterface;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
  * Abstract Anonymizer, that can be implemented as DB Anonymizer for example
@@ -43,6 +45,10 @@ abstract class AbstractAnonymizer
      */
     const INSERT_TABLE = 4;
 
+    /**
+     * Tagged services with expression utils in it.
+     */
+    private $expressionUtils;
 
     /**
      * Set the batch size for updates
@@ -106,6 +112,16 @@ abstract class AbstractAnonymizer
      * @var bool
      */
     protected $returnRes = false;
+
+    /**
+     * Init connection
+     *
+     * @param $expressionUtils
+     */
+    public function __construct($expressionUtils)
+    {
+        $this->expressionUtils = $expressionUtils;
+    }
 
     /**
      * Process the entity according to the anonymizer type
@@ -296,6 +312,33 @@ abstract class AbstractAnonymizer
     {
         if (!array_key_exists($colName, $this->entityCols)) {
             throw new NeuralizerConfigurationException("Col $colName does not exist");
+        }
+    }
+
+    /**
+     * @param $actions
+     */
+    protected function evaluateExpressionUtils($actions)
+    {
+        $expressionLanguage = new ExpressionLanguage();
+
+        $values = [];
+        /** @var UtilsInterface $expressionUtil */
+        foreach ($this->expressionUtils as $expressionUtil) {
+            $name = $expressionUtil->getName();
+
+            foreach ($expressionUtil->getExtraArguments() as $extraArgument) {
+                if (property_exists($this, $extraArgument)) {
+                    $func = sprintf('get%s', ucfirst($extraArgument));
+                    $expressionUtil->$extraArgument = $this->$func();
+                }
+            }
+
+            $values[$name] = $expressionUtil;
+        }
+
+        foreach ($actions as $action) {
+            $expressionLanguage->evaluate($action, $values);
         }
     }
 }

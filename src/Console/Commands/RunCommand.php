@@ -4,19 +4,20 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Console\Commands;
 
+use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Console\Command\Command;
@@ -35,7 +36,7 @@ class RunCommand extends Command
     /**
      * Store the DB Object
      *
-     * @var \Edyan\Neuralyzer\Anonymizer\DB
+     * @var DB
      */
     private $db;
 
@@ -67,6 +68,18 @@ class RunCommand extends Command
      */
     private $reader;
 
+    /**
+     * RunCommand constructor.
+     *
+     * @param DB $db
+     */
+    public function __construct(DB $db)
+    {
+        parent::__construct();
+
+        $this->db = $db;
+    }
+
 
     /**
      * Configure the command
@@ -79,7 +92,7 @@ class RunCommand extends Command
         $this->setName($this->command)
             ->setDescription('Run Anonymizer')
             ->setHelp(
-                'This command will connect to a DB and run the anonymizer from a yaml config' . PHP_EOL .
+                'This command will connect to a DB and run the anonymizer from a yaml config'.PHP_EOL.
                 "Usage: <info>./bin/neuralyzer {$this->command} -u app -p app -f neuralyzer.yml</info>"
             )->addOption(
                 'driver',
@@ -145,12 +158,11 @@ class RunCommand extends Command
     }
 
     /**
-     * Execute the command
+     * @param InputInterface  $input
+     * @param OutputInterface $output
      *
-     * @param InputInterface  $input   Symfony's Input Class for parameters and options
-     * @param OutputInterface $output  Symfony's Output Class to display infos
-     *
-     * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Edyan\Neuralyzer\Exception\NeuralizerException
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
@@ -165,7 +177,7 @@ class RunCommand extends Command
         }
 
         $password = $input->getOption('password');
-        if (is_null($password)) {
+        if (null === $password) {
             $question = new Question('Password: ');
             $question->setHidden(true)->setHiddenFallback(false);
 
@@ -179,13 +191,15 @@ class RunCommand extends Command
         $this->reader = new Reader($input->getOption('config'));
 
         // Now work on the DB
-        $this->db = new \Edyan\Neuralyzer\Anonymizer\DB([
-            'driver' => $input->getOption('driver'),
-            'host' => $input->getOption('host'),
-            'dbname' => $input->getOption('db'),
-            'user' => $input->getOption('user'),
-            'password' => $password
-        ]);
+        $this->db->initDatabaseConnection(
+            [
+                'driver' => $input->getOption('driver'),
+                'host' => $input->getOption('host'),
+                'dbname' => $input->getOption('db'),
+                'user' => $input->getOption('user'),
+                'password' => $password,
+            ]
+        );
         $this->db->setConfiguration($this->reader);
         $this->db->setMode($this->input->getOption('mode'));
         $this->db->setPretend($this->input->getOption('pretend'));
@@ -204,7 +218,7 @@ class RunCommand extends Command
         $event = $stopwatch->stop('Neuralyzer');
         $memory = round($event->getMemory() / 1024 / 1024, 2);
         $time = round($event->getDuration() / 1000, 2);
-        $time = ($time > 180 ? round($time / 60, 2) . 'mins' : "$time sec");
+        $time = ($time > 180 ? round($time / 60, 2).'mins' : "$time sec");
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
     }
@@ -219,6 +233,7 @@ class RunCommand extends Command
         $total = $this->getTotal($table);
         if ($total === 0) {
             $this->output->writeln("<info>$table is empty</info>");
+
             return;
         }
 
@@ -228,13 +243,17 @@ class RunCommand extends Command
         $this->output->writeln("<info>Anonymizing $table</info>");
 
         try {
-            $queries = $this->db->setLimit($total)->processEntity($table, function () use ($bar) {
-                $bar->advance();
-            });
-        // @codeCoverageIgnoreStart
+            $queries = $this->db->setLimit($total)->processEntity(
+                $table,
+                function () use ($bar) {
+                    $bar->advance();
+                }
+            );
+            // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
-            $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
-            $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
+            $msg = "<error>Error anonymizing $table. Message was : ".$e->getMessage()."</error>";
+            $this->output->writeln(PHP_EOL.$msg.PHP_EOL);
+
             return;
         }
         // @codeCoverageIgnoreEnd
@@ -253,11 +272,12 @@ class RunCommand extends Command
      * Define the total number of records to process for progress bar
      *
      * @param  string $table
+     *
      * @return int
      */
     private function getTotal(string $table): int
     {
-        $limit = (int)$this->input->getOption('limit');
+        $limit = (int) $this->input->getOption('limit');
         $config = $this->reader->getEntityConfig($table);
         if ($config['action'] === 'insert') {
             return empty($limit) ? 100 : $limit;

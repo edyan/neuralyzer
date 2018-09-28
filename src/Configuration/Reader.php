@@ -4,15 +4,15 @@
  *
  * PHP Version 7.1
  *
- * @author Emmanuel Dyan
- * @author Rémi Sauvat
+ * @author    Emmanuel Dyan
+ * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package edyan/neuralyzer
+ * @package   edyan/neuralyzer
  *
- * @license GNU General Public License v2.0
+ * @license   GNU General Public License v2.0
  *
- * @link https://github.com/edyan/neuralyzer
+ * @link      https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Configuration;
@@ -89,6 +89,7 @@ class Reader
      * Get config values for an entity
      *
      * @param  string $entity
+     *
      * @throws \InvalidArgumentException
      * @return array            Config Values
      */
@@ -97,17 +98,18 @@ class Reader
         if (!array_key_exists($entity, $this->configValues['entities'])) {
             throw new \InvalidArgumentException("$entity is not set in config");
         }
+
         return $this->configValues['entities'][$entity];
     }
 
     /**
-     * Return the list of pre queries
+     * Return the list of pre actions
      *
      * @return array
      */
-    public function getPreQueries(): array
+    public function getPreActions(): array
     {
-        return $this->configValues['pre_queries'];
+        return $this->configValues['pre_actions'];
     }
 
     /**
@@ -121,13 +123,13 @@ class Reader
     }
 
     /**
-     * Return the list of post queries
+     * Return the list of post actions
      *
      * @return array
      */
-    public function getPostQueries(): array
+    public function getPostActions(): array
     {
-        return $this->configValues['post_queries'];
+        return $this->configValues['post_actions'];
     }
 
     /**
