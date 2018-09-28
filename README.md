@@ -353,6 +353,24 @@ config:
                     params:               []
 ```
 
+## Custom application logic
+
+When using custom doctrine types doctrine will produce an error that the type is not know. This can be solved by providing a bootstrap file to register the custom doctrine type.
+
+bootstrap.php
+```php
+<?php
+
+require_once '../vendor/autoload.php';
+
+\Doctrine\DBAL\Types\Type::addType('custom_type', 'Namespace\Of\The\Custom\Type');
+```
+
+Then provide the bootstrap file to the run command:
+
+```bash
+bin/neuralyzer run --db test_db -u root -p root -b bootstrap.php
+```
 
 ## Development
 Neuralyzer uses [Robo](https://robo.li) to run its tests (via Docker) and build its phar.
