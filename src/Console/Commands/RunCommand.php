@@ -20,6 +20,7 @@ namespace Edyan\Neuralyzer\Console\Commands;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
+use Edyan\Neuralyzer\Utils\FileLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -154,18 +155,30 @@ class RunCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Set the mode : batch or queries',
                 'batch'
-            );
+            )->addOption(
+                'bootstrap',
+                'b',
+                InputOption::VALUE_REQUIRED,
+                'Provide a bootstrap file to load a custom setup before executing the command. Format /path/to/bootstrap.php'
+            )
+        ;
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
+     * @param InputInterface  $input   Symfony's Input Class for parameters and options
+     * @param OutputInterface $output  Symfony's Output Class to display infos
      *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralizerException
+     *
+     * @return null|int null or 0 if everything went fine, or an error code
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
+        if (!empty($input->getOption('bootstrap'))) {
+            FileLoader::checkAndLoad($input->getOption('bootstrap'));
+        }
+
         // Throw an exception immediately if we dont have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
@@ -210,8 +223,11 @@ class RunCommand extends Command
         // Get tables
         $table = $input->getOption('table');
         $tables = empty($table) ? $this->reader->getEntities() : [$table];
+        $hasErrors = false;
         foreach ($tables as $table) {
-            $this->anonymizeTable($table);
+            if (!$this->anonymizeTable($table)) {
+                $hasErrors = true;
+            }
         }
 
         // Get memory and execution time information
@@ -221,6 +237,8 @@ class RunCommand extends Command
         $time = ($time > 180 ? round($time / 60, 2).'mins' : "$time sec");
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
+
+        return $hasErrors ? 1 : 0;
     }
 
     /**
@@ -228,13 +246,13 @@ class RunCommand extends Command
      *
      * @param  string $table
      */
-    private function anonymizeTable(string $table): void
+    private function anonymizeTable(string $table): bool
     {
         $total = $this->getTotal($table);
         if ($total === 0) {
             $this->output->writeln("<info>$table is empty</info>");
 
-            return;
+            return false;
         }
 
         $bar = new ProgressBar($this->output, $total);
@@ -251,10 +269,10 @@ class RunCommand extends Command
             );
             // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
-            $msg = "<error>Error anonymizing $table. Message was : ".$e->getMessage()."</error>";
-            $this->output->writeln(PHP_EOL.$msg.PHP_EOL);
+            $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
+            $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
 
-            return;
+            return false;
         }
         // @codeCoverageIgnoreEnd
 
@@ -265,6 +283,8 @@ class RunCommand extends Command
             $this->output->writeln(implode(PHP_EOL, $queries));
             $this->output->writeln(PHP_EOL);
         }
+
+        return true;
     }
 
 

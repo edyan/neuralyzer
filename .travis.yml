@@ -24,6 +24,7 @@ before_install:
   - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then sudo /etc/init.d/postgresql restart; fi"
   # Mysql
   - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS test_db;'; fi"
+  - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e \"SET GLOBAL sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'\"; fi"
 
 before_script:
   - composer install --no-interaction --prefer-source
