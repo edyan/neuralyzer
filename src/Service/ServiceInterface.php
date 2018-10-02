@@ -1,13 +1,11 @@
 <?php
 
-namespace Edyan\Neuralyzer\ExpressionUtils;
+namespace Edyan\Neuralyzer\Service;
 
 /**
- * Interface UtilsInterface
- *
- * @package Edyan\Neuralyzer\Utils
+ * Extend utils available from the symfony langage expression
  */
-interface UtilsInterface
+interface ServiceInterface
 {
     /**
      * Returns the name to use in the neuralyzer.yml file.

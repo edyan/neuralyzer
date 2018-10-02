@@ -1,33 +1,19 @@
-# config/services.yml
 services:
     _defaults:
         autowire: true
         autoconfigure: true
 
+    _instanceof:
+        Symfony\Component\Console\Command\Command:
+            tags: ['console.command']
+        Edyan\Neuralyzer\Service\ServiceInterface:
+            tags: ['app.service']
+
+
+    # Load all files
     Edyan\Neuralyzer\:
-        resource: '../src/*'
+        resource: '../src/{Console,Service}'
 
-    Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer:
-        arguments: [!tagged app.neuralyzer_util]
-        abstract: true
-
-    Edyan\Neuralyzer\Anonymizer\DB:
-        parent: Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer
-        autowire: true
-        autoconfigure: false
-
-    Edyan\Neuralyzer\Console\Commands\RunCommand:
-        tags:
-            - { name: 'console.command' }
-
-    Edyan\Neuralyzer\Console\Commands\ConfigGenerateCommand:
-        tags:
-            - { name: 'console.command' }
-
-    Edyan\Neuralyzer\Console\Commands\ConfigValidateCommand:
-        tags:
-            - { name: 'console.command' }
-
-    Edyan\Neuralyzer\Console\Commands\ConfigExampleCommand:
-        tags:
-            - { name: 'console.command' }
+    # Expression language main service compiled with services below
+    Edyan\Neuralyzer\Utils\Expression:
+        public: false

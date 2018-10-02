@@ -20,6 +20,7 @@ namespace Edyan\Neuralyzer\Console\Commands;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
+use Edyan\Neuralyzer\Utils\Expression;
 use Edyan\Neuralyzer\Utils\FileLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -74,10 +75,12 @@ class RunCommand extends Command
      *
      * @param DB $db
      */
-    public function __construct(DB $db)
+    public function __construct(DB $db, Expression $expression)
     {
         parent::__construct();
 
+print_r($expression->getServices());
+die();
         $this->db = $db;
     }
 
@@ -204,15 +207,13 @@ class RunCommand extends Command
         $this->reader = new Reader($input->getOption('config'));
 
         // Now work on the DB
-        $this->db->initDatabaseConnection(
-            [
-                'driver' => $input->getOption('driver'),
-                'host' => $input->getOption('host'),
-                'dbname' => $input->getOption('db'),
-                'user' => $input->getOption('user'),
-                'password' => $password,
-            ]
-        );
+        $this->db->initDatabaseConnection([
+            'driver' => $input->getOption('driver'),
+            'host' => $input->getOption('host'),
+            'dbname' => $input->getOption('db'),
+            'user' => $input->getOption('user'),
+            'password' => $password,
+        ]);
         $this->db->setConfiguration($this->reader);
         $this->db->setMode($this->input->getOption('mode'));
         $this->db->setPretend($this->input->getOption('pretend'));

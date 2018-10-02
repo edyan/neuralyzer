@@ -1,14 +1,14 @@
 <?php
 
-namespace Edyan\Neuralyzer\ExpressionUtils;
+namespace Edyan\Neuralyzer\Service;
 
 use Doctrine\DBAL\Connection;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
 
 /**
- * Class DatabaseUtil
+ * Class Database to inject in expression language
  */
-class DatabaseUtil implements UtilsInterface
+class Database implements ServiceInterface
 {
     /**
      * @var Connection

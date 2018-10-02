@@ -1,35 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Edyan\Neuralyzer\Faker\Provider;
 
 use Faker\Generator;
 use Faker\Provider\Base;
 
 /**
- * Class UniqueWord
+ * Class UniqueWord.
  */
 class UniqueWord extends Base
 {
-    /** @var int */
-    private $nrOfWordsRequired;
-
-    /** @var string */
-    private $language;
-
-    /** @var array */
+    /**
+     * List of words built.
+     *
+     * @var array
+     */
     protected static $wordList = [];
+
+    /**
+     * Number of words to generate.
+     *
+     * @var int
+     */
+    private $numWords;
+
+    /**
+     * Language to generate words from.
+     *
+     * @var string
+     */
+    private $language;
 
     /**
      * UniqueWord constructor.
      *
      * @param Generator $generator
-     * @param int       $nrOfWordsRequired
+     * @param int       $numWords
      * @param string    $language
      */
-    public function __construct(Generator $generator, int $nrOfWordsRequired = 150, string $language = 'en_US')
+    public function __construct(Generator $generator, int $numWords = 150, string $language = 'en_US')
     {
         parent::__construct($generator);
-        $this->nrOfWordsRequired = $nrOfWordsRequired;
+        $this->numWords = $numWords;
         $this->language = $language;
     }
 
@@ -46,43 +60,48 @@ class UniqueWord extends Base
     }
 
     /**
-     *  Load the current language dictionary with a lot of words to always be able to get a unique value.
+     *  Load the current language dictionary with a lot of words
+     *  to always be able to get a unique value.
      */
     public function loadFullDictionary()
     {
         static $loaded = false;
-        if ($loaded === true) {
-            return;
-        }
-        $numberOfWordsRequired = $this->nrOfWordsRequired * 2; // to cater for multiple loops to ensure uniqueness
-        if (\count(static::$wordList) >= $numberOfWordsRequired) {
+        if (true === $loaded) {
             return;
         }
 
-        $file = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Dictionary'.DIRECTORY_SEPARATOR.$this->language;
+        $numWords = $this->numWords * 2; // to cater for multiple loops to ensure uniqueness
+        if (\count(static::$wordList) >= $numWords) {
+            return;
+        }
+
+        $file = __DIR__.'/../Dictionary/'.$this->language;
         if (!file_exists($file)) {
             $loaded = true;
-
             return;
         }
+
         $fp = fopen($file, 'rb');
-        while (($line = fgets($fp, 4096)) !== false) {
-            if (strpos($line, '%') !== false) {
+        while (false !== ($line = fgets($fp, 4096))) {
+            if (false !== strpos($line, '%')) {
                 continue;
             }
+
             $word = trim($line);
-            if (!\in_array($word, static::$wordList, false)) {
+            if (!in_array($word, static::$wordList, false)) {
                 static::$wordList[] = $word;
             }
-            if (\count(static::$wordList) >= $numberOfWordsRequired) {
+
+            if (count(static::$wordList) >= $numWords) {
                 fclose($fp);
                 $loaded = true;
-
                 return;
             }
         }
+
         fclose($fp);
         $loaded = true;
+
         echo 'Dictionary loaded'.PHP_EOL;
     }
 }

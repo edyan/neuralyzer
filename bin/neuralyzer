@@ -2,39 +2,48 @@
 <?php
 
 use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\ExpressionUtils\UtilsInterface;
+use Edyan\Neuralyzer\Service\ServiceInterface;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
-use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 
 if (PHP_SAPI !== 'cli') {
     echo 'Error: neuralyzer should be invoked via the CLI version of PHP, not the '.PHP_SAPI.' SAPI.'.PHP_EOL;
     exit(1);
 }
 
+$here = __DIR__ . DIRECTORY_SEPARATOR;
 $autoloaderPath = 'phar://neuralyzer.phar/vendor/autoload.php';
 if (!strpos(basename(__FILE__), 'phar')) {
-    if (file_exists(__DIR__.'/vendor/autoload.php')) {
-        $autoloaderPath = __DIR__.'/vendor/autoload.php';
-    } elseif (file_exists(__DIR__.'/../../../autoload.php')) {
-        $autoloaderPath = __DIR__.'/../../../autoload.php';
-    } elseif (file_exists(__DIR__.'/../vendor/autoload.php')) {
-        $autoloaderPath = __DIR__.'/../vendor/autoload.php';
+    if (file_exists($here . 'vendor/autoload.php')) {
+        $autoloaderPath = $here . 'vendor/autoload.php';
+    } elseif (file_exists($here . '../../../autoload.php')) {
+        $autoloaderPath = $here . '../../../autoload.php';
+    } elseif (file_exists($here . '../vendor/autoload.php')) {
+        $autoloaderPath = $here . '../vendor/autoload.php';
     }
 }
-$classLoader = require $autoloaderPath;
+require $autoloaderPath;
 
+// Build a container and load services from it
 $container = new ContainerBuilder();
 $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-$loader->load('../config/services.yml');
-$container->registerForAutoconfiguration(UtilsInterface::class)
-    ->addTag('app.neuralyzer_util');
+$loader->load($here . '../config/services.yml');
+$loader->load($here . '../config/db.yml');
+$container->registerForAutoconfiguration(ServiceInterface::class)
+    ->addTag('app.service');
 $container->addCompilerPass(new AddConsoleCommandPass());
 $container->compile();
 
-$app = new Application('Anonmymization command line', Application::VERSION);
-foreach ($container->getParameter('console.command.ids') as $id) {
-    $app->add($container->get($id));
+##### DEBUG FROM HERE
+print_r($container->getServiceIds());
+print_r($container->findTaggedServiceIds('app.service')); die();
+#####
+
+// Add commands automatically
+$app = new Application('Neuralyzer CLI', Application::VERSION);
+foreach ($container->getParameter('console.command.ids') as $command) {
+    $app->add($container->get($command));
 }
 $app->run();
