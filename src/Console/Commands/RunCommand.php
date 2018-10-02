@@ -157,9 +157,9 @@ class RunCommand extends Command
      * @param InputInterface  $input   Symfony's Input Class for parameters and options
      * @param OutputInterface $output  Symfony's Output Class to display infos
      *
-     * @return void
+     * @return null|int null or 0 if everything went fine, or an error code
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
         if (!empty($input->getOption('bootstrap'))) {
             FileLoader::checkAndLoad($input->getOption('bootstrap'));
@@ -207,8 +207,11 @@ class RunCommand extends Command
         // Get tables
         $table = $input->getOption('table');
         $tables = empty($table) ? $this->reader->getEntities() : [$table];
+        $hasErrors = false;
         foreach ($tables as $table) {
-            $this->anonymizeTable($table);
+            if (!$this->anonymizeTable($table)) {
+                $hasErrors = true;
+            }
         }
 
         // Get memory and execution time information
@@ -218,6 +221,8 @@ class RunCommand extends Command
         $time = ($time > 180 ? round($time / 60, 2) . 'mins' : "$time sec");
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
+
+        return $hasErrors ? 1 : 0;
     }
 
     /**
@@ -225,12 +230,13 @@ class RunCommand extends Command
      *
      * @param  string $table
      */
-    private function anonymizeTable(string $table): void
+    private function anonymizeTable(string $table): bool
     {
         $total = $this->getTotal($table);
         if ($total === 0) {
             $this->output->writeln("<info>$table is empty</info>");
-            return;
+
+            return false;
         }
 
         $bar = new ProgressBar($this->output, $total);
@@ -246,7 +252,8 @@ class RunCommand extends Command
         } catch (\Exception $e) {
             $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
             $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
-            return;
+
+            return false;
         }
         // @codeCoverageIgnoreEnd
 
@@ -257,6 +264,8 @@ class RunCommand extends Command
             $this->output->writeln(implode(PHP_EOL, $queries));
             $this->output->writeln(PHP_EOL);
         }
+
+        return true;
     }
 
 

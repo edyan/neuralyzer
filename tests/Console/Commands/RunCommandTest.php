@@ -140,4 +140,27 @@ class RunCommandTest extends AbstractConfigurationDB
             '--config' => __DIR__ . '/../../_files/config.right.notable.yaml'
         ]);
     }
+
+    public function testExecuteErrorCode()
+    {
+        $this->createPrimary();
+        $application = new Application();
+        $application->add(new Command());
+
+        // We mock the DialogHelper
+        $command = $application->find('run');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            '--driver' => getenv('DB_DRIVER'),
+            '--db' => getenv('DB_NAME'),
+            '--user' => getenv('DB_USER'),
+            '--host' => getenv('DB_HOST'),
+            '--password' => getenv('DB_PASSWORD'),
+            '--config' => __DIR__ . '/../../_files/config.wrongfieldvalue.yaml',
+            '--mode' => 'queries',
+        ]);
+
+        $this->assertSame(1, $commandTester->getStatusCode());
+    }
 }
