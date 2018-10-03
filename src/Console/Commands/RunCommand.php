@@ -43,6 +43,13 @@ class RunCommand extends Command
     private $db;
 
     /**
+     * Expression language object
+     *
+     * @var Expression
+     */
+    private $expression;
+
+    /**
      * Set the command shortcut to be used in configuration
      *
      * @var string
@@ -79,9 +86,8 @@ class RunCommand extends Command
     {
         parent::__construct();
 
-print_r($expression->getServices());
-die();
         $this->db = $db;
+        $this->expression = $expression;
     }
 
 

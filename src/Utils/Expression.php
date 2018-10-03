@@ -7,58 +7,62 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class Expression
 {
+    /**
+     * Container injected by autowiring
+     * @var ContainerInterface
+     */
     private $container;
 
     /**
-     * Create an expression language object and inject all services to it
-     * @param  ContainerInterface $container Container
+     * List of "things" to inject in expressions evaluation
+     * @var array
+     */
+    private $values = [];
+
+    /**
+     * Used for autowiring
+     * @param  ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-    }
-
-    public function getServices()
-    {
-        print_r($this->container->getServiceIds()); die();
-        foreach ($this->container->getParameter('app.service.ids') as $service) {
-            echo $service . PHP_EOL;
-        }
-
-        // getServiceIds
-        // getDefinitions
-        // getExtensions
-        $services = $this->container->getExpressionLanguageProviders();
-
+        $this->configure();
     }
 
     /**
-     * Evaluate an array of expression that would be in the most general case
-     * a list of actions coming from an Anonymiser
+     * Evaluate an expression that would be in the most general case
+     * an action coming from an Anonymization config
      *
-     * @param  array  $expressions List of formulas
+     * @param  string  $expression
      */
-    public function evaluateExpressionUtils(array $expressions)
+    public function evaluate(string $expression)
     {
         $expressionLanguage = new ExpressionLanguage();
 
-        $values = [];
-        /** @var UtilsInterface $expressionUtil */
-        foreach ($this->expressionUtils as $expressionUtil) {
-            $name = $expressionUtil->getName();
+        return $expressionLanguage->evaluate($expression, $this->values);
+    }
 
-            foreach ($expressionUtil->getExtraArguments() as $extraArgument) {
-                if (property_exists($this, $extraArgument)) {
-                    $func = sprintf('get%s', ucfirst($extraArgument));
-                    $expressionUtil->$extraArgument = $this->$func();
-                }
-            }
 
-            $values[$name] = $expressionUtil;
+    /**
+    * Evaluate a list of expression
+    * @param  array  $expressions
+    */
+    public function evaluateExpressions(array $expressions)
+    {
+        foreach ($expressions as $expression) {
+            $this->evaluate($expression);
         }
+    }
 
-        foreach ($actions as $action) {
-            $expressionLanguage->evaluate($action, $values);
+    /**
+     * Configure that service by registering all services in an array
+     */
+    private function configure()
+    {
+        $services = array_keys($this->container->findTaggedServiceIds('app.service'));
+        foreach ($services as $service) {
+            $service = $this->container->get($service);
+            $this->values[$service->getName()] = $service;
         }
     }
 }

@@ -3,16 +3,15 @@ services:
         autowire: true
         autoconfigure: true
 
-    _instanceof:
-        Symfony\Component\Console\Command\Command:
-            tags: ['console.command']
-        Edyan\Neuralyzer\Service\ServiceInterface:
-            tags: ['app.service']
-
-
-    # Load all files
-    Edyan\Neuralyzer\:
-        resource: '../src/{Console,Service}'
+    # Load all Commands
+    Edyan\Neuralyzer\Console\Commands\:
+        resource: '../src/Console/Commands/*'
+        tags: ['console.command']
+    # And all services
+    Edyan\Neuralyzer\Service\:
+        resource: '../src/Service/*'
+        tags: ['app.service']
+        public: true
 
     # Expression language main service compiled with services below
     Edyan\Neuralyzer\Utils\Expression:

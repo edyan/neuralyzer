@@ -31,15 +31,9 @@ $container = new ContainerBuilder();
 $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
 $loader->load($here . '../config/services.yml');
 $loader->load($here . '../config/db.yml');
-$container->registerForAutoconfiguration(ServiceInterface::class)
-    ->addTag('app.service');
 $container->addCompilerPass(new AddConsoleCommandPass());
 $container->compile();
 
-##### DEBUG FROM HERE
-print_r($container->getServiceIds());
-print_r($container->findTaggedServiceIds('app.service')); die();
-#####
 
 // Add commands automatically
 $app = new Application('Neuralyzer CLI', Application::VERSION);
