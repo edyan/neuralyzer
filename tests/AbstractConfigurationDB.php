@@ -3,6 +3,10 @@
 namespace Edyan\Neuralyzer\Tests;
 
 use Doctrine\DBAL\Schema\Schema;
+use Edyan\Neuralyzer\Service\ServiceInterface;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
@@ -131,6 +135,19 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
             'user' => getenv('DB_USER'),
             'password' => getenv('DB_PASSWORD'),
         ];
+    }
+
+    protected function createContainer()
+    {
+        $container = new ContainerBuilder();
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
+        $loader->load(__DIR__ . '/../config/db.yml');
+        $loader->load(__DIR__ . '/../config/services.yml');
+        $loader->load(__DIR__ . '/config/services.yml');
+        $container->registerForAutoconfiguration(ServiceInterface::class)->addTag('app.service');
+        $container->compile();
+
+        return $container;
     }
 
     protected function getDoctrine()

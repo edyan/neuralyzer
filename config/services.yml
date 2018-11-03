@@ -10,10 +10,13 @@ services:
             tags: ['app.service']
 
 
-    # Load all files
-    Edyan\Neuralyzer\:
-        resource: '../src/{Console,Service}'
+    # Load all Console commands
+    Edyan\Neuralyzer\Console\:
+        resource: '../src/Console'
+    # Load all Services
+    Edyan\Neuralyzer\Service\:
+        resource: '../src/Service'
+        public: true
 
     # Expression language main service compiled with services below
-    Edyan\Neuralyzer\Utils\Expression:
-        public: false
+    Edyan\Neuralyzer\Utils\Expression: ~

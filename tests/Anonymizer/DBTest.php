@@ -19,7 +19,8 @@ class DBTest extends AbstractConfigurationDB
     {
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->processEntity($this->tableName);
     }
@@ -30,7 +31,8 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWrongMode()
     {
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setMode('wrong');
     }
 
@@ -44,7 +46,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->processEntity('guestook');
     }
@@ -57,7 +60,8 @@ class DBTest extends AbstractConfigurationDB
     {
         $this->createPrimary();
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->processEntity($this->tableName);
     }
 
@@ -71,7 +75,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.notable.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->processEntity($this->tableName);
     }
@@ -89,7 +94,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->processEntity($this->tableName);
@@ -109,7 +115,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(true);
         $db->setReturnRes(true);
@@ -137,7 +144,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(true);
         $db->setReturnRes(true);
@@ -158,7 +166,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(true);
         $db->setReturnRes(true);
@@ -190,7 +199,8 @@ class DBTest extends AbstractConfigurationDB
         $this->assertInternalType('array', $oldData);
         $this->assertCount(2, $oldData);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setLimit(2);
@@ -236,7 +246,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -254,7 +265,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -268,7 +280,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -315,7 +328,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -362,7 +376,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -396,7 +411,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config.right.deleteall.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setPretend(false);
         $db->setReturnRes(true);
@@ -425,7 +441,8 @@ class DBTest extends AbstractConfigurationDB
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertEmpty($data);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setLimit(20);
         $db->setPretend(false);
@@ -461,7 +478,8 @@ class DBTest extends AbstractConfigurationDB
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
         $this->assertCount(2, $data);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setLimit(20);
         $db->setPretend(false);
@@ -486,7 +504,8 @@ class DBTest extends AbstractConfigurationDB
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 
-        $db = new Db($this->getDbParams());
+        $db = new Db($this->createContainer()->get('Edyan\Neuralyzer\Utils\Expression'));
+        $db->initDatabaseConnection($this->getDbParams());
         $db->setConfiguration($reader);
         $db->setLimit(2);
         $db->setPretend(true);

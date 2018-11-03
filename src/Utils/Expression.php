@@ -18,18 +18,20 @@ class Expression
         $this->container = $container;
     }
 
-    public function getServices()
+    /**
+     * Get available services in container to inject it
+     * @return void
+     */
+    public function getServices(): array
     {
-        print_r($this->container->getServiceIds()); die();
-        foreach ($this->container->getParameter('app.service.ids') as $service) {
-            echo $service . PHP_EOL;
+        $availServices = array_keys($this->container->findTaggedServiceIds('app.service'));
+        $services = [];
+        foreach ($availServices as $availService) {
+            $service = $this->container->get($availService);
+            $services[$service->getName()] = $service;
         }
 
-        // getServiceIds
-        // getDefinitions
-        // getExtensions
-        $services = $this->container->getExpressionLanguageProviders();
-
+        return $services;
     }
 
     /**
@@ -38,27 +40,16 @@ class Expression
      *
      * @param  array  $expressions List of formulas
      */
-    public function evaluateExpressionUtils(array $expressions)
+    public function evaluateExpressions(array $expressions): array
     {
         $expressionLanguage = new ExpressionLanguage();
 
-        $values = [];
-        /** @var UtilsInterface $expressionUtil */
-        foreach ($this->expressionUtils as $expressionUtil) {
-            $name = $expressionUtil->getName();
-
-            foreach ($expressionUtil->getExtraArguments() as $extraArgument) {
-                if (property_exists($this, $extraArgument)) {
-                    $func = sprintf('get%s', ucfirst($extraArgument));
-                    $expressionUtil->$extraArgument = $this->$func();
-                }
-            }
-
-            $values[$name] = $expressionUtil;
+        $services = $this->getServices();
+        $res = [];
+        foreach ($expressions as $expression) {
+            $res[] = $expressionLanguage->evaluate($expression, $services);
         }
 
-        foreach ($actions as $action) {
-            $expressionLanguage->evaluate($action, $values);
-        }
+        return $res;
     }
 }

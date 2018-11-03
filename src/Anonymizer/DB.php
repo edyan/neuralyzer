@@ -244,7 +244,7 @@ class DB extends AbstractAnonymizer
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
-        $this->evaluateExpressionUtils($this->configuration->getPreActions());
+        $this->expressionUtils->evaluateExpressions($this->configuration->getPreActions());
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
@@ -278,7 +278,7 @@ class DB extends AbstractAnonymizer
             $this->loadDataInBatch('update');
         }
 
-        $this->evaluateExpressionUtils($this->configuration->getPostActions());
+        $this->expressionUtils->evaluateExpressions($this->configuration->getPostActions());
     }
 
 

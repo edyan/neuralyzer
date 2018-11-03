@@ -19,6 +19,7 @@ namespace Edyan\Neuralyzer\Anonymizer;
 
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\Utils\Expression;
 
 /**
  * Abstract Anonymizer, that can be implemented as DB Anonymizer for example
@@ -105,6 +106,22 @@ abstract class AbstractAnonymizer
      * @var bool
      */
     protected $returnRes = false;
+
+    /**
+     * Expression language service (dependency)
+     * @var Expression
+     */
+    protected $expressionUtils;
+
+
+    /**
+     * Inject dependency
+     * @param Expression $expression
+     */
+    public function __construct(Expression $expressionUtils)
+    {
+        $this->expressionUtils = $expressionUtils;
+    }
 
     /**
      * Process the entity according to the anonymizer type
