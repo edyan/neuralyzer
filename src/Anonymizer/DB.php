@@ -17,13 +17,10 @@
 
 namespace Edyan\Neuralyzer\Anonymizer;
 
-use Doctrine\DBAL\Configuration as DbalConfiguration;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager as DbalDriverManager;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
-use Edyan\Neuralyzer\Helper\DB as DBHelper;
 use Edyan\Neuralyzer\Utils\CSVWriter;
+use Edyan\Neuralyzer\Utils\Expression;
 use Edyan\Neuralyzer\Utils\DBUtils;
 
 /**
@@ -32,18 +29,11 @@ use Edyan\Neuralyzer\Utils\DBUtils;
 class DB extends AbstractAnonymizer
 {
     /**
-     * Doctrine DB Adapter
+     * Various generic utils
      *
-     * @var Connection
+     * @var Expression
      */
-    private $conn;
-
-    /**
-     * A helper for the current driver
-     *
-     * @var DBHelper\AbstractDBHelper
-     */
-    private $dbHelper;
+    private $expression;
 
     /**
      * Various generic utils
@@ -51,6 +41,13 @@ class DB extends AbstractAnonymizer
      * @var DBUtils
      */
     private $dbUtils;
+
+    /**
+     * Various generic utils
+     *
+     * @var DBHelper
+     */
+    private $dbHelper;
 
     /**
      * Primary Key
@@ -100,36 +97,21 @@ class DB extends AbstractAnonymizer
         'batch' => 'doBatchInsert',
     ];
 
-    /**
-     * @param array $params Parameters to send to Doctrine DB
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public function initDatabaseConnection(array $params)
+    public function __construct(Expression $expression, DBUtils $dbUtils)
     {
-        $dbHelperClass = DBHelper\DriverGuesser::getDBHelper($params['driver']);
-
-        // Set specific options
-        $params['driverOptions'] = $dbHelperClass::getDriverOptions();
-        $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
-        $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
-
-
-        $this->dbUtils = new DBUtils($this->conn);
-        $this->dbHelper = new $dbHelperClass($this->conn);
-        $this->dbHelper->registerCustomTypes();
+        $this->expression = $expression;
+        $this->dbUtils = $dbUtils;
+        $this->dbHelper = $this->dbUtils->getDBHelper();
     }
 
     /**
-     * Get Doctrine Connection
-     *
-     * @return Connection
+     * Returns the dependency
+     * @return DBUtils
      */
-    public function getConn(): Connection
+    public function getDbUtils(): DBUtils
     {
-        return $this->conn;
+        return $this->dbUtils;
     }
-
 
     /**
      * Set the mode for update / insert
@@ -175,8 +157,9 @@ class DB extends AbstractAnonymizer
         $this->queries = [];
 
         // Wrap everything in a transaction
+        $conn = $this->dbUtils->getConn();
         try {
-            $this->conn->beginTransaction();
+            $conn->beginTransaction();
 
             if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
                 $where = $this->getWhereConditionInConfig();
@@ -192,10 +175,10 @@ class DB extends AbstractAnonymizer
                 $this->insertData($callback);
             }
 
-            $this->conn->commit();
+            $conn->commit();
         } catch (\Exception $e) {
-            $this->conn->rollback();
-            $this->conn->close(); // To avoid locks
+            $conn->rollback();
+            $conn->close(); // To avoid locks
 
             throw $e;
         }
@@ -213,7 +196,7 @@ class DB extends AbstractAnonymizer
      */
     private function runDelete(string $where): string
     {
-        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         $queryBuilder = $queryBuilder->delete($this->entity);
         if (!empty($where)) {
             $queryBuilder = $queryBuilder->where($where);
@@ -239,12 +222,12 @@ class DB extends AbstractAnonymizer
      */
     private function updateData($callback = null): void
     {
-        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         if ($this->limit === 0) {
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
-        $this->expressionUtils->evaluateExpressions($this->configuration->getPreActions());
+        $this->expression->evaluateExpressions($this->configuration->getPreActions());
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
@@ -278,7 +261,7 @@ class DB extends AbstractAnonymizer
             $this->loadDataInBatch('update');
         }
 
-        $this->expressionUtils->evaluateExpressions($this->configuration->getPostActions());
+        $this->expression->evaluateExpressions($this->configuration->getPostActions());
     }
 
 
@@ -292,7 +275,7 @@ class DB extends AbstractAnonymizer
     {
         $data = $this->generateFakeData();
 
-        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
             $value = empty($row[$field]) ?
@@ -370,7 +353,7 @@ class DB extends AbstractAnonymizer
     {
         $data = $this->generateFakeData();
 
-        $queryBuilder = $this->conn->createQueryBuilder();
+        $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         $queryBuilder = $queryBuilder->insert($this->entity);
         foreach ($data as $field => $value) {
             $queryBuilder = $queryBuilder->setValue($field, ":$field");

@@ -2,7 +2,6 @@
 
 namespace Edyan\Neuralyzer\Tests\Configuration;
 
-use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Writer;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Guesser;
@@ -20,7 +19,7 @@ class WriterTest extends AbstractConfigurationDB
     public function testGenerateConfNoPrimary()
     {
         $writer = new Writer;
-        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
     /**
@@ -32,7 +31,7 @@ class WriterTest extends AbstractConfigurationDB
         $this->dropTable();
 
         $writer = new Writer;
-        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
     /**
@@ -45,7 +44,7 @@ class WriterTest extends AbstractConfigurationDB
 
         $writer = new Writer;
         $writer->setProtectedCols($this->protectedCols);
-        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
     /**
@@ -58,7 +57,7 @@ class WriterTest extends AbstractConfigurationDB
 
         $writer = new Writer;
         $writer->setIgnoredTables($this->ignoredTables);
-        $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
     public function testGenerateConfDontIgnore()
@@ -68,7 +67,7 @@ class WriterTest extends AbstractConfigurationDB
         $writer = new Writer;
         $writer->setProtectedCols(['.*\..*']);
         $writer->protectCols(false);
-        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $entities = $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
         $this->assertInternalType('array', $entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
@@ -110,7 +109,7 @@ class WriterTest extends AbstractConfigurationDB
         $writer = new Writer;
         $writer->setProtectedCols(['.*\.username']);
         $writer->protectCols(true);
-        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $entities = $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
         $this->assertInternalType('array', $entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
@@ -153,7 +152,7 @@ class WriterTest extends AbstractConfigurationDB
         $writer = new Writer;
         $writer->setProtectedCols(['.*\.username']);
         $writer->protectCols(true);
-        $entities = $writer->generateConfFromDB(new Db($this->getDbParams()), new Guesser);
+        $entities = $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
         // save it
         $writer->save($entities, '/doesntexist/toto');
     }

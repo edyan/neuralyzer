@@ -2,8 +2,6 @@
 
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
-use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -16,11 +14,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     {
         $this->createPrimary();
 
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
@@ -51,11 +46,9 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     {
         $this->createPrimary();
         $this->truncateTable();
-        $application = new Application();
-        $application->add(new Command());
 
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
@@ -91,11 +84,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
         $this->assertNotEmpty($oldData);
         $this->assertCount(2, $oldData);
 
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -142,11 +132,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     public function testExecuteWithLimit()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -167,11 +154,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     public function testExecuteWithLimitOverTotal()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -192,11 +176,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
     public function executeWithLimitInsert($config)
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),

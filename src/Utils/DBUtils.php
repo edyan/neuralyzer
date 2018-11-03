@@ -17,9 +17,12 @@
 
 namespace Edyan\Neuralyzer\Utils;
 
+use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Helper\DB as DBHelper;
 
 /**
  * A few generic methods to help interacting with DB
@@ -27,22 +30,53 @@ use Edyan\Neuralyzer\Exception\NeuralizerException;
 class DBUtils
 {
     /**
-     * Doctrine DBAL Connection
+     * Doctrine DB Adapter
      *
      * @var Connection
      */
     private $conn;
 
     /**
+     * A helper for the current driver
+     *
+     * @var DBHelper\AbstractDBHelper
+     */
+    private $dbHelper;
+
+    /**
      * Set the connection (dependency)
      *
      * @param Connection $conn
      */
-    public function __construct(Connection $conn)
+    public function configure(array $params)
     {
-        $this->conn = $conn;
+        $dbHelperClass = DBHelper\DriverGuesser::getDBHelper($params['driver']);
+
+        // Set specific options
+        $params['driverOptions'] = $dbHelperClass::getDriverOptions();
+        $this->conn = DriverManager::getConnection($params, new DbalConfiguration());
+        $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
+
+        $this->dbHelper = new $dbHelperClass($this->conn);
     }
 
+    public function getDBHelper(): DBHelper\AbstractDBHelper
+    {
+        return $this->dbHelper;
+    }
+
+    /**
+     * Get Doctrine Connection
+     *
+     * @return Connection
+     */
+    public function getConn(): Connection
+    {
+        if (empty($this->conn)) {
+            throw new \RuntimeException('Make sure you have called $dbUtils->configure($params) first');
+        }
+        return $this->conn;
+    }
 
     /**
      * Do a simple count for a table

@@ -2,8 +2,6 @@
 
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
-use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -12,11 +10,8 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
 {
     public function testExecuteWorking()
     {
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:validate');
+        $command = $this->getApplication()->find('config:validate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -32,11 +27,8 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteNotWorking()
     {
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:validate');
+        $command = $this->getApplication()->find('config:validate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -53,11 +45,8 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteFileDoesNotExist()
     {
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:validate');
+        $command = $this->getApplication()->find('config:validate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),

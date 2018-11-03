@@ -2,8 +2,6 @@
 
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
-use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -15,11 +13,8 @@ class RunCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteNoDB()
     {
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -38,11 +33,8 @@ class RunCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteBadMode()
     {
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -71,11 +63,8 @@ class RunCommandTest extends AbstractConfigurationDB
         }
 
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -95,11 +84,8 @@ class RunCommandTest extends AbstractConfigurationDB
     public function testExecuteWrongDriver()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -124,11 +110,8 @@ class RunCommandTest extends AbstractConfigurationDB
         }
 
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -144,11 +127,8 @@ class RunCommandTest extends AbstractConfigurationDB
     public function testExecuteErrorCode()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('run');
+        $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),

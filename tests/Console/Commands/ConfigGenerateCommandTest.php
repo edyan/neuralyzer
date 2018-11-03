@@ -2,8 +2,6 @@
 
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
-use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\Console\Commands\RunCommand as Command;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -16,10 +14,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
      */
     public function testExecuteNoDB()
     {
-        $application = new Application();
-        $application->add(new Command());
-
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -42,11 +37,8 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         $this->expectExceptionMessageRegExp($exceptMsg);
 
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'command' => $command->getName(),
@@ -61,11 +53,8 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     public function testExecuteWorking()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
@@ -109,11 +98,8 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     public function testExecuteProtectTable()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
@@ -139,11 +125,8 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     public function testExecuteProtectField()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())
@@ -183,11 +166,8 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     public function testExecuteProtectId()
     {
         $this->createPrimary();
-        $application = new Application();
-        $application->add(new Command());
-
         // We mock the DialogHelper
-        $command = $application->find('config:generate');
+        $command = $this->getApplication()->find('config:generate');
 
         $helper = $this->createMock('\Symfony\Component\Console\Helper\QuestionHelper');
         $helper->expects($this->any())

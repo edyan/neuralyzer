@@ -3,10 +3,14 @@
 namespace Edyan\Neuralyzer\Tests;
 
 use Doctrine\DBAL\Schema\Schema;
+use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Service\ServiceInterface;
+use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 
 abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
@@ -141,13 +145,46 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     {
         $container = new ContainerBuilder();
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-        $loader->load(__DIR__ . '/../config/db.yml');
         $loader->load(__DIR__ . '/../config/services.yml');
-        $loader->load(__DIR__ . '/config/services.yml');
-        $container->registerForAutoconfiguration(ServiceInterface::class)->addTag('app.service');
+        $container->addCompilerPass(new AddConsoleCommandPass());
         $container->compile();
 
+        // Configure DB Utils, required
+        $dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');
+        $dbUtils->configure([
+            'driver' => getenv('DB_DRIVER'),
+            'user' => getenv('DB_USER'),
+            'password' => getenv('DB_PASSWORD'),
+            'host' => getenv('DB_HOST'),
+            'dbname' => getenv('DB_NAME'),
+        ]);
+
         return $container;
+    }
+
+    protected function getDBUtils(): DBUtils
+    {
+        return $this->createContainer()->get('Edyan\Neuralyzer\Utils\DBUtils');
+    }
+
+    protected function getDB(): Db
+    {
+        $container = $this->createContainer();
+        $expression = $container->get('Edyan\Neuralyzer\Utils\Expression');
+        $dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');
+
+        return new Db($expression, $dbUtils);
+    }
+
+    protected function getApplication(): Application
+    {
+        $container = $this->createContainer();
+        $application = new Application;
+        foreach ($container->getParameter('console.command.ids') as $command) {
+            $application->add($container->get($command));
+        }
+
+        return $application;
     }
 
     protected function getDoctrine()

@@ -20,8 +20,8 @@ namespace Edyan\Neuralyzer\Console\Commands;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
-use Edyan\Neuralyzer\Utils\Expression;
 use Edyan\Neuralyzer\Utils\FileLoader;
+use Edyan\Neuralyzer\Utils\Expression;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -71,19 +71,31 @@ class RunCommand extends Command
     private $reader;
 
     /**
+     * Store the DBUtils Object (autowiring)
+     *
+     * @var DBUtils
+     */
+    private $dbUtils;
+
+    /**
+     * Store the Expression Object (autowiring)
+     *
+     * @var Expression
+     */
+    private $expression;
+
+    /**
      * RunCommand constructor.
      *
-     * @param DB $db
+     * @param Expression $expression
      */
-    public function __construct(DB $db, Expression $expression)
+    public function __construct(DBUtils $dbUtils, Expression $expression)
     {
         parent::__construct();
 
-print_r($expression->getServices());
-die();
-        $this->db = $db;
+        $this->dbUtils = $dbUtils;
+        $this->expression = $expression;
     }
-
 
     /**
      * Configure the command
@@ -206,14 +218,15 @@ die();
         // Anon READER
         $this->reader = new Reader($input->getOption('config'));
 
-        // Now work on the DB
-        $this->db->initDatabaseConnection([
+        $this->dbUtils->configure([
             'driver' => $input->getOption('driver'),
             'host' => $input->getOption('host'),
             'dbname' => $input->getOption('db'),
             'user' => $input->getOption('user'),
             'password' => $password,
         ]);
+
+        $this->db = new DB($this->expression, $this->dbUtils);
         $this->db->setConfiguration($this->reader);
         $this->db->setMode($this->input->getOption('mode'));
         $this->db->setPretend($this->input->getOption('pretend'));
@@ -304,7 +317,7 @@ die();
             return empty($limit) ? 100 : $limit;
         }
 
-        $rows = (new DBUtils($this->db->getConn()))->countResults($table);
+        $rows = $this->dbUtils->countResults($table);
         if (empty($limit)) {
             return $rows;
         }

@@ -17,7 +17,7 @@
 
 namespace Edyan\Neuralyzer\Console\Commands;
 
-use Edyan\Neuralyzer\Anonymizer\DB;
+use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,30 +30,29 @@ use Symfony\Component\Console\Question\Question;
 class ConfigGenerateCommand extends Command
 {
     /**
-     * Store the DB Object
-     *
-     * @var DB
-     */
-    private $db;
-
-    /**
      * Set the command shortcut to be used in configuration
      *
      * @var string
      */
     protected $command = 'config:generate';
 
+    /**
+     * Store the DBUtils Object (autowiring)
+     *
+     * @var DBUtils
+     */
+    private $dbUtils;
 
     /**
      * RunCommand constructor.
      *
-     * @param DB $db
+     * @param DBUtils $dbUtils
      */
-    public function __construct(DB $db)
+    public function __construct(DBUtils $dbUtils)
     {
         parent::__construct();
 
-        $this->db = $db;
+        $this->dbUtils = $dbUtils;
     }
 
     /**
@@ -146,16 +145,14 @@ class ConfigGenerateCommand extends Command
 
         $ignoreFields = $input->getOption('ignore-field');
 
-        // Now work on the DB
-        $this->db->initDatabaseConnection(
-            [
-                'driver' => $input->getOption('driver'),
-                'host' => $input->getOption('host'),
-                'dbname' => $input->getOption('db'),
-                'user' => $input->getOption('user'),
-                'password' => $password,
-            ]
-        );
+
+        $this->dbUtils->configure([
+            'driver' => $input->getOption('driver'),
+            'host' => $input->getOption('host'),
+            'dbname' => $input->getOption('db'),
+            'user' => $input->getOption('user'),
+            'password' => $password,
+        ]);
 
         $writer = new \Edyan\Neuralyzer\Configuration\Writer;
         $writer->protectCols($input->getOption('protect'));
@@ -167,7 +164,7 @@ class ConfigGenerateCommand extends Command
         }
 
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($this->db, new \Edyan\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($this->dbUtils, new \Edyan\Neuralyzer\Guesser);
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to '.$input->getOption('file').'</comment>');

@@ -1,8 +1,0 @@
-# Required to be able to configure DB
-services:
-    Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer:
-        abstract: true
-    Edyan\Neuralyzer\Anonymizer\DB:
-        parent: Edyan\Neuralyzer\Anonymizer\AbstractAnonymizer
-        autowire: true
-        autoconfigure: false

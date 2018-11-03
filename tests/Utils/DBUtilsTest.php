@@ -9,7 +9,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 {
     public function testCount()
     {
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $this->assertSame(2, $utils->countResults('guestbook'));
     }
 
@@ -19,7 +19,7 @@ class DBUtilsTest extends AbstractConfigurationDB
      */
     public function testGetPrimaryKeyError()
     {
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $this->assertSame('id', $utils->getPrimaryKey('guestbook'));
     }
 
@@ -27,7 +27,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     public function testGetPrimaryKeyOK()
     {
         $this->createPrimary();
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $this->assertSame('id', $utils->getPrimaryKey('guestbook'));
     }
 
@@ -35,7 +35,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     public function testGetTableCols()
     {
         $this->createPrimary();
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
         $this->assertInternalType('array', $cols);
 
@@ -100,14 +100,14 @@ class DBUtilsTest extends AbstractConfigurationDB
     */
     public function testAssertTableExistsKO()
     {
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $utils->assertTableExists('does_not_exists');
     }
 
 
     public function testAssertTableExistsOK()
     {
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $utils->assertTableExists('guestbook');
         $this->addToAssertionCount(1);
     }
@@ -116,7 +116,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     public function testGetConditionInteger()
     {
         $this->createPrimary();
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 
         $condition = $utils->getCondition('a_smallint', $cols['a_smallint']);
@@ -131,7 +131,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     public function testGetConditionString()
     {
         $this->createPrimary();
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 
         $condition = $utils->getCondition('username', $cols['username']);
@@ -142,7 +142,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     public function testGetConditionIntegerSigned()
     {
         $this->createPrimary();
-        $utils = new DBUtils($this->getDoctrine());
+        $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 
         $condition = $utils->getCondition('an_integer', $cols['an_integer']);

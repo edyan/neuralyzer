@@ -2,8 +2,8 @@
 
 namespace Edyan\Neuralyzer\Service;
 
-use Doctrine\DBAL\Connection;
 use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Utils\DBUtils;
 
 /**
  * Class Database to inject in expression language
@@ -11,21 +11,28 @@ use Edyan\Neuralyzer\Exception\NeuralizerException;
 class Database implements ServiceInterface
 {
     /**
-     * @var Connection
+     * @var DBUtils
      */
-    public $conn;
+    public $dbUtils;
 
     /**
+     * Used for auto wiring
+     *
+     * @param DBUtils $dbUtils
+     */
+    public function __construct(DBUtils $dbUtils)
+    {
+        $this->dbUtils = $dbUtils;
+    }
+
+    /**
+     * Returns service's name
+     *
      * @return string
      */
     public function getName(): string
     {
         return 'db';
-    }
-
-    public function getExtraArguments(): array
-    {
-        return ['conn'];
     }
 
     /**
@@ -35,8 +42,9 @@ class Database implements ServiceInterface
      */
     public function query(string $sql)
     {
+        $conn = $this->dbUtils->getConn();
         try {
-            $this->conn->query($sql);
+            return $conn->query($sql)->fetchAll();
         } catch (\Exception $e) {
             throw new NeuralizerException($e->getMessage());
         }

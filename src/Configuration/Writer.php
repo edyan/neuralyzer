@@ -16,9 +16,9 @@
 
 namespace Edyan\Neuralyzer\Configuration;
 
-use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
 use Edyan\Neuralyzer\GuesserInterface;
+use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Yaml\Yaml;
 
@@ -65,13 +65,13 @@ class Writer
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param  DB               $db
+     * @param  DBUtils          $dbUtils
      * @param  GuesserInterface $guesser
      * @return array
      */
-    public function generateConfFromDB(DB $db, GuesserInterface $guesser): array
+    public function generateConfFromDB(DBUtils $dbUtils, GuesserInterface $guesser): array
     {
-        $this->conn = $db->getConn();
+        $this->conn = $dbUtils->getConn();
 
         // First step : get the list of tables
         $tables = $this->getTablesList();

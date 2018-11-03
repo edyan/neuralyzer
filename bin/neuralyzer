@@ -30,8 +30,6 @@ require $autoloaderPath;
 $container = new ContainerBuilder();
 $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
 $loader->load($here . '../config/services.yml');
-$loader->load($here . '../config/db.yml');
-$container->registerForAutoconfiguration(ServiceInterface::class)->addTag('app.service');
 $container->addCompilerPass(new AddConsoleCommandPass());
 $container->compile();
 
