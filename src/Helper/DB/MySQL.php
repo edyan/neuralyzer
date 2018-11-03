@@ -34,6 +34,29 @@ class MySQL extends AbstractDBHelper
 
 
     /**
+     * Add a custom enum type
+     * @return void
+     */
+    public function registerCustomTypes(): void
+    {
+        // already registered
+        if (\Doctrine\DBAL\Types\Type::hasType('neuralyzer_enum')) {
+            return;
+        }
+
+        // Else register
+        // Manage specific types such as enum
+        \Doctrine\DBAL\Types\Type::addType(
+            'neuralyzer_enum',
+            'Edyan\Neuralyzer\Doctrine\Type\Enum'
+        );
+        $platform = $this->conn->getDatabasePlatform();
+        $platform->registerDoctrineTypeMapping('enum', 'neuralyzer_enum');
+        $platform->registerDoctrineTypeMapping('bit', 'boolean');
+    }
+
+
+    /**
      * Load Data from a CSV
      * @param  string  $table
      * @param  string  $filename

@@ -114,8 +114,10 @@ class DB extends AbstractAnonymizer
         $this->conn = DbalDriverManager::getConnection($params, new DbalConfiguration());
         $this->conn->setFetchMode(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
 
+
         $this->dbUtils = new DBUtils($this->conn);
         $this->dbHelper = new $dbHelperClass($this->conn);
+        $this->dbHelper->registerCustomTypes();
     }
 
     /**

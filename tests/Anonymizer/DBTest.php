@@ -9,7 +9,7 @@ use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 
 class DBTest extends AbstractConfigurationDB
 {
-    private $i;
+    private $num;
 
     /**
      * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
@@ -164,11 +164,11 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
         // check the callback works
         $db->processEntity($this->tableName, function ($line) {
-            $this->assertGreaterThan($this->i, $line);
-            $this->i = $line;
+            $this->assertGreaterThan($this->num, $line);
+            $this->num = $line;
         });
 
-        $this->assertEquals($this->i, 2);
+        $this->assertEquals($this->num, 2);
     }
 
     public function testWithPrimaryConfRightTableLoadDataCrash()
@@ -201,8 +201,8 @@ class DBTest extends AbstractConfigurationDB
         $exception = false;
         try {
             $db->processEntity($this->tableName, function ($line) {
-                $this->assertGreaterThan($this->i, $line);
-                $this->i = $line;
+                $this->assertGreaterThan($this->num, $line);
+                $this->num = $line;
 
                 if ($line === 2) {
                     $finder = new \Symfony\Component\Finder\Finder;
@@ -494,10 +494,10 @@ class DBTest extends AbstractConfigurationDB
 
         // check the callback works
         $db->processEntity($this->tableName, function ($line) {
-            $this->assertGreaterThan($this->i, $line);
-            $this->i = $line;
+            $this->assertGreaterThan($this->num, $line);
+            $this->num = $line;
         });
 
-        $this->assertEquals($this->i, 2);
+        $this->assertEquals($this->num, 2);
     }
 }

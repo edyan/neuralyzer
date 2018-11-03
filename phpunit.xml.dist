@@ -4,8 +4,7 @@
     colors="true"
     processIsolation="false"
     stopOnError="true"
-    stopOnFailure="true"
-    syntaxCheck="true">
+    stopOnFailure="true">
     <php>
         <env name='DB_DRIVER' value='pdo_mysql'/>
         <env name='DB_USER' value='root'/>

@@ -74,6 +74,14 @@ abstract class AbstractDBHelper
         return '"';
     }
 
+    /**
+     * Register doctrine custom types for driver
+     *
+     * @return void
+     */
+    public function registerCustomTypes(): void
+    {
+    }
 
     /**
      * Load Data from a CSV
