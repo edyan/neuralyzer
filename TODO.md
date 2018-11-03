@@ -6,7 +6,8 @@
 * Set Host / user / password as an Url and not as independent options + Set URL in config overridable by cli
 * Manage foreign keys values by creating a new Faker method : randomId which will run a random SQL Select to the parent table
 * Remove option "delete" in config to prefer a `pre_action` (`db.query()`)
-* Add more tests to get more coverage
+* Add more tests to get more coverage, since the last modifications
+* Add Examples of pre / post actions in doc
 
 
 ## Done
