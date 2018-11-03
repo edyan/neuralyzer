@@ -1,12 +1,9 @@
 #!/usr/bin/env php
 <?php
 
+use Edyan\Neuralyzer\ContainerFactory;
 use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Service\ServiceInterface;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 if (PHP_SAPI !== 'cli') {
     echo 'Error: neuralyzer should be invoked via the CLI version of PHP, not the '.PHP_SAPI.' SAPI.'.PHP_EOL;
@@ -27,11 +24,7 @@ if (!strpos(basename(__FILE__), 'phar')) {
 require $autoloaderPath;
 
 // Build a container and load services from it
-$container = new ContainerBuilder();
-$loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-$loader->load($here . '../config/services.yml');
-$container->addCompilerPass(new AddConsoleCommandPass());
-$container->compile();
+$container = ContainerFactory::createContainer();
 
 // Add commands automatically
 $app = new Application('Neuralyzer CLI', Application::VERSION);

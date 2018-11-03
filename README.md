@@ -87,6 +87,8 @@ entities:
 guesser: Edyan\Neuralyzer\Guesser
 guesser_version: '3.0'
 language: en_US
+pre_actions: {  }
+post_actions: {  }
 ```
 
 You have to modify the file to change its configuration. For example, if you need to remove data
@@ -187,9 +189,13 @@ The writer is helpful to generate a yaml file that contains all tables and field
 
 require_once 'vendor/autoload.php';
 
+// Create a container
+$container = Edyan\Neuralyzer\ContainerFactory::createContainer();
+// Configure DB Utils, required
+$dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');
 // See Doctrine DBAL configuration :
 // https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/configuration.html
-$db = new \Edyan\Neuralyzer\Anonymizer\DB([
+$dbUtils->configure([
     'driver' => 'pdo_mysql',
     'host' => '127.0.0.1',
     'dbname' => 'test_db',
@@ -198,7 +204,7 @@ $db = new \Edyan\Neuralyzer\Anonymizer\DB([
 ]);
 
 $writer = new \Edyan\Neuralyzer\Configuration\Writer;
-$data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
+$data = $writer->generateConfFromDB($dbUtils, new \Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'neuralyzer.yml');
 ```
 
@@ -225,7 +231,7 @@ $writer->setIgnoredTables([
     'email_cache',
 ]);
 // Write the configuration
-$data = $writer->generateConfFromDB($db, new \Edyan\Neuralyzer\Guesser);
+$data = $writer->generateConfFromDB($dbUtils, new \Edyan\Neuralyzer\Guesser);
 $writer->save($data, 'neuralyzer.yml');
 ```
 
@@ -235,6 +241,8 @@ The configuration Reader is the exact opposite of the Writer. Its main job is to
 of the yaml file is correct then to provide methods to access its parameters. Example:
 ```php
 <?php
+require_once 'vendor/autoload.php';
+
 // will throw an exception if it's not valid
 $reader = new Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
 $tables = $reader->getEntities();
@@ -245,15 +253,25 @@ $tables = $reader->getEntities();
 The only anonymizer currently available is the DB one. It expects a PDO and a Configuration Reader objects:
 ```php
 <?php
+
+require_once 'vendor/autoload.php';
+
+// Create a container
+$container = Edyan\Neuralyzer\ContainerFactory::createContainer();
+$expression = $container->get('Edyan\Neuralyzer\Utils\Expression');
+// Configure DB Utils, required
+$dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');
 // See Doctrine DBAL configuration :
 // https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/configuration.html
-$db = new \Edyan\Neuralyzer\Anonymizer\DB([
+$dbUtils->configure([
     'driver' => 'pdo_mysql',
     'host' => '127.0.0.1',
     'dbname' => 'test_db',
     'user' => 'root',
     'password' => 'root',
 ]);
+
+$db = new \Edyan\Neuralyzer\Anonymizer\DB($expression, $dbUtils);
 $db->setConfiguration(
     new \Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml')
 );
@@ -290,28 +308,36 @@ Full Example:
 
 require_once 'vendor/autoload.php';
 
-$reader = new \Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
-$db = new \Edyan\Neuralyzer\Anonymizer\DB([
+// Create a container
+$container = Edyan\Neuralyzer\ContainerFactory::createContainer();
+$expression = $container->get('Edyan\Neuralyzer\Utils\Expression');
+// Configure DB Utils, required
+$dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');
+// See Doctrine DBAL configuration :
+// https://www.doctrine-project.org/projects/doctrine-dbal/en/2.7/reference/configuration.html
+$dbUtils->configure([
     'driver' => 'pdo_mysql',
-    'host' => '127.0.0.1',
+    'host' => 'mysql',
     'dbname' => 'test_db',
     'user' => 'root',
-    'password' => 'root'
+    'password' => 'root',
 ]);
+
+$reader = new \Edyan\Neuralyzer\Configuration\Reader('neuralyzer.yml');
+
+$db = new \Edyan\Neuralyzer\Anonymizer\DB($expression, $dbUtils);
 $db->setConfiguration($reader);
 $db->setPretend(false);
-
-
-$dbUtils = new \Edyan\Neuralyzer\Utils\DBUtils($db->getConn());
 // Get tables
 $tables = $reader->getEntities();
 foreach ($tables as $table) {
     $total = $dbUtils->countResults($table);
 
     if ($total === 0) {
-        $output->writeln("<info>$table is empty</info>");
+        fwrite(STDOUT, "$table is empty" . PHP_EOL);
         continue;
     }
+    fwrite(STDOUT, "$table anonymized" . PHP_EOL);
 
     $db->processEntity($table);
 }
@@ -323,39 +349,56 @@ foreach ($tables as $table) {
 `bin/neuralyzer config:example` provides a default configuration with all parameters explained :
 ```yaml
 config:
+
     # Set the guesser class
     guesser:              Edyan\Neuralyzer\Guesser
+
     # Set the version of the guesser the conf has been written with
     guesser_version:      '3.0'
 
     # Faker's language, make sure all your methods have a translation
     language:             en_US
 
+
+    # The list of expressions language actions to executed before neuralyzing
+    pre_actions:          []
+
     # List all entities, theirs cols and actions
     entities:             # Required, Example: people
+
         # Prototype
         -
+
             # Either "update" or "insert" data
             action:               update
+
             # Should we delete data with what is defined in "delete_where" ?
             delete:               false
+
             # Condition applied in a WHERE if delete is set to "true"
             delete_where:         ~ # Example: '1 = 1'
             cols:
+
                 # Examples:
                 first_name:
                     method:              firstName
                 last_name:
                     method:              lastName
+
                 # Prototype
                 -
                     method:               ~ # Required
                     params:               []
+
+    # The list of expressions language actions to executed after neuralyzing
+    post_actions:         []
+
 ```
 
 ## Custom application logic
 
-When using custom doctrine types doctrine will produce an error that the type is not know. This can be solved by providing a bootstrap file to register the custom doctrine type.
+When using custom doctrine types doctrine will produce an error that the type is not know.
+This can be solved by providing a bootstrap file to register the custom doctrine type.
 
 bootstrap.php
 ```php
@@ -371,6 +414,8 @@ Then provide the bootstrap file to the run command:
 ```bash
 bin/neuralyzer run --db test_db -u root -p root -b bootstrap.php
 ```
+
+
 
 ## Development
 Neuralyzer uses [Robo](https://robo.li) to run its tests (via Docker) and build its phar.

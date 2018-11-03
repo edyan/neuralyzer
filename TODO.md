@@ -4,8 +4,9 @@
 * Make it work with Oracle, Elastic
 * Create CSV without writing in DB
 * Set Host / user / password as an Url and not as independent options + Set URL in config overridable by cli
-* Manager foreign keys values by creating a new Faker method : randomId which will run a random SQL Select to the parent table
-
+* Manage foreign keys values by creating a new Faker method : randomId which will run a random SQL Select to the parent table
+* Remove option "delete" in config to prefer a `pre_action` (`db.query()`)
+* Add more tests to get more coverage
 
 
 ## Done

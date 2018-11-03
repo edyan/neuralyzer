@@ -3,6 +3,7 @@
 namespace Edyan\Neuralyzer\Tests;
 
 use Doctrine\DBAL\Schema\Schema;
+use Edyan\Neuralyzer\ContainerFactory;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Console\Application;
 use Edyan\Neuralyzer\Service\ServiceInterface;
@@ -143,11 +144,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 
     protected function createContainer()
     {
-        $container = new ContainerBuilder();
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-        $loader->load(__DIR__ . '/../config/services.yml');
-        $container->addCompilerPass(new AddConsoleCommandPass());
-        $container->compile();
+        $container = ContainerFactory::createContainer();
 
         // Configure DB Utils, required
         $dbUtils = $container->get('Edyan\Neuralyzer\Utils\DBUtils');

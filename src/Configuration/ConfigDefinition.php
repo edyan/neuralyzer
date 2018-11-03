@@ -114,7 +114,7 @@ class ConfigDefinition implements ConfigurationInterface
                 ->arrayNode('post_actions')
                     ->defaultValue(array())
                     ->normalizeKeys(false)
-                    ->info('The list of expressions language actions to executed before neuralyzing')
+                    ->info('The list of expressions language actions to executed after neuralyzing')
                     ->prototype('scalar')->end()
                 ->end()
             ->end()
