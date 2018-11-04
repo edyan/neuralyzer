@@ -14,6 +14,16 @@ class DBUtilsTest extends AbstractConfigurationDB
     }
 
     /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Make sure you have called $dbUtils->configure($params) first
+     */
+    public function testGetConnWithoutConfiguring()
+    {
+        $utils = new DBUtils;
+        $utils->getConn();
+    }
+
+    /**
      * @expectedException \Edyan\Neuralyzer\Exception\NeuralizerException
      * @expectedExceptionMessage Can't find a primary key for 'guestbook'
      */

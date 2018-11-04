@@ -9,6 +9,8 @@ class BaseTest extends TestCase
 {
     public function testNullValue()
     {
-        $this->assertEmpty(BaseProvider::emptyString());
+        $faker = \Faker\Factory::create();
+        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
+        $this->assertEmpty($faker->emptyString);
     }
 }

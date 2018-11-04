@@ -147,6 +147,7 @@ class RoboFile extends \Robo\Tasks
         return $collection
             ->taskPackPhar('neuralyzer.phar')
                 ->compress()
+                ->addDirectory('src/Faker/Dictionary', 'src/Faker/Dictionary')
                 ->addFile('bin/neuralyzer', 'bin/neuralyzer')
                 ->addFile('config/services.yml', 'config/services.yml')
                 ->addFiles($files)

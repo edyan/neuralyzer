@@ -16,10 +16,12 @@
 
 namespace Edyan\Neuralyzer\Faker\Provider;
 
+use Faker\Provider\Base as BaseProvider;
+
 /**
  * Extends the base provider of faker to add an empty value Generator
  */
-class Base extends \Faker\Provider\Base
+class Base extends BaseProvider
 {
     /**
      * Simply generate an empty string

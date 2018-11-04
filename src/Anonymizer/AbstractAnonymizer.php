@@ -258,6 +258,7 @@ abstract class AbstractAnonymizer
         $this->checkEntityIsInConfig();
         $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
         $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
+        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker));
         $colsInConfig = $this->configEntites[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {

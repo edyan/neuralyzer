@@ -12,8 +12,8 @@ class ContainerFactory
     public static function createContainer()
     {
         $container = new ContainerBuilder();
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
-        $loader->load(__DIR__ . '/../config/services.yml');
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../config'));
+        $loader->load('services.yml');
         $container->addCompilerPass(new AddConsoleCommandPass());
         $container->compile();
 

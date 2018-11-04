@@ -426,7 +426,6 @@ class DB extends AbstractAnonymizer
                 $language = $this->configuration->getConfigValues()['language'];
                 $faker = \Faker\Factory::create($language);
                 $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
-
                 // Check if column should be unique.
                 if ($colProps['method'] === 'uniqueWord') {
                     // Count number of unique words to be taken from the dictionary.

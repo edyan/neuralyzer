@@ -13,7 +13,7 @@ class Database implements ServiceInterface
     /**
      * @var DBUtils
      */
-    public $dbUtils;
+    private $dbUtils;
 
     /**
      * Used for auto wiring
