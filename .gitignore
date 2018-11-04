@@ -5,9 +5,14 @@
 # Composer
 /vendor/
 
-# PHPUnit/Phing
+# PHPUnit/Phing/dev
+/.php_cs.cache
 /phpunit.xml
+/phpunit.*.xml
 /reports/
 
 # Robo
-robo.yml
+/robo.yml
+
+# neuralyzer
+/neuralyzer.yml

@@ -75,7 +75,7 @@ class RoboFile extends \Robo\Tasks
     /**
      * Build an executable phar
      */
-    public function phar()
+    public function phar($opts = ['neuralyzer-version' => 'dev'])
     {
         if ((int)ini_get('phar.readonly') === 1) {
             throw new \RuntimeException(
@@ -114,6 +114,20 @@ class RoboFile extends \Robo\Tasks
             return $preparationResult;
         }
 
+        $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
+        $this->say("Setting version number to {$opts['neuralyzer-version']}");
+        $this->taskReplaceInFile($buildDir . '/src/Console/Application.php')
+             ->from("const VERSION = '$currentVersion';")
+             ->to("const VERSION = '{$opts['neuralyzer-version']}';")
+             ->run();
+
+        $this->say("Force Robo to compress up to 1500 files in a phar");
+        $this->taskReplaceInFile(__DIR__ . '/vendor/consolidation/robo/src/Task/Development/PackPhar.php')
+             ->from('if (count($this->files) > 1000)')
+             ->to('if (count($this->files) > 1500)')
+             ->run();
+
+
         // Decide which files we're going to pack
         $files = \Symfony\Component\Finder\Finder::create()->ignoreVCS(true)
             ->files()
@@ -134,6 +148,7 @@ class RoboFile extends \Robo\Tasks
             ->taskPackPhar('neuralyzer.phar')
                 ->compress()
                 ->addFile('bin/neuralyzer', 'bin/neuralyzer')
+                ->addFile('config/services.yml', 'config/services.yml')
                 ->addFiles($files)
                 ->executable('bin/neuralyzer')
             ->taskFilesystemStack()
@@ -142,7 +157,7 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    public function release()
+    public function release(): void
     {
         $this->stopOnFail(true);
 
@@ -162,13 +177,7 @@ class RoboFile extends \Robo\Tasks
 
         $this->say("Preparing version $version");
 
-        // Patch the right files
-        $this->taskReplaceInFile(__DIR__ . '/src/Console/Application.php')
-             ->from("const VERSION = '$currentVersion';")
-             ->to("const VERSION = '$version';")
-             ->run();
-
-        $this->phar();
+        $this->phar(['neuralyzer-version' => $version]);
 
         // Commit a bump version
         $this->taskGitStack()
@@ -194,7 +203,8 @@ class RoboFile extends \Robo\Tasks
     }
 
 
-    private function setupDocker() : void {
+    private function setupDocker() : void
+    {
         $this->destroyDocker();
 
         if (!in_array($this->dbType, ['mysql', 'pgsql', 'sqlsrv'])) {

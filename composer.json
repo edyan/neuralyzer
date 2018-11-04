@@ -21,6 +21,7 @@
         "symfony/console": "^4",
         "symfony/dependency-injection": "^4",
         "symfony/expression-language": "^4",
+        "symfony/finder": "^4",
         "symfony/stopwatch": "^4",
         "symfony/yaml": "^4"
     },
