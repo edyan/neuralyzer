@@ -97,6 +97,7 @@ class DB extends AbstractAnonymizer
         'batch' => 'doBatchInsert',
     ];
 
+
     public function __construct(Expression $expression, DBUtils $dbUtils)
     {
         $this->expression = $expression;
@@ -117,7 +118,7 @@ class DB extends AbstractAnonymizer
      * Set the mode for update / insert
      *
      * @param string $mode
-     *
+     * @throws NeuralizerException
      * @return DB
      */
     public function setMode(string $mode): DB
@@ -142,7 +143,7 @@ class DB extends AbstractAnonymizer
      *
      * @param string        $entity
      * @param callable|null $callback
-     *
+     * @throws \Exception
      * @return void|array
      */
     public function processEntity(string $entity, callable $callback = null): array
@@ -171,7 +172,7 @@ class DB extends AbstractAnonymizer
 
             $conn->commit();
         } catch (\Exception $e) {
-            $conn->rollback();
+            $conn->rollBack();
             $conn->close(); // To avoid locks
 
             throw $e;
@@ -212,7 +213,7 @@ class DB extends AbstractAnonymizer
                 // Call the right method according to the mode
                 $this->{$this->updateMode[$this->mode]}($row);
 
-                if (!is_null($callback)) {
+                if ($callback !== null) {
                     $callback(++$num);
                 }
                 // Have to exit now as we have reached the max
@@ -297,6 +298,8 @@ class DB extends AbstractAnonymizer
      */
     private function insertData($callback = null): void
     {
+        $this->expression->evaluateExpressions($this->configuration->getPreActions());
+
         for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
             // Call the right method according to the mode
             $this->{$this->insertMode[$this->mode]}($rowNum);
@@ -310,6 +313,8 @@ class DB extends AbstractAnonymizer
         if ($this->mode === 'batch') {
             $this->loadDataInBatch('insert');
         }
+
+        $this->expression->evaluateExpressions($this->configuration->getPostActions());
     }
 
 
@@ -389,25 +394,8 @@ class DB extends AbstractAnonymizer
         foreach ($colsInConfig as $colName => $colProps) {
             $this->checkColIsInEntity($colName);
 
-            // Check if faker is already used for this column name, so we can use the same faker.
-            if (!isset($this->fakers[$colName][$colProps['method']])) {
-                $language = $this->configuration->getConfigValues()['language'];
-                $faker = \Faker\Factory::create($language);
-                $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
-                // Check if column should be unique.
-                if ($colProps['method'] === 'uniqueWord') {
-                    // Count number of unique words to be taken from the dictionary.
-                    $count = $this->dbUtils->countResults($this->entity);
-                    $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker, $count, $language));
-                    $faker = $faker->unique(true);
-                }
-                $this->fakers[$colName][$colProps['method']] = $faker;
-            }
-
-            $faker = $this->fakers[$colName][$colProps['method']];
-
             $data = \call_user_func_array(
-                [$faker, $colProps['method']],
+                [$this->faker, $colProps['method']],
                 $colProps['params']
             );
 

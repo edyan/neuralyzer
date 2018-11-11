@@ -59,11 +59,15 @@ class UniqueWord extends Base
             $file = __DIR__ . '/../Dictionary/en_US';
         }
 
-        self::$dictionary = explode(PHP_EOL, file_get_contents($file));
+        self::$dictionary = array_filter(explode(PHP_EOL, file_get_contents($file)));
     }
 
     private function extractARowFromDictionnary(): string
     {
+        if (empty(self::$dictionary)) {
+            throw new \RuntimeException("Couldn't generate more unique words ... consider using another method");
+        }
+
         $key = array_rand(self::$dictionary);
         $row = self::$dictionary[$key];
         unset(self::$dictionary[$key]);

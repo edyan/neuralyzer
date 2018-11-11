@@ -79,9 +79,6 @@ class DBTest extends AbstractConfigurationDB
     {
         $this->expectException("Edyan\Neuralyzer\Exception\NeuralizerException");
         $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
-        if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
-            $this->expectException("\Doctrine\DBAL\DBALException");
-        }
 
         $this->createPrimary();
 

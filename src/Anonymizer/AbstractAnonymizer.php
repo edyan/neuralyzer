@@ -103,20 +103,10 @@ abstract class AbstractAnonymizer
     protected $returnRes = false;
 
     /**
-     * Expression language service (dependency)
-     * @var Expression
+     * @var \Faker\Generator
      */
-    protected $expressionUtils;
+    protected $faker;
 
-
-    /**
-     * Inject dependency
-     * @param Expression $expression
-     */
-    public function __construct(Expression $expressionUtils)
-    {
-        $this->expressionUtils = $expressionUtils;
-    }
 
     /**
      * Process the entity according to the anonymizer type
@@ -141,6 +131,7 @@ abstract class AbstractAnonymizer
     {
         $this->configuration = $configuration;
         $this->configEntites = $configuration->getConfigValues()['entities'];
+        $this->initFaker();
     }
 
 
@@ -229,9 +220,10 @@ abstract class AbstractAnonymizer
     protected function generateFakeData(): array
     {
         $this->checkEntityIsInConfig();
-        $faker = \Faker\Factory::create($this->configuration->getConfigValues()['language']);
+        $language = $this->configuration->getConfigValues()['language'];
+        $faker = \Faker\Factory::create($language);
         $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
-        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker));
+        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker, $language));
         $colsInConfig = $this->configEntites[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
@@ -287,5 +279,16 @@ abstract class AbstractAnonymizer
         if (!array_key_exists($colName, $this->entityCols)) {
             throw new NeuralizerConfigurationException("Col $colName does not exist");
         }
+    }
+
+    /**
+     * Init Faker and add additional methods
+     */
+    protected function initFaker(): void
+    {
+        $language = $this->configuration->getConfigValues()['language'];
+        $this->faker = \Faker\Factory::create($language);
+        $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($this->faker));
+        $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($this->faker, $language));
     }
 }

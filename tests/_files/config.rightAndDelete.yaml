@@ -15,3 +15,4 @@ entities:
             an_integer: { method: randomNumber, params: [9] }
             a_smallint: { method: randomNumber, params: [4] }
             a_float: { method: randomFloat, params: [2, 0, 999] }
+        delete: true # For depreciation notice
