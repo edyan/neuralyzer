@@ -5,7 +5,7 @@ entities:
         action: update
         cols:
             content: { method: sentence, params: [20] }
-            username: { method: sentence, params: ['32'] }
+            username: { method: uniqueWord }
             created: { method: date, params: [Y-m-d] }
             a_bigint: { method: randomNumber, params: [9] }
             a_datetime: { method: date, params: [Y-m-d H:i:s] }

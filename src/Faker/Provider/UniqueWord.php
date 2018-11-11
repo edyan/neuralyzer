@@ -13,95 +13,61 @@ use Faker\Provider\Base;
 class UniqueWord extends Base
 {
     /**
-     * List of words built.
-     *
-     * @var array
-     */
-    protected static $wordList = [];
-
-    /**
-     * Number of words to generate.
-     *
-     * @var int
-     */
-    private $numWords;
-
-    /**
      * Language to generate words from.
      *
      * @var string
      */
     private $language;
 
+
+    private static $dictionary = [];
+
     /**
      * UniqueWord constructor.
      *
      * @param Generator $generator
-     * @param int       $numWords
      * @param string    $language
      */
-    public function __construct(Generator $generator, int $numWords = 150, string $language = 'en_US')
+    public function __construct(Generator $generator, string $language = 'en_US')
     {
         parent::__construct($generator);
-        $this->numWords = $numWords;
         $this->language = $language;
     }
 
     /**
-     * Get a random element from the loaded dictionary.
+     * If not already done, load the file in memory as an array, then shuffle it
      *
      * @return string
      */
-    public function uniqueWord()
+    public function uniqueWord(): string
     {
-        $this->loadFullDictionary();
+        if (empty(self::$dictionary)) {
+            $this->loadFullDictionary();
+        }
 
-        return static::randomElement(static::$wordList);
+        return $this->extractARowFromDictionnary();
     }
 
     /**
      *  Load the current language dictionary with a lot of words
      *  to always be able to get a unique value.
      */
-    public function loadFullDictionary()
+    private function loadFullDictionary(): void
     {
-        static $loaded = false;
-        if (true === $loaded) {
-            return;
-        }
-
-        $numWords = $this->numWords * 2; // to cater for multiple loops to ensure uniqueness
-        if (\count(static::$wordList) >= $numWords) {
-            return;
-        }
-
-        $file = __DIR__.'/../Dictionary/'.$this->language;
+        $file = __DIR__ . '/../Dictionary/' . $this->language;
         if (!file_exists($file)) {
-            $loaded = true;
-            return;
+            $file = __DIR__ . '/../Dictionary/en_US';
         }
 
-        $fp = fopen($file, 'rb');
-        while (false !== ($line = fgets($fp, 4096))) {
-            if (false !== strpos($line, '%')) {
-                continue;
-            }
+        self::$dictionary = explode(PHP_EOL, file_get_contents($file));
+    }
 
-            $word = trim($line);
-            if (!in_array($word, static::$wordList, false)) {
-                static::$wordList[] = $word;
-            }
+    private function extractARowFromDictionnary(): string
+    {
+        $key = array_rand(self::$dictionary);
+        $row = self::$dictionary[$key];
+        unset(self::$dictionary[$key]);
 
-            if (count(static::$wordList) >= $numWords) {
-                fclose($fp);
-                $loaded = true;
-                return;
-            }
-        }
-
-        fclose($fp);
-        $loaded = true;
-
-        echo 'Dictionary loaded'.PHP_EOL;
+        return $row;
     }
 }
