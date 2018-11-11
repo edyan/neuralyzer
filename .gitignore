@@ -1,6 +1,9 @@
 # Editor files.
 .*.sw*
 *~
+/*.iml
+/*.ipr
+/*.iws
 
 # Composer
 /vendor/

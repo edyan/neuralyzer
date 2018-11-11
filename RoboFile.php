@@ -129,10 +129,11 @@ class RoboFile extends \Robo\Tasks
 
 
         // Decide which files we're going to pack
-        $files = \Symfony\Component\Finder\Finder::create()->ignoreVCS(true)
+        $files = \Symfony\Component\Finder\Finder::create()
+            ->ignoreVCS(true)
             ->files()
             ->name('*.php')
-            ->name('*.exe') // for 1symfony/console/Resources/bin/hiddeninput.exe
+            ->name('*.exe') // for symfony/console/Resources/bin/hiddeninput.exe
             ->path('src')
             ->path('vendor')
             ->notPath('docs')
@@ -143,14 +144,21 @@ class RoboFile extends \Robo\Tasks
             //->notPath('sr_Latn_RS')
             ->in(is_dir($buildDir) ? $buildDir : __DIR__);
 
+        $fakerLang = \Symfony\Component\Finder\Finder::create()
+            ->ignoreVCS(true)
+            ->files()
+            ->name('*')
+            ->path('src/Faker/Dictionary')
+            ->in(is_dir($buildDir) ? $buildDir : __DIR__);
+
         // Build the phar
         return $collection
             ->taskPackPhar('neuralyzer.phar')
                 ->compress()
-                ->addDirectory('src/Faker/Dictionary', 'src/Faker/Dictionary')
                 ->addFile('bin/neuralyzer', 'bin/neuralyzer')
                 ->addFile('config/services.yml', 'config/services.yml')
                 ->addFiles($files)
+                ->addFiles($fakerLang)
                 ->executable('bin/neuralyzer')
             ->taskFilesystemStack()
                 ->chmod(__DIR__ . '/neuralyzer.phar', 0755)
