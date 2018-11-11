@@ -7,7 +7,6 @@
 * Manage foreign keys values by creating a new Faker method : randomId which will run a random SQL Select to the parent table
 * Remove option "delete" in config to prefer a `pre_action` (`db.query()`)
 * Add more tests to get more coverage, since the last modifications
-* Add Examples of pre / post actions in doc
 
 
 ## Done
@@ -15,3 +14,5 @@
 * ~~Make CircleCI Work~~ Done
 * ~~Implement batch processing with load data~~ Done and working pretty well
 * ~~CircleCI should test with sqlserver to have something else than mysql in my CIs !~~
+* ~~Add Examples of pre / post actions in doc~~
+

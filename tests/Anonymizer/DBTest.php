@@ -77,8 +77,8 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfWrongWhere()
     {
-        $this->expectException("Doctrine\DBAL\Exception\InvalidFieldNameException");
-        $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE youzer = 'joe'.*|");
+        $this->expectException("Edyan\Neuralyzer\Exception\NeuralizerException");
+        $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectException("\Doctrine\DBAL\DBALException");
         }
@@ -123,7 +123,10 @@ class DBTest extends AbstractConfigurationDB
         $this->assertDataSetsEqual($expectedDataSet, $queryTable);
     }
 
-
+/**
+ * MAYBE WE COULD GET THAT LATER
+ * But for now we have to remove it as the pretend mode won't work with pre and post actions
+ * How to guess what has to be ignored or not in pretend as all queries could be different !
     public function testWithPrimaryConfRightTableDeletePretendPlusResult()
     {
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
@@ -143,12 +146,13 @@ class DBTest extends AbstractConfigurationDB
         // Check I have the queries returned
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
-        $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
+        $this->assertStringStartsWith('UPDATE guestbook SET username', $queries[0]);
         // check no data changed
         $baseDataSet = $this->createFlatXmlDataSet(__DIR__ . '/../_files/dataset.xml');
         $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
         $this->assertDataSetsEqual($baseDataSet, $queryTable);
     }
+*/
 
     public function testWithPrimaryConfRightTableWithCallback()
     {
@@ -368,7 +372,7 @@ class DBTest extends AbstractConfigurationDB
         $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
         $this->assertNotEmpty($queries);
-        $this->assertStringStartsWith('DELETE FROM guestbook WHERE', $queries[0]);
+        $this->assertStringStartsWith('UPDATE guestbook SET username', $queries[0]);
 
         // check that I have only one record remaining
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
@@ -401,8 +405,7 @@ class DBTest extends AbstractConfigurationDB
 
         $queries = $db->processEntity($this->tableName);
         $this->assertInternalType('array', $queries);
-        $this->assertNotEmpty($queries);
-        $this->assertEquals('DELETE FROM guestbook', $queries[0]);
+        $this->assertEmpty($queries);
 
         // check that I have only one record remaining
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();

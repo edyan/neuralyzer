@@ -1,9 +1,10 @@
 guesser_version: '3.0'
 language: en_US
+pre_actions:
+    - db.query("DELETE FROM guestbook")
 entities:
     guestbook:
         action: insert
-        delete: true
         cols:
             content: { method: sentence, params: [20] }
             username: { method: sentence, params: ['32'] }

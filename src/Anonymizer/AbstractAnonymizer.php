@@ -30,19 +30,14 @@ use Edyan\Neuralyzer\Utils\Expression;
 abstract class AbstractAnonymizer
 {
     /**
-     * Truncate table
-     */
-    const TRUNCATE_TABLE = 1;
-
-    /**
      * Update data into table
      */
-    const UPDATE_TABLE = 2;
+    public const UPDATE_TABLE = 1;
 
     /**
      * Insert data into table
      */
-    const INSERT_TABLE = 4;
+    public const INSERT_TABLE = 2;
 
     /**
      * Set the batch size for updates
@@ -211,10 +206,6 @@ abstract class AbstractAnonymizer
         $entityConfig = $this->configEntites[$this->entity];
 
         $actions = 0;
-        if (array_key_exists('delete', $entityConfig) && $entityConfig['delete'] === true) {
-            $actions |= self::TRUNCATE_TABLE;
-        }
-
         if (array_key_exists('cols', $entityConfig)) {
             switch ($entityConfig['action']) {
                 case 'update':
@@ -227,24 +218,6 @@ abstract class AbstractAnonymizer
         }
 
         return $actions;
-    }
-
-
-    /**
-     * Returns the 'delete_where' parameter for an entity in config (or empty)
-     *
-     * @return string
-     * @throws NeuralizerConfigurationException
-     */
-    public function getWhereConditionInConfig(): string
-    {
-        $this->checkEntityIsInConfig();
-
-        if (!array_key_exists('delete_where', $this->configEntites[$this->entity])) {
-            return '';
-        }
-
-        return $this->configEntites[$this->entity]['delete_where'];
     }
 
     /**

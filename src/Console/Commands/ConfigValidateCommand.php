@@ -69,13 +69,19 @@ class ConfigValidateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
         try {
-            new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('file'));
+            $reader = new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('file'));
         } catch (\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException $e) {
             throw new \Edyan\Neuralyzer\Exception\NeuralizerConfigurationException($e->getMessage());
         } catch (\Symfony\Component\Config\Exception\FileLocatorFileNotFoundException $e) {
             throw new \Edyan\Neuralyzer\Exception\NeuralizerException($e->getMessage());
         }
 
-        $output->writeLn("<info>Your config is valid !</info>");
+        if (!empty($reader->getDepreciationMessages())) {
+            foreach($reader->getDepreciationMessages() as $message) {
+                $output->writeln("<comment>WARNING : $message</comment>");
+            }
+        }
+
+        $output->writeln("<info>Your config is valid !</info>");
     }
 }

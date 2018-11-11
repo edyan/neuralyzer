@@ -39,12 +39,20 @@ class Database implements ServiceInterface
      * @param string $sql
      *
      * @throws NeuralizerException
+     *
+     * @return array
      */
-    public function query(string $sql)
+    public function query(string $sql): ?array
     {
         $conn = $this->dbUtils->getConn();
+        $sql = trim($sql);
         try {
-            return $conn->query($sql)->fetchAll();
+            $res = $conn->query($sql);
+            if (strpos($sql, 'SELECT') === 0) {
+                return $res->fetchAll();
+            }
+
+            return null;
         } catch (\Exception $e) {
             throw new NeuralizerException($e->getMessage());
         }

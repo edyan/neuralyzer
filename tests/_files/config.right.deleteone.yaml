@@ -1,8 +1,8 @@
 guesser_version: 1.0.0b
+pre_actions:
+  - db.query("DELETE FROM guestbook WHERE username = 'joe'")
 entities:
     guestbook:
-        delete: true
-        delete_where: "username = 'joe'"
         cols:
             username: { method: sentence, params: [8] }
             content: { method: sentence, params: [20] }

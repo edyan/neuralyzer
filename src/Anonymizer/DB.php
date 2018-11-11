@@ -161,12 +161,6 @@ class DB extends AbstractAnonymizer
         try {
             $conn->beginTransaction();
 
-            if ($actionsOnThatEntity & self::TRUNCATE_TABLE) {
-                $where = $this->getWhereConditionInConfig();
-                $query = $this->runDelete($where);
-                ($this->returnRes === true ? array_push($this->queries, $query) : '');
-            }
-
             if ($actionsOnThatEntity & self::UPDATE_TABLE) {
                 $this->updateData($callback);
             }
@@ -184,32 +178,6 @@ class DB extends AbstractAnonymizer
         }
 
         return $this->queries;
-    }
-
-
-    /**
-     * Execute the Delete with Doctrine Query Builder
-     *
-     * @param string $where
-     *
-     * @return string
-     */
-    private function runDelete(string $where): string
-    {
-        $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
-        $queryBuilder = $queryBuilder->delete($this->entity);
-        if (!empty($where)) {
-            $queryBuilder = $queryBuilder->where($where);
-        }
-        $sql = $queryBuilder->getSQL();
-
-        if ($this->pretend === true) {
-            return $sql;
-        }
-
-        $queryBuilder->execute();
-
-        return $sql;
     }
 
 

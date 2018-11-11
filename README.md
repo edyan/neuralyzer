@@ -20,12 +20,26 @@ It uses [Doctrine DBAL](https://github.com/doctrine/dbal) to abstract interactio
 databases. It's then supposed to be able to work with any database type.
 Currently it works (tested extensively) with MySQL, PostgreSQL and SQLServer.
 
-Neuralyzer has an option to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
-before launching the anonymization (see the config parameters `delete` and `delete_from`).
+~~Neuralyzer has an option to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
+before launching the anonymization (see the config parameters `delete` and `delete_where`).~~ 
+
+Neuralyzer had an option to clean tables but it's now managed by pre and post actions : 
+```yaml
+pre_actions: 
+    - db.query("DELETE FROM books")
+entities:
+    books:
+        cols:
+            title: { method: sentence, params: [8] }
+        action: update
+post_actions:
+    - db.query("DELETE FROM books WHERE title LIKE '%war%'")
+
+```
 
 
-## Installation as a library
-```bash
+## Installation as a library~
+```bash~
 composer require edyan/neuralyzer
 ```
 
@@ -77,13 +91,11 @@ entities:
             first_name: { method: firstName }
             last_name: { method: lastName }
         action: update # Will update existing data, "insert" would create new data
-        delete: false
     books:
         cols:
             name: { method: sentence, params: [8] }
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
         action: update
-        delete: false
 guesser: Edyan\Neuralyzer\Guesser
 guesser_version: '3.0'
 language: en_US
@@ -103,19 +115,21 @@ language: fr_FR
 
 **INFO**: You can also use delete in standalone, without anonymizing anything. That will delete everything in books:
 ```yaml
+pre_actions: 
+    - db.query("DELETE FROM books")
 entities:
     authors:
         cols:
             first_name: { method: firstName }
             last_name: { method: lastName }
         action: update
-    books:
-        delete: true
 ```
 
 If you wanted to delete everything + insert new lines :
 ```yaml
 guesser_version: '3.0'
+pre_actions: 
+    - db.query("DELETE FROM books")
 entities:
     authors:
         cols:
@@ -123,7 +137,6 @@ entities:
             last_name: { method: lastName }
         action: update
     books:
-        delete: true
         cols:
             name: { method: sentence, params: [8] }
         action: insert
@@ -345,6 +358,17 @@ foreach ($tables as $table) {
 ```
 
 
+## Pre and Post Actions
+You can set an array of `pre_actions` and `post_actions` that will be 
+executed *before* and *after* neuralyzer starts to anonymize entities.
+
+These actions are actually symfony expressions (see [Symfony Expression Language](https://)) 
+that rely on *Services*. These Services are loaded from the `Service/` directory.
+
+For now there is only one service : `Database` that contains a method `query` usable like that : 
+`db.query("DELETE FROM table")`.
+
+
 ## Configuration Reference
 `bin/neuralyzer config:example` provides a default configuration with all parameters explained :
 ```yaml
@@ -361,6 +385,7 @@ config:
 
 
     # The list of expressions language actions to executed before neuralyzing
+    # Be careful that "pretend" has no effect here.
     pre_actions:          []
 
     # List all entities, theirs cols and actions
@@ -372,11 +397,7 @@ config:
             # Either "update" or "insert" data
             action:               update
 
-            # Should we delete data with what is defined in "delete_where" ?
-            delete:               false
-
-            # Condition applied in a WHERE if delete is set to "true"
-            delete_where:         ~ # Example: '1 = 1'
+            # List of cols and methods
             cols:
 
                 # Examples:

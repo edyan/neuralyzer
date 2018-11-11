@@ -217,6 +217,11 @@ class RunCommand extends Command
 
         // Anon READER
         $this->reader = new Reader($input->getOption('config'));
+        if (!empty($this->reader->getDepreciationMessages())) {
+            foreach($this->reader->getDepreciationMessages() as $message) {
+                $output->writeLn("<comment>WARNING : $message</comment>");
+            }
+        }
 
         $this->dbUtils->configure([
             'driver' => $input->getOption('driver'),

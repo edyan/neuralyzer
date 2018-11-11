@@ -30,31 +30,31 @@ class ExpressionTest extends AbstractConfigurationDB
     public function testEvaluateDBQuery()
     {
         $queries = [
-            'mysql' => 'SHOW DATABASES',
-            'pdo_mysql' => 'SHOW DATABASES',
+            'mysql' => "SELECT '".getenv('DB_NAME')."' AS db_name",
+            'pdo_mysql' => "SELECT '".getenv('DB_NAME')."' AS db_name",
             'pdo_pgsql' => 'SELECT datname FROM pg_database',
             'pdo_sqlsrv' => 'SELECT name FROM master.sys.databases',
         ];
         $query = $queries[getenv('DB_DRIVER')];
 
         $indexes = [
-            'mysql' => 'Database',
-            'pdo_mysql' => 'Database',
+            'mysql' => 'db_name',
+            'pdo_mysql' => 'db_name',
             'pdo_pgsql' => 'datname',
             'pdo_sqlsrv' => 'name',
         ];
         $index = $indexes[getenv('DB_DRIVER')];
 
         $expression = new Expression($this->createContainer());
-        $databases = $expression->evaluateExpression("db.query('{$query}')");
-        $this->assertInternalType('array', $databases);
+        $rows = $expression->evaluateExpression("db.query(\"{$query}\")");
+        $this->assertInternalType('array', $rows);
 
-        $hasInformationSchema = false;
-        foreach ($databases as $database) {
-            if ($database[$index] === getenv('DB_NAME')) {
-                $hasInformationSchema = true;
+        $worked = false;
+        foreach ($rows as $row) {
+            if ($row[$index] === getenv('DB_NAME')) {
+                $worked = true;
             }
         }
-        $this->assertTrue($hasInformationSchema);
+        $this->assertTrue($worked);
     }
 }

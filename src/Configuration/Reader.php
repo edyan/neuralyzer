@@ -27,33 +27,18 @@ use Symfony\Component\Yaml\Yaml;
 class Reader
 {
     /**
-     * Configuration file name
-     *
-     * @var string
-     */
-    protected $configFileName;
-
-    /**
-     * Define the directories to search in. Only the first file found is taken into account
-     * Can be defined via the constructor
-     *
-     * @var array
-     */
-    protected $configDirectories;
-
-    /**
-     * Configuration file name
-     *
-     * @var string|array
-     */
-    protected $configFilePath;
-
-    /**
      * Stores the config values
      *
      * @var array
      */
     protected $configValues = [];
+
+    /**
+     * Stores the depreciation messages
+     *
+     * @var array
+     */
+    private $depreciationMessages = [];
 
 
     /**
@@ -64,13 +49,11 @@ class Reader
      */
     public function __construct(string $configFileName, array $configDirectories = ['.'])
     {
-        $this->configFileName = $configFileName;
-        $this->configDirectories = $configDirectories;
-
-        $locator = new FileLocator($this->configDirectories);
-        $this->configFilePath = $locator->locate($this->configFileName);
-
-        $this->parseAndValidateConfig();
+        $config = Yaml::parse(file_get_contents(
+            (new FileLocator($configDirectories))->locate($configFileName)
+        ));
+        $this->parseAndValidateConfig($config);
+        $this->registerDepreciationMessages($config);
     }
 
 
@@ -133,14 +116,38 @@ class Reader
     }
 
     /**
-     * Parse and validate the configuration
+     * Get a list of depreciation messages
+     *
+     * @return array
      */
-    protected function parseAndValidateConfig(): void
+    public function getDepreciationMessages(): array
     {
-        $config = Yaml::parse(file_get_contents($this->configFilePath));
+        return $this->depreciationMessages;
+    }
 
-        $processor = new Processor();
+    /**
+     * @param array|null $config
+     */
+    protected function parseAndValidateConfig(?array $config): void
+    {
         $configDefinition = new ConfigDefinition();
-        $this->configValues = $processor->processConfiguration($configDefinition, [$config]);
+        $this->configValues = (new Processor)->processConfiguration($configDefinition, [$config]);
+    }
+
+    /**
+     * @param array $config
+     */
+    private function registerDepreciationMessages(array $config): void
+    {
+        foreach ($config['entities'] as $entity) {
+            if (empty($entity)) {
+                return;
+            }
+
+            if (array_key_exists('delete', $entity) || array_key_exists('delete_where', $entity)) {
+                $this->depreciationMessages[] = '"delete" and "delete_where" have been deprecated in favor of pre and post_actions';
+                break;
+            }
+        }
     }
 }
