@@ -278,7 +278,7 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(): void
     {
-        if (!in_array($this->phpVersion, ['7.1', '7.2'])) {
+        if (!in_array($this->phpVersion, ['7.1', '7.2', '7.3'])) {
             throw new \InvalidArgumentException('PHP Version must be 7.1 or 7.2');
         }
 

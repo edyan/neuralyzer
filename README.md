@@ -447,18 +447,24 @@ Clone the project, run `composer install` then...
 * Change the `--wait` option if you have a lot of errors because DB is not ready.
 * Change the `--php` option for `7.1` or `7.2`
 
-#### With MySQL and PHP 7.1
+#### With MySQL 
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql --db-version 5
+$ vendor/bin/robo test --php 7.2 --wait 10 --db mysql --db-version 5
+$ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 5
 ```
-#### With PostgreSQL and PHP 7.2
+#### With PostgreSQL 10 (9 is also working) 
 ```bash
+$ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql --db-version 10
 $ vendor/bin/robo test --php 7.2 --wait 10 --db pgsql --db-version 10
+$ vendor/bin/robo test --php 7.3 --wait 10 --db pgsql --db-version 10
 ```
-#### With SQL Server and PHP 7.1
+#### With SQL Server
 **Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 15 --db sqlsrv
+$ vendor/bin/robo test --php 7.2 --wait 15 --db sqlsrv
+$ vendor/bin/robo test --php 7.3 --wait 15 --db sqlsrv
 ```
 
 ### Build a release (with a phar and a git tag)
