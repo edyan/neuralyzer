@@ -38,6 +38,7 @@ abstract class AbstractDBHelper
 
     /**
      * Requires a connection to work
+     *
      * @param Connection $conn
      */
     public function __construct(Connection $conn)
@@ -47,9 +48,12 @@ abstract class AbstractDBHelper
 
     /**
      * Set Pretend to true to simulate queries, false to execute interface
+     *
      * @param bool $pretend
+     *
+     * @return AbstractDBHelper
      */
-    public function setPretend(bool $pretend)
+    public function setPretend(bool $pretend): AbstractDBHelper
     {
         $this->pretend = $pretend;
 
@@ -58,6 +62,7 @@ abstract class AbstractDBHelper
 
     /**
      * Get, for a driver options for connection (PDO)
+     *
      * @return array
      */
     public static function getDriverOptions(): array

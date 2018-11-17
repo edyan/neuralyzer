@@ -103,6 +103,7 @@ class DB extends AbstractAnonymizer
         $this->expression = $expression;
         $this->dbUtils = $dbUtils;
         $this->dbHelper = $this->dbUtils->getDBHelper();
+        $this->dbHelper->registerCustomTypes();
     }
 
     /**
