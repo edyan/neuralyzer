@@ -24,7 +24,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException \Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessage Can't find a primary key for 'guestbook'
      */
     public function testGetPrimaryKeyError()
@@ -105,7 +105,7 @@ class DBUtilsTest extends AbstractConfigurationDB
     }
 
     /**
-    * @expectedException \Edyan\Neuralyzer\Exception\NeuralizerException
+    * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
     * @expectedExceptionMessage Table does_not_exists does not exist
     */
     public function testAssertTableExistsKO()

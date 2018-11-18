@@ -1,10 +1,28 @@
 <?php
+/**
+ * neuralyzer : Data Anonymization Library and CLI Tool
+ *
+ * PHP Version 7.1
+ *
+ * @author    Emmanuel Dyan
+ * @copyright 2018 Emmanuel Dyan
+ *
+ * @package edyan/neuralyzer
+ *
+ * @license GNU General Public License v2.0
+ *
+ * @link https://github.com/edyan/neuralyzer
+ */
 
 namespace Edyan\Neuralyzer\Utils;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
+/**
+ * Class Expression
+ * @package edyan/neuralyzer
+ */
 class Expression
 {
     /**
@@ -43,6 +61,8 @@ class Expression
      * an action coming from an Anonymization config
      *
      * @param  string  $expression
+     *
+     * @return mixed
      */
     public function evaluateExpression(string $expression)
     {
@@ -54,9 +74,12 @@ class Expression
 
     /**
     * Evaluate a list of expression
+     *
     * @param  array  $expressions
+    *
+    * @return array
     */
-    public function evaluateExpressions(array $expressions)
+    public function evaluateExpressions(array $expressions): array
     {
         $res = [];
         foreach ($expressions as $expression) {
@@ -68,8 +91,10 @@ class Expression
 
     /**
      * Configure that service by registering all services in an array
+     *
+     * @return void
      */
-    private function configure()
+    private function configure(): void
     {
         $services = array_keys($this->container->findTaggedServiceIds('app.service'));
         foreach ($services as $service) {

@@ -8,11 +8,11 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Utils;
@@ -21,7 +21,7 @@ use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
 use Edyan\Neuralyzer\Helper\DB as DBHelper;
 
 /**
@@ -43,12 +43,16 @@ class DBUtils
      */
     private $dbHelper;
 
+
     /**
      * Set the connection (dependency)
      *
-     * @param Connection $conn
+     * @param array $params
+     *
+     * @return void
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public function configure(array $params)
+    public function configure(array $params): void
     {
         $dbHelperClass = DBHelper\DriverGuesser::getDBHelper($params['driver']);
 
@@ -60,6 +64,9 @@ class DBUtils
         $this->dbHelper = new $dbHelperClass($this->conn);
     }
 
+    /**
+     * @return DBHelper\AbstractDBHelper
+     */
     public function getDBHelper(): DBHelper\AbstractDBHelper
     {
         return $this->dbHelper;
@@ -100,14 +107,14 @@ class DBUtils
      * @param string $table
      *
      * @return string
-     * @throws NeuralizerException
+     * @throws NeuralyzerException
      */
     public function getPrimaryKey(string $table): string
     {
         $schema = $this->conn->getSchemaManager();
         $tableDetails = $schema->listTableDetails($table);
         if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralizerException("Can't find a primary key for '{$table}'");
+            throw new NeuralyzerException("Can't find a primary key for '{$table}'");
         }
 
         return $tableDetails->getPrimaryKey()->getColumns()[0];
@@ -139,7 +146,7 @@ class DBUtils
 
 
     /**
-     * To debug, build the final SQL (can be approximative)
+     * To debug, build the final SQL (can be approximate)
      *
      * @param  QueryBuilder $queryBuilder
      *
@@ -159,11 +166,12 @@ class DBUtils
      * Make sure a table exists
      *
      * @param  string $table [description]
+     * @throws NeuralyzerException
      */
     public function assertTableExists(string $table): void
     {
         if ($this->conn->getSchemaManager()->tablesExist([$table]) === false) {
-            throw new NeuralizerException("Table $table does not exist");
+            throw new NeuralyzerException("Table $table does not exist");
         }
     }
 

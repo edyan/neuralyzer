@@ -13,7 +13,7 @@ class WriterTest extends AbstractConfigurationDB
     private $ignoredTables = ['guestbook'];
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |Can't work with guestbook, it has no primary key.|
      */
     public function testGenerateConfNoPrimary()
@@ -23,7 +23,7 @@ class WriterTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfNoTable()
@@ -35,7 +35,7 @@ class WriterTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |All tables or fields have been ignored|
      */
     public function testGenerateConfIgnoreAllFields()
@@ -48,7 +48,7 @@ class WriterTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testGenerateConfIgnoreAllTables()
@@ -102,7 +102,7 @@ class WriterTest extends AbstractConfigurationDB
         $this->assertContains('guestbook', $tablesInConf);
     }
 
-    public function testGenerateConfWriteable()
+    public function testGenerateConfWritable()
     {
         $this->createPrimary();
 
@@ -142,10 +142,10 @@ class WriterTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
-     * @expectedExceptionMessageRegExp |/doesntexist is not writeable.|
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
+     * @expectedExceptionMessageRegExp |/doesntexist is not writable.|
      */
-    public function testGenerateConfNotWriteable()
+    public function testGenerateConfNotWritable()
     {
         $this->createPrimary();
 

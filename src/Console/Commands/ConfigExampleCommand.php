@@ -19,7 +19,6 @@ namespace Edyan\Neuralyzer\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -64,7 +63,7 @@ class ConfigExampleCommand extends Command
     {
         $dumper = new \Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper;
         $config = $dumper->dump(
-            new \Edyan\Neuralyzer\Configuration\ConfigDefinition([])
+            new \Edyan\Neuralyzer\Configuration\ConfigDefinition
         );
 
         $output->writeLn($config);

@@ -16,7 +16,7 @@
 
 namespace Edyan\Neuralyzer\Helper\DB;
 
-use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
 
 /**
  * Various methods related to SQLServer
@@ -25,6 +25,7 @@ class SQLServer extends AbstractDBHelper
 {
     /**
      * Set the right enclosure
+     *
      * @return string
      */
     public function getEnclosureForCSV(): string
@@ -32,26 +33,16 @@ class SQLServer extends AbstractDBHelper
         return chr(0);
     }
 
-
     /**
-     * Load Data from a CSV
-     * @param  string  $table
-     * @param  string  $filename
-     * @param  array   $fields
-     * @param  string  $mode  Not in used here
-     * @return string
+     * {@inheritdoc}
      */
-    public function loadData(
-        string $table,
-        string $filename,
-        array $fields,
-        string $mode
-    ): string {
+    public function loadData(string $table, string $fname, array $fields, string $mode): string
+    {
         if (substr(gethostbyname($this->conn->getHost()), 0, 3) !== '127') {
-            throw new NeuralizerException('SQL Server must be on the same host than PHP');
+            throw new NeuralyzerException('SQL Server must be on the same host than PHP');
         }
 
-        $sql ="BULK INSERT {$table} FROM '{$filename}' WITH (
+        $sql ="BULK INSERT {$table} FROM '{$fname}' WITH (
             FIELDTERMINATOR = '|', DATAFILETYPE = 'widechar', ROWTERMINATOR = '" . PHP_EOL . "'
         )";
 

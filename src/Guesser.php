@@ -17,7 +17,7 @@
 
 namespace Edyan\Neuralyzer;
 
-use Edyan\Neuralyzer\Exception\NeuralizerGuesserException;
+use Edyan\Neuralyzer\Exception\NeuralyzerGuesserException;
 
 /**
  * Guesser to map field type to Faker Class
@@ -48,7 +48,7 @@ class Guesser implements GuesserInterface
             '.*email.*'                  => ['method' => 'email'],
             '.*url'                      => ['method' => 'url'],
 
-            // Adress and coordinates
+            // Address and coordinates
             '.*address.*'                => ['method' => 'streetAddress'],
             '.*street.*'                 => ['method' => 'streetAddress'],
             '.*postalcode.*'             => ['method' => 'postcode'],
@@ -107,9 +107,10 @@ class Guesser implements GuesserInterface
      * @param string $table
      * @param string $name
      * @param string $type
-     * @param mixed  $len    Used to get options from enum (stored in length)
+     * @param mixed $len Used to get options from enum (stored in length)
      *
      * @return array
+     * @throws NeuralyzerGuesserException
      */
     public function mapCol(string $table, string $name, string $type, string $len = null): array
     {
@@ -134,7 +135,7 @@ class Guesser implements GuesserInterface
         $colsType = $this->getColsTypeMapping($len);
         if (!array_key_exists($type, $colsType)) {
             $msg = "Can't guess the type $type ({$table}.{$name})";
-            throw new NeuralizerGuesserException($msg);
+            throw new NeuralyzerGuesserException($msg);
         }
 
         return $colsType[$type];

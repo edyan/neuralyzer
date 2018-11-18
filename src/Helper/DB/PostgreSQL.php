@@ -30,21 +30,11 @@ class PostgreSQL extends AbstractDBHelper
         return chr(0);
     }
 
-
     /**
-     * Load Data from a CSV
-     * @param  string  $table
-     * @param  string  $filename
-     * @param  array   $fields
-     * @param  string  $mode  Not in used here
-     * @return string
+     * {@inheritdoc}
      */
-    public function loadData(
-        string $table,
-        string $filename,
-        array $fields,
-        string $mode
-    ): string {
+    public function loadData(string $table, string $fname, array $fields, string $mode): string
+    {
         $fields = implode(', ', $fields);
 
         if ($this->pretend === false) {
@@ -52,10 +42,10 @@ class PostgreSQL extends AbstractDBHelper
                 $this->conn->query("TRUNCATE {$table}");
             }
             $pdo = $this->conn->getWrappedConnection();
-            $pdo->pgsqlCopyFromFile($table, $filename, '|', '\\\\N', $fields);
+            $pdo->pgsqlCopyFromFile($table, $fname, '|', '\\\\N', $fields);
         }
 
-        $sql = "COPY {$table} ($fields) FROM '{$filename}' ";
+        $sql = "COPY {$table} ($fields) FROM '{$fname}' ";
         $sql.= '... Managed by pgsqlCopyFromFile';
 
         return $sql;

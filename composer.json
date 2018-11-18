@@ -9,7 +9,7 @@
             "email": "emmanueldyan@gmail.com"
         }
     ],
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "minimum-stability": "stable",
     "bin": ["bin/neuralyzer"],
     "require": {

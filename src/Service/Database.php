@@ -2,7 +2,7 @@
 
 namespace Edyan\Neuralyzer\Service;
 
-use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
 use Edyan\Neuralyzer\Utils\DBUtils;
 
 /**
@@ -38,7 +38,7 @@ class Database implements ServiceInterface
     /**
      * @param string $sql
      *
-     * @throws NeuralizerException
+     * @throws NeuralyzerException
      *
      * @return array
      */
@@ -54,7 +54,7 @@ class Database implements ServiceInterface
 
             return null;
         } catch (\Exception $e) {
-            throw new NeuralizerException($e->getMessage());
+            throw new NeuralyzerException($e->getMessage());
         }
     }
 }

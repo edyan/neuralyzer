@@ -92,7 +92,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
     public function testExecuteProtectTable()

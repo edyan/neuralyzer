@@ -64,6 +64,9 @@ class ConfigValidateCommand extends Command
      * @param InputInterface  $input
      * @param OutputInterface $output
      *
+     * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
+     * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
+     *
      * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
@@ -71,13 +74,13 @@ class ConfigValidateCommand extends Command
         try {
             $reader = new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('file'));
         } catch (\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException $e) {
-            throw new \Edyan\Neuralyzer\Exception\NeuralizerConfigurationException($e->getMessage());
+            throw new \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException($e->getMessage());
         } catch (\Symfony\Component\Config\Exception\FileLocatorFileNotFoundException $e) {
-            throw new \Edyan\Neuralyzer\Exception\NeuralizerException($e->getMessage());
+            throw new \Edyan\Neuralyzer\Exception\NeuralyzerException($e->getMessage());
         }
 
         if (!empty($reader->getDepreciationMessages())) {
-            foreach($reader->getDepreciationMessages() as $message) {
+            foreach ($reader->getDepreciationMessages() as $message) {
                 $output->writeln("<comment>WARNING : $message</comment>");
             }
         }

@@ -90,16 +90,13 @@ abstract class AbstractDBHelper
 
     /**
      * Load Data from a CSV
+     *
      * @param  string  $table
-     * @param  string  $filename
+     * @param  string  $fname File's name
      * @param  array   $fields
-     * @param  string  $mode  Not in used here
+     * @param  string  $mode
+     *
      * @return string
      */
-    abstract public function loadData(
-        string $table,
-        string $filename,
-        array $fields,
-        string $mode
-    ): string;
+    abstract public function loadData(string $table, string $fname, array $fields, string $mode): string;
 }

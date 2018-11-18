@@ -22,7 +22,7 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |The child node "entities" at path "config" must be configured|
      */
     public function testExecuteNotWorking()
@@ -40,7 +40,7 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
 
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessageRegExp |The file ".*config.doesnotexist.yaml" does not exist.|
      */
     public function testExecuteFileDoesNotExist()

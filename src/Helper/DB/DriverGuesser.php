@@ -23,10 +23,14 @@ class DriverGuesser
 {
     /**
      * Find the right local driver from a php extension
+     *
      * @param  string $driver
-     * @return mixed
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return string
      */
-    public static function getDBHelper(string $driver)
+    public static function getDBHelper(string $driver): string
     {
         $drivers = [
             'pdo_mysql'  => MySQL::class,

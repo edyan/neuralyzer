@@ -8,11 +8,11 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Console;

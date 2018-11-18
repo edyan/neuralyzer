@@ -1,11 +1,29 @@
 <?php
+/**
+ * neuralyzer : Data Anonymization Library and CLI Tool
+ *
+ * PHP Version 7.1
+ *
+ * @author    Emmanuel Dyan
+ * @copyright 2018 Emmanuel Dyan
+ *
+ * @package edyan/neuralyzer
+ *
+ * @license GNU General Public License v2.0
+ *
+ * @link https://github.com/edyan/neuralyzer
+ */
 
 namespace Edyan\Neuralyzer\Utils;
 
+/**
+ * Class FileLoader
+ * @package edyan/neuralyzer
+ */
 class FileLoader
 {
     /**
-     * Checks if a PHP sourcefile is readable and loads it.
+     * Checks if a PHP source file is readable and loads it.
      *
      * @param string $filename
      *
@@ -13,7 +31,7 @@ class FileLoader
      *
      * @throws \Exception
      */
-    public static function checkAndLoad($filename)
+    public static function checkAndLoad(string $filename): string
     {
         $includePathFilename = \stream_resolve_include_path($filename);
 

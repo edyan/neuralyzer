@@ -1,6 +1,18 @@
 <?php
-
-declare(strict_types=1);
+/**
+ * neuralyzer : Data Anonymization Library and CLI Tool
+ *
+ * PHP Version 7.1
+ *
+ * @author    Emmanuel Dyan
+ * @copyright 2018 Emmanuel Dyan
+ *
+ * @package edyan/neuralyzer
+ *
+ * @license GNU General Public License v2.0
+ *
+ * @link https://github.com/edyan/neuralyzer
+ */
 
 namespace Edyan\Neuralyzer\Faker\Provider;
 
@@ -45,7 +57,7 @@ class UniqueWord extends Base
             $this->loadFullDictionary();
         }
 
-        return $this->extractARowFromDictionnary();
+        return $this->extractARowFromDictionary();
     }
 
     /**
@@ -62,7 +74,11 @@ class UniqueWord extends Base
         self::$dictionary = array_filter(explode(PHP_EOL, file_get_contents($file)));
     }
 
-    private function extractARowFromDictionnary(): string
+    /**
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function extractARowFromDictionary(): string
     {
         if (empty(self::$dictionary)) {
             throw new \RuntimeException("Couldn't generate more unique words ... consider using another method");

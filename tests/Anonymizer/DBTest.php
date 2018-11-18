@@ -10,7 +10,7 @@ class DBTest extends AbstractConfigurationDB
     private $num;
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessageRegExp |Can't find a primary key for 'guestbook'|
      */
     public function testWithoutPrimary()
@@ -23,7 +23,7 @@ class DBTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessage Mode could be only queries or batch
      */
     public function testWrongMode()
@@ -33,7 +33,7 @@ class DBTest extends AbstractConfigurationDB
     }
 
     /**
-    * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+    * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
     * @expectedExceptionMessage Table guestook does not exist
      */
     public function testWrongTableName()
@@ -48,7 +48,7 @@ class DBTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No entities found. Have you loaded a configuration file ?|
      */
     public function testWithPrimaryNoConf()
@@ -60,7 +60,7 @@ class DBTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No configuration for that entity.*|
      */
     public function testWithPrimaryConfWrongTable()
@@ -77,7 +77,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfWrongWhere()
     {
-        $this->expectException("Edyan\Neuralyzer\Exception\NeuralizerException");
+        $this->expectException("Edyan\Neuralyzer\Exception\NeuralyzerException");
         $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
 
         $this->createPrimary();
@@ -226,7 +226,7 @@ class DBTest extends AbstractConfigurationDB
 
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessage Col usernamez does not exist
      */
     public function testWithPrimaryConfWrongField()
@@ -244,7 +244,7 @@ class DBTest extends AbstractConfigurationDB
 
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessage You must use faker methods that generate strings: 'datetime' forbidden
      */
     public function testWithPrimaryConfBadFakerType()

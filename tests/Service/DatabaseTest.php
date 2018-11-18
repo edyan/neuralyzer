@@ -22,7 +22,7 @@ class DatabaseTest extends AbstractConfigurationDB
 
     public function testBadQuery()
     {
-        $this->expectException("\Edyan\Neuralyzer\Exception\NeuralizerException");
+        $this->expectException("\Edyan\Neuralyzer\Exception\NeuralyzerException");
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectExceptionMessageRegExp("|.*Incorrect syntax near the keyword 'AS'.*|");
         } else if (strpos(getenv('DB_DRIVER'), 'pgsql')) {

@@ -8,17 +8,18 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Anonymizer;
 
-use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
-use Edyan\Neuralyzer\Exception\NeuralizerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
+use Edyan\Neuralyzer\Helper\DB\AbstractDBHelper;
 use Edyan\Neuralyzer\Utils\CSVWriter;
 use Edyan\Neuralyzer\Utils\Expression;
 use Edyan\Neuralyzer\Utils\DBUtils;
@@ -45,7 +46,7 @@ class DB extends AbstractAnonymizer
     /**
      * Various generic utils
      *
-     * @var DBHelper
+     * @var AbstractDBHelper
      */
     private $dbHelper;
 
@@ -98,6 +99,11 @@ class DB extends AbstractAnonymizer
     ];
 
 
+    /**
+     * DB constructor.
+     * @param Expression $expression
+     * @param DBUtils $dbUtils
+     */
     public function __construct(Expression $expression, DBUtils $dbUtils)
     {
         $this->expression = $expression;
@@ -119,13 +125,13 @@ class DB extends AbstractAnonymizer
      * Set the mode for update / insert
      *
      * @param string $mode
-     * @throws NeuralizerException
+     * @throws NeuralyzerException
      * @return DB
      */
     public function setMode(string $mode): DB
     {
         if (!in_array($mode, ['queries', 'batch'])) {
-            throw new NeuralizerException('Mode could be only queries or batch');
+            throw new NeuralyzerException('Mode could be only queries or batch');
         }
 
         if ($mode === 'batch') {
@@ -145,7 +151,7 @@ class DB extends AbstractAnonymizer
      * @param string        $entity
      * @param callable|null $callback
      * @throws \Exception
-     * @return void|array
+     * @return array
      */
     public function processEntity(string $entity, callable $callback = null): array
     {
@@ -188,7 +194,7 @@ class DB extends AbstractAnonymizer
      *
      * @param  callable $callback
      *
-     * @throws NeuralizerException
+     * @return void
      */
     private function updateData($callback = null): void
     {
@@ -240,6 +246,7 @@ class DB extends AbstractAnonymizer
      * @SuppressWarnings("unused") - Used dynamically
      *
      * @param  array $row Full row
+     * @throws NeuralyzerConfigurationException
      */
     private function doUpdateByQueries(array $row): void
     {
@@ -261,7 +268,7 @@ class DB extends AbstractAnonymizer
 
         $this->returnRes === true ?
             array_push($this->queries, $this->dbUtils->getRawSQL($queryBuilder)) :
-            '';
+            null;
 
         if ($this->pretend === false) {
             $queryBuilder->execute();
@@ -274,6 +281,7 @@ class DB extends AbstractAnonymizer
      * @SuppressWarnings("unused") - Used dynamically
      *
      * @param  array $row Full row
+     * @throws NeuralyzerConfigurationException
      */
     private function doBatchUpdate(array $row): void
     {
@@ -336,7 +344,7 @@ class DB extends AbstractAnonymizer
 
         $this->returnRes === true ?
             array_push($this->queries, $this->dbUtils->getRawSQL($queryBuilder)) :
-            '';
+            null;
 
         if ($this->pretend === false) {
             $queryBuilder->execute();
@@ -363,7 +371,7 @@ class DB extends AbstractAnonymizer
      */
     private function loadDataInBatch(string $mode): void
     {
-        $fields = array_keys($this->configEntites[$this->entity]['cols']);
+        $fields = array_keys($this->configEntities[$this->entity]['cols']);
         // Replace by all fields if update as we have to load everything
         if ($mode === 'update') {
             $fields = array_keys($this->entityCols);
@@ -374,7 +382,7 @@ class DB extends AbstractAnonymizer
         $this->dbHelper->setPretend($this->pretend);
         $sql = $this->dbHelper->loadData($this->entity, $filename, $fields, $mode);
 
-        $this->returnRes === true ? array_push($this->queries, $sql) : '';
+        $this->returnRes === true ? array_push($this->queries, $sql) : null;
 
         // Destroy the file
         unlink($this->csv->getRealPath());
@@ -384,13 +392,13 @@ class DB extends AbstractAnonymizer
      * Generate fake data for an entity and return it as an Array
      *
      * @return array
-     * @throws NeuralizerConfigurationException
+     * @throws NeuralyzerConfigurationException
      */
     protected function generateFakeData(): array
     {
         $this->checkEntityIsInConfig();
 
-        $colsInConfig = $this->configEntites[$this->entity]['cols'];
+        $colsInConfig = $this->configEntities[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
             $this->checkColIsInEntity($colName);
@@ -402,7 +410,7 @@ class DB extends AbstractAnonymizer
 
             if (!is_scalar($data)) {
                 $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
-                throw new NeuralizerConfigurationException($msg);
+                throw new NeuralyzerConfigurationException($msg);
             }
 
             $row[$colName] = trim($data);

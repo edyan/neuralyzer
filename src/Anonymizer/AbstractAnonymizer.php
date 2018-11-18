@@ -8,18 +8,17 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Anonymizer;
 
 use Edyan\Neuralyzer\Configuration\Reader;
-use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
-use Edyan\Neuralyzer\Utils\Expression;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 
 /**
  * Abstract Anonymizer, that can be implemented as DB Anonymizer for example
@@ -58,7 +57,7 @@ abstract class AbstractAnonymizer
      *
      * @var array
      */
-    protected $configEntites = [];
+    protected $configEntities = [];
 
     /**
      * List of used fakers
@@ -130,7 +129,7 @@ abstract class AbstractAnonymizer
     public function setConfiguration(Reader $configuration): void
     {
         $this->configuration = $configuration;
-        $this->configEntites = $configuration->getConfigValues()['entities'];
+        $this->configEntities = $configuration->getConfigValues()['entities'];
         $this->initFaker();
     }
 
@@ -188,13 +187,13 @@ abstract class AbstractAnonymizer
      * Evaluate, from the configuration if I have to update or Truncate the table
      *
      * @return int
-     * @throws NeuralizerConfigurationException
+     * @throws NeuralyzerConfigurationException
      */
     protected function whatToDoWithEntity(): int
     {
         $this->checkEntityIsInConfig();
 
-        $entityConfig = $this->configEntites[$this->entity];
+        $entityConfig = $this->configEntities[$this->entity];
 
         $actions = 0;
         if (array_key_exists('cols', $entityConfig)) {
@@ -215,7 +214,7 @@ abstract class AbstractAnonymizer
      * Generate fake data for an entity and return it as an Array
      *
      * @return array
-     * @throws NeuralizerConfigurationException
+     * @throws NeuralyzerConfigurationException
      */
     protected function generateFakeData(): array
     {
@@ -224,7 +223,7 @@ abstract class AbstractAnonymizer
         $faker = \Faker\Factory::create($language);
         $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
         $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker, $language));
-        $colsInConfig = $this->configEntites[$this->entity]['cols'];
+        $colsInConfig = $this->configEntities[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
             $this->checkColIsInEntity($colName);
@@ -234,7 +233,7 @@ abstract class AbstractAnonymizer
             );
             if (!is_scalar($data)) {
                 $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
-                throw new NeuralizerConfigurationException($msg);
+                throw new NeuralyzerConfigurationException($msg);
             }
             $row[$colName] = trim($data);
             $colLength = $this->entityCols[$colName]['length'];
@@ -251,17 +250,17 @@ abstract class AbstractAnonymizer
     /**
      * Make sure that entity is defined in the configuration
      *
-     * @throws NeuralizerConfigurationException
+     * @throws NeuralyzerConfigurationException
      */
     protected function checkEntityIsInConfig(): void
     {
-        if (empty($this->configEntites)) {
-            throw new NeuralizerConfigurationException(
+        if (empty($this->configEntities)) {
+            throw new NeuralyzerConfigurationException(
                 'No entities found. Have you loaded a configuration file ?'
             );
         }
-        if (!array_key_exists($this->entity, $this->configEntites)) {
-            throw new NeuralizerConfigurationException(
+        if (!array_key_exists($this->entity, $this->configEntities)) {
+            throw new NeuralyzerConfigurationException(
                 "No configuration for that entity ({$this->entity})"
             );
         }
@@ -270,14 +269,14 @@ abstract class AbstractAnonymizer
     /**
      * Verify a column is defined in the real entityCols
      *
-     * @throws NeuralizerConfigurationException
+     * @param string $colName
      *
-     * @param  string $colName [description]
+     * @throws NeuralyzerConfigurationException
      */
     protected function checkColIsInEntity(string $colName): void
     {
         if (!array_key_exists($colName, $this->entityCols)) {
-            throw new NeuralizerConfigurationException("Col $colName does not exist");
+            throw new NeuralyzerConfigurationException("Col $colName does not exist");
         }
     }
 

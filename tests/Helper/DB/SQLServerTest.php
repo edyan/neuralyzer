@@ -38,7 +38,7 @@ class SQLServerTest extends AbstractConfigurationDB
     }
 
     /**
-     * @expectedException \Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessage SQL Server must be on the same host than PHP
      */
     public function testLoadDataOtherHost()

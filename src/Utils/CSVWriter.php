@@ -17,9 +17,6 @@
 
 namespace Edyan\Neuralyzer\Utils;
 
-use Doctrine\DBAL\Connection;
-use Edyan\Neuralyzer\Exception\NeuralizerException;
-
 /**
  * A few generic methods to help interacting with DB
  */

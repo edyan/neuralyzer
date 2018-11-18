@@ -8,11 +8,11 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Console\Commands;
@@ -122,21 +122,22 @@ class ConfigGenerateCommand extends Command
     }
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
      *
+     * @return void
      * @throws \Doctrine\DBAL\DBALException
-     * @throws \Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        // Throw an exception immediately if we dont have the required DB parameter
+        // Throw an exception immediately if we don't have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
         }
 
         $password = $input->getOption('password');
-        if (null === $password){
+        if (null === $password) {
             $question = new Question('Password: ');
             $question->setHidden(true)->setHiddenFallback(false);
 

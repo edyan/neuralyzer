@@ -20,6 +20,6 @@ namespace Edyan\Neuralyzer\Exception;
 /**
  * Exception
  */
-class NeuralizerConfigurationException extends \Exception
+class NeuralyzerGuesserException extends \Exception
 {
 }

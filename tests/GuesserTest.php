@@ -106,7 +106,7 @@ class GuesserTest extends TestCase
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerGuesserException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerGuesserException
      */
     public function testMapColWrongType()
     {

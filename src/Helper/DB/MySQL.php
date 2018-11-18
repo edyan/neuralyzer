@@ -22,7 +22,8 @@ namespace Edyan\Neuralyzer\Helper\DB;
 class MySQL extends AbstractDBHelper
 {
     /**
-     * Send options to be able to load dataset
+     * Send options to be able to load data set
+     *
      * @return array
      */
     public static function getDriverOptions(): array
@@ -35,7 +36,9 @@ class MySQL extends AbstractDBHelper
 
     /**
      * Add a custom enum type
+     *
      * @return void
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function registerCustomTypes(): void
     {
@@ -57,20 +60,11 @@ class MySQL extends AbstractDBHelper
 
 
     /**
-     * Load Data from a CSV
-     * @param  string  $table
-     * @param  string  $filename
-     * @param  array   $fields
-     * @param  string  $mode  Not in used here
-     * @return string
+     * {@inheritdoc}
      */
-    public function loadData(
-        string $table,
-        string $filename,
-        array $fields,
-        string $mode
-    ): string {
-        $sql ="LOAD DATA LOCAL INFILE '{$filename}'
+    public function loadData(string $table, string $fname, array $fields, string $mode): string
+    {
+        $sql ="LOAD DATA LOCAL INFILE '{$fname}'
      REPLACE INTO TABLE {$table}
      FIELDS TERMINATED BY '|' ENCLOSED BY '\"' LINES TERMINATED BY '" . PHP_EOL . "'
      (`" . implode("`, `", $fields) . "`)";

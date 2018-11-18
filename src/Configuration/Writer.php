@@ -16,7 +16,7 @@
 
 namespace Edyan\Neuralyzer\Configuration;
 
-use Edyan\Neuralyzer\Exception\NeuralizerConfigurationException;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\GuesserInterface;
 use Edyan\Neuralyzer\Utils\DBUtils;
 use Symfony\Component\Config\Definition\Processor;
@@ -24,6 +24,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Configuration Writer
+ * @package edyan/neuralyzer
  */
 class Writer
 {
@@ -42,7 +43,7 @@ class Writer
     protected $protectCols = true;
 
     /**
-     * List the cols to protected. Could containe regexp
+     * List the cols to protected. Could contain regexp
      *
      * @var array
      */
@@ -56,7 +57,7 @@ class Writer
     protected $tablesInConf = [];
 
     /**
-     * Doctrine conection handler
+     * Doctrine connexion handler
      * @var \Doctrine\DBAL\Connection
      */
     private $conn;
@@ -65,9 +66,10 @@ class Writer
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param  DBUtils          $dbUtils
+     * @param  DBUtils $dbUtils
      * @param  GuesserInterface $guesser
      * @return array
+     * @throws NeuralyzerConfigurationException
      */
     public function generateConfFromDB(DBUtils $dbUtils, GuesserInterface $guesser): array
     {
@@ -76,7 +78,7 @@ class Writer
         // First step : get the list of tables
         $tables = $this->getTablesList();
         if (empty($tables)) {
-            throw new NeuralizerConfigurationException('No tables to read in that database');
+            throw new NeuralyzerConfigurationException('No tables to read in that database');
         }
 
         // For each table, read the cols and guess the Faker
@@ -92,7 +94,7 @@ class Writer
         }
 
         if (empty($data)) {
-            throw new NeuralizerConfigurationException('All tables or fields have been ignored');
+            throw new NeuralyzerConfigurationException('All tables or fields have been ignored');
         }
 
         $config = [
@@ -133,13 +135,14 @@ class Writer
     /**
      * Save the data to the file as YAML
      *
-     * @param array  $data
+     * @param array $data
      * @param string $filename
+     * @throws NeuralyzerConfigurationException
      */
     public function save(array $data, string $filename)
     {
         if (!is_writeable(dirname($filename))) {
-            throw new NeuralizerConfigurationException(dirname($filename) . ' is not writeable.');
+            throw new NeuralyzerConfigurationException(dirname($filename) . ' is not writable.');
         }
 
         file_put_contents($filename, Yaml::dump($data, 4));
@@ -200,8 +203,9 @@ class Writer
     /**
      * Get the cols lists from a connection + table
      *
-     * @param  string  $table
+     * @param  string $table
      * @return array
+     * @throws NeuralyzerConfigurationException
      */
     protected function getColsList(string $table): array
     {
@@ -209,7 +213,7 @@ class Writer
         $tableDetails = $schema->listTableDetails($table);
         // No primary ? Exception !
         if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralizerConfigurationException("Can't work with $table, it has no primary key.");
+            throw new NeuralyzerConfigurationException("Can't work with $table, it has no primary key.");
         }
         $primaryKey = $tableDetails->getPrimaryKey()->getColumns()[0];
 

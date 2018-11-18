@@ -23,7 +23,7 @@ namespace Edyan\Neuralyzer;
 interface GuesserInterface
 {
     /**
-     * Retruns an array of fieldName => Faker class
+     * Gives an array of fieldName => Faker class
      *
      * @return array
      */

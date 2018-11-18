@@ -9,29 +9,29 @@ class ExceptionsTest extends TestCase
 {
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerConfigurationException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testNeuralizerConfigurationException()
+    public function testNeuralyzerConfigurationException()
     {
-        throw new NeuralyzerExceptions\NeuralizerConfigurationException('test');
+        throw new NeuralyzerExceptions\NeuralyzerConfigurationException('test');
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerGuesserException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerGuesserException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testNeuralizerGuesserException()
+    public function testNeuralyzerGuesserException()
     {
-        throw new NeuralyzerExceptions\NeuralizerGuesserException('test');
+        throw new NeuralyzerExceptions\NeuralyzerGuesserException('test');
     }
 
     /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralizerException
+     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
      * @expectedExceptionMessageRegExp |test|
      */
-    public function testNeuralizerException()
+    public function testNeuralyzerException()
     {
-        throw new NeuralyzerExceptions\NeuralizerException('test');
+        throw new NeuralyzerExceptions\NeuralyzerException('test');
     }
 }

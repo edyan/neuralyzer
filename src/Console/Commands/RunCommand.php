@@ -8,11 +8,11 @@
  * @author    Rémi Sauvat
  * @copyright 2018 Emmanuel Dyan
  *
- * @package   edyan/neuralyzer
+ * @package edyan/neuralyzer
  *
- * @license   GNU General Public License v2.0
+ * @license GNU General Public License v2.0
  *
- * @link      https://github.com/edyan/neuralyzer
+ * @link https://github.com/edyan/neuralyzer
  */
 
 namespace Edyan\Neuralyzer\Console\Commands;
@@ -87,6 +87,7 @@ class RunCommand extends Command
     /**
      * RunCommand constructor.
      *
+     * @param DBUtils $dbUtils
      * @param Expression $expression
      */
     public function __construct(DBUtils $dbUtils, Expression $expression)
@@ -180,13 +181,12 @@ class RunCommand extends Command
     }
 
     /**
-     * @param InputInterface  $input   Symfony's Input Class for parameters and options
-     * @param OutputInterface $output  Symfony's Output Class to display infos
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Edyan\Neuralyzer\Exception\NeuralizerException
+     * @param InputInterface $input Symfony's Input Class for parameters and options
+     * @param OutputInterface $output Symfony's Output Class to display info
      *
      * @return null|int null or 0 if everything went fine, or an error code
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
@@ -194,12 +194,12 @@ class RunCommand extends Command
             FileLoader::checkAndLoad($input->getOption('bootstrap'));
         }
 
-        // Throw an exception immediately if we dont have the required DB parameter
+        // Throw an exception immediately if we don't have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
         }
 
-        // Throw an exception immediately if we dont have the right mode
+        // Throw an exception immediately if we don't have the right mode
         if (!in_array($input->getOption('mode'), ['queries', 'batch'])) {
             throw new \InvalidArgumentException('--mode could be only "queries" or "batch"');
         }
@@ -218,7 +218,7 @@ class RunCommand extends Command
         // Anon READER
         $this->reader = new Reader($input->getOption('config'));
         if (!empty($this->reader->getDepreciationMessages())) {
-            foreach($this->reader->getDepreciationMessages() as $message) {
+            foreach ($this->reader->getDepreciationMessages() as $message) {
                 $output->writeLn("<comment>WARNING : $message</comment>");
             }
         }
@@ -253,7 +253,7 @@ class RunCommand extends Command
         $event = $stopwatch->stop('Neuralyzer');
         $memory = round($event->getMemory() / 1024 / 1024, 2);
         $time = round($event->getDuration() / 1000, 2);
-        $time = ($time > 180 ? round($time / 60, 2).'mins' : "$time sec");
+        $time = ($time > 180 ? round($time / 60, 2).'min' : "$time sec");
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
 
@@ -261,9 +261,11 @@ class RunCommand extends Command
     }
 
     /**
-     * Anonmyze a specific table and display info about the job
+     * Anonymize a specific table and display info about the job
      *
      * @param  string $table
+     *
+     * @return bool
      */
     private function anonymizeTable(string $table): bool
     {
