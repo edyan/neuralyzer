@@ -113,13 +113,12 @@
            </fileset>
         </phpdoc2>
 
-        <!-- Executing phpLint (TO BE ADDED LATER BECAUSE NOT COMPATIBLE WITH PHP7 )
+        <!-- Executing phpLint -->
         <phplint
             tofile="${reportsDir}/phplint.txt">
           <fileset dir="${directory}" excludes="${excludeDirs}">
             <include name="**/*.php"/>
           </fileset>
         </phplint>
-        -->
   </target>
 </project>
