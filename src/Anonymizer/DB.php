@@ -413,7 +413,7 @@ class DB extends AbstractAnonymizer
             $this->checkColIsInEntity($colName);
 
             $data = \call_user_func_array(
-                [$this->faker, $colProps['method']],
+                [$this->getFakerObject($this->entity, $colName, $colProps), $colProps['method']],
                 $colProps['params']
             );
 

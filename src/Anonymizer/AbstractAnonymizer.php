@@ -62,7 +62,7 @@ abstract class AbstractAnonymizer
     /**
      * List of used fakers
      *
-     * @var array
+     * @var \Faker\Generator[]|\Faker\UniqueGenerator[]
      */
     protected $fakers = [];
 
@@ -105,7 +105,6 @@ abstract class AbstractAnonymizer
      * @var \Faker\Generator
      */
     protected $faker;
-
 
     /**
      * Process the entity according to the anonymizer type
@@ -219,16 +218,12 @@ abstract class AbstractAnonymizer
     protected function generateFakeData(): array
     {
         $this->checkEntityIsInConfig();
-        $language = $this->configuration->getConfigValues()['language'];
-        $faker = \Faker\Factory::create($language);
-        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($faker));
-        $faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($faker, $language));
         $colsInConfig = $this->configEntities[$this->entity]['cols'];
         $row = [];
         foreach ($colsInConfig as $colName => $colProps) {
             $this->checkColIsInEntity($colName);
             $data = \call_user_func_array(
-                [$faker, $colProps['method']],
+                [$this->getFakerObject($this->entity, $colName, $colProps), $colProps['method']],
                 $colProps['params']
             );
             if (!is_scalar($data)) {
@@ -289,5 +284,24 @@ abstract class AbstractAnonymizer
         $this->faker = \Faker\Factory::create($language);
         $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($this->faker));
         $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($this->faker, $language));
+    }
+
+    /**
+     * Get the faker object for a entity column
+     *
+     * @param string $entityName
+     * @param string $colName
+     * @param array  $colProps
+     *
+     * @return \Faker\Generator|\Faker\UniqueGenerator
+     */
+    protected function getFakerObject($entityName, $colName, $colProps)
+    {
+        if (!isset($this->fakers[$entityName][$colName])) {
+            $fakerClone = clone $this->faker;
+            $this->fakers[$entityName][$colName] = isset($colProps['unique']) && $colProps['unique'] === true ? $fakerClone->unique() : $fakerClone;
+        }
+
+        return $this->fakers[$entityName][$colName];
     }
 }

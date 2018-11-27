@@ -96,6 +96,7 @@ class ConfigDefinition implements ConfigurationInterface
                                 ->prototype('array')
                                     ->children()
                                         ->scalarNode('method')->isRequired()->end()
+                                        ->booleanNode('unique')->defaultFalse()->info('Set this option to true to use the faker->unique() generator')->end()
                                         ->arrayNode('params')
                                             ->defaultValue([])
                                             ->prototype('variable')->end()
