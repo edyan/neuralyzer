@@ -5,6 +5,7 @@
 /*.ipr
 /*.iws
 /.idea
+.DS_Store
 
 # Composer
 /vendor/

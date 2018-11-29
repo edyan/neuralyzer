@@ -134,11 +134,6 @@ class DB extends AbstractAnonymizer
             throw new NeuralyzerException('Mode could be only queries or batch');
         }
 
-        if ($mode === 'batch') {
-            $this->csv = new CSVWriter();
-            $this->csv->setCsvControl('|', $this->dbHelper->getEnclosureForCSV());
-        }
-
         $this->mode = $mode;
 
         return $this;
@@ -163,6 +158,12 @@ class DB extends AbstractAnonymizer
 
         $actionsOnThatEntity = $this->whatToDoWithEntity();
         $this->queries = [];
+
+        // Prepare CSV
+        if ($this->mode === 'batch') {
+            $this->csv = new CSVWriter();
+            $this->csv->setCsvControl('|', $this->dbHelper->getEnclosureForCSV());
+        }
 
         // Wrap everything in a transaction
         $conn = $this->dbUtils->getConn();
