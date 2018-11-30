@@ -6,12 +6,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Edyan\Neuralyzer\ContainerFactory;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Console\Application;
-use Edyan\Neuralyzer\Service\ServiceInterface;
 use Edyan\Neuralyzer\Utils\DBUtils;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
-use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 
 abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
@@ -74,13 +69,13 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
      */
     public function getDataSet()
     {
-        $this->createTable();
+        $this->createTables();
 
         return $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
     }
 
 
-    public function createPrimary()
+    public function createPrimaries()
     {
         $sm = $this->getDoctrine()->getSchemaManager();
 
@@ -90,18 +85,24 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
             $this->getDoctrine()->query(
                 "ALTER TABLE {$this->tableName} ADD id INT IDENTITY CONSTRAINT id_pk PRIMARY KEY CLUSTERED"
             );
+            $this->getDoctrine()->query("ALTER TABLE people DROP COLUMN id");
+            $this->getDoctrine()->query(
+                "ALTER TABLE people ADD id INT IDENTITY CONSTRAINT id_pk PRIMARY KEY CLUSTERED"
+            );
             return;
         }
 
-        $fromSchema = $sm->createSchema();
-        $toSchema = clone $fromSchema;
-        $table = $toSchema->getTable($this->tableName);
-        $table->setPrimaryKey(['id']);
-        $table->changeColumn('id', ['autoincrement' => true]);
-        $this->doctrineMigrate($fromSchema, $toSchema);
+        foreach ([$this->tableName, 'people'] as $table) {
+            $fromSchema = $sm->createSchema();
+            $toSchema = clone $fromSchema;
+            $table = $toSchema->getTable($table);
+            $table->setPrimaryKey(['id']);
+            $table->changeColumn('id', ['autoincrement' => true]);
+            $this->doctrineMigrate($fromSchema, $toSchema);
+        }
     }
 
-    public function dropTable()
+    public function dropTables()
     {
         $sm = $this->getDoctrine()->getSchemaManager();
 
@@ -116,8 +117,9 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
             }
         }
 
-        // Remove Table
+        // Remove Tables
         $toSchema->dropTable($this->tableName);
+        $toSchema->dropTable('people');
 
         // Run
         $this->doctrineMigrate($fromSchema, $toSchema);
@@ -197,10 +199,10 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     }
 
 
-    protected function createTable()
+    protected function createTables()
     {
         try {
-            $this->dropTable();
+            $this->dropTables();
         } catch (\Exception $e) {
             // Pass
         }
@@ -220,6 +222,17 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         $myTable->addColumn('a_float', 'float', ['precision' => 10, 'scale' => 3]);
 
         $queries = $schema->toSql($this->getDoctrine()->getDatabasePlatform());
+
+        // Create a second table to make sure we can have multiple anonymizations
+        $schema = new Schema();
+        $myTable = $schema->createTable('people');
+        $myTable->addColumn('id', 'integer', ['unsigned' => true]);
+        $myTable->addColumn('created', 'date');
+        $myTable->addColumn('first_name', 'string', ['length' => 200]);
+        $myTable->addColumn('last_name', 'string', ['length' => 200]);
+
+        $queries = array_merge($queries, $schema->toSql($this->getDoctrine()->getDatabasePlatform()));
+
         if (empty($queries)) {
             return;
         }

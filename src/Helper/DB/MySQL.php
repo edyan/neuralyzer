@@ -28,13 +28,9 @@ class MySQL extends AbstractDBHelper
      */
     public static function getDriverOptions(): array
     {
-        if (!defined('\PDO::MYSQL_ATTR_LOCAL_INFILE')) {
-            return [];
-        }
-
-        return [
-            \PDO::MYSQL_ATTR_LOCAL_INFILE => true
-        ];
+        return \defined('\PDO::MYSQL_ATTR_LOCAL_INFILE') ?
+            [\PDO::MYSQL_ATTR_LOCAL_INFILE => true] :
+            [];
     }
 
 

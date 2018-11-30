@@ -38,7 +38,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWrongTableName()
     {
-        $this->dropTable();
+        $this->dropTables();
 
         $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__ . '/..']);
 
@@ -53,7 +53,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWithPrimaryNoConf()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $db = $this->getDB();
         $db->processEntity($this->tableName);
@@ -65,7 +65,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWithPrimaryConfWrongTable()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.notable.yaml', [__DIR__ . '/..']);
 
@@ -80,7 +80,7 @@ class DBTest extends AbstractConfigurationDB
         $this->expectException("Edyan\Neuralyzer\Exception\NeuralyzerException");
         $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
 
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.deletebadwhere.yaml', [__DIR__ . '/..']);
 
@@ -100,7 +100,7 @@ class DBTest extends AbstractConfigurationDB
                 "Can't compare dataset with SQLServer as the fields are in a random order"
             );
         }
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
@@ -153,7 +153,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableWithCallback()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
@@ -179,7 +179,7 @@ class DBTest extends AbstractConfigurationDB
             );
         }
 
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.rightAndDelete.yaml', [__DIR__ . '/..']);
 
@@ -231,7 +231,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWithPrimaryConfWrongField()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__ . '/..']);
 
@@ -249,7 +249,7 @@ class DBTest extends AbstractConfigurationDB
      */
     public function testWithPrimaryConfBadFakerType()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__ . '/..']);
 
@@ -263,7 +263,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableUpdateSimple()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
@@ -291,7 +291,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableUpdate1500records()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $this->truncateTable();
 
         // Insert 2003 records
@@ -357,7 +357,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableDeleteOne()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
 
@@ -391,7 +391,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableDeleteAll()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.deleteall.yaml', [__DIR__ . '/..']);
 
@@ -414,7 +414,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsert()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $this->truncateTable();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
@@ -451,7 +451,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertDelete()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 
@@ -480,7 +480,7 @@ class DBTest extends AbstractConfigurationDB
 
     public function testWithPrimaryConfRightTableInsertWithCallback()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $reader = new Reader('_files/config-insert.right.yaml', [__DIR__ . '/..']);
 

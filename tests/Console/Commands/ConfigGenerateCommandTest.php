@@ -36,7 +36,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         $this->expectException($except);
         $this->expectExceptionMessageRegExp($exceptMsg);
 
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
         $commandTester = new CommandTester($command);
@@ -52,7 +52,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
 
     public function testExecuteWorking()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
 
@@ -95,9 +95,9 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
      * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @expectedExceptionMessageRegExp |No tables to read in that database|
      */
-    public function testExecuteProtectTable()
+    public function testExecuteProtectTables()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
 
@@ -117,14 +117,14 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
             '--db' => getenv('DB_NAME'),
             '--user' => getenv('DB_USER'),
             '--file' => $temp,
-            '--ignore-table' => ['guestbook'],
+            '--ignore-table' => ['guestbook', 'people'],
         ]);
     }
 
 
     public function testExecuteProtectField()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
 
@@ -165,7 +165,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
 
     public function testExecuteProtectId()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
 

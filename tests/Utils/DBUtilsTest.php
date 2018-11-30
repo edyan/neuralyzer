@@ -36,7 +36,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetPrimaryKeyOK()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $utils = $this->getDBUtils();
         $this->assertSame('id', $utils->getPrimaryKey('guestbook'));
     }
@@ -44,7 +44,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetTableCols()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
         $this->assertInternalType('array', $cols);
@@ -79,7 +79,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetRawSQLNoParams()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $db = $this->getDoctrine();
         $qb = $this->getDoctrine()->createQueryBuilder();
@@ -92,7 +92,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetRawSQLParams()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $db = $this->getDoctrine();
         $qb = $this->getDoctrine()->createQueryBuilder();
@@ -125,7 +125,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetConditionInteger()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 
@@ -140,7 +140,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetConditionString()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 
@@ -151,7 +151,7 @@ class DBUtilsTest extends AbstractConfigurationDB
 
     public function testGetConditionIntegerSigned()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
 

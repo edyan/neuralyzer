@@ -12,7 +12,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function testExecuteRightTablePassPrompted()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
@@ -44,7 +44,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function testExecuteEmptyTable()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $this->truncateTable();
 
         // We mock the DialogHelper
@@ -74,7 +74,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function testExecuteWithSQL()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $oldData = $queryBuilder
             ->select('*')->from($this->tableName)
@@ -131,7 +131,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function testExecuteWithLimit()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -153,7 +153,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function testExecuteWithLimitOverTotal()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -175,7 +175,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
 
     public function executeWithLimitInsert($config)
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);

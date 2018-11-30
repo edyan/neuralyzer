@@ -10,11 +10,11 @@ use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 class WriterTest extends AbstractConfigurationDB
 {
     private $protectedCols = ['.*\..*'];
-    private $ignoredTables = ['guestbook'];
+    private $ignoredTables = ['guestbook', 'people'];
 
     /**
      * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |Can't work with guestbook, it has no primary key.|
+     * @expectedExceptionMessageRegExp |Can't work with .*, it has no primary key.|
      */
     public function testGenerateConfNoPrimary()
     {
@@ -28,7 +28,7 @@ class WriterTest extends AbstractConfigurationDB
      */
     public function testGenerateConfNoTable()
     {
-        $this->dropTable();
+        $this->dropTables();
 
         $writer = new Writer;
         $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
@@ -40,7 +40,7 @@ class WriterTest extends AbstractConfigurationDB
      */
     public function testGenerateConfIgnoreAllFields()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $writer = new Writer;
         $writer->setProtectedCols($this->protectedCols);
@@ -53,7 +53,7 @@ class WriterTest extends AbstractConfigurationDB
      */
     public function testGenerateConfIgnoreAllTables()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $writer = new Writer;
         $writer->setIgnoredTables($this->ignoredTables);
@@ -62,7 +62,7 @@ class WriterTest extends AbstractConfigurationDB
 
     public function testGenerateConfDontIgnore()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $writer = new Writer;
         $writer->setProtectedCols(['.*\..*']);
@@ -104,7 +104,7 @@ class WriterTest extends AbstractConfigurationDB
 
     public function testGenerateConfWritable()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $writer = new Writer;
         $writer->setProtectedCols(['.*\.username']);
@@ -147,7 +147,7 @@ class WriterTest extends AbstractConfigurationDB
      */
     public function testGenerateConfNotWritable()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
 
         $writer = new Writer;
         $writer->setProtectedCols(['.*\.username']);

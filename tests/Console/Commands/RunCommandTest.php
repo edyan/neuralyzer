@@ -62,7 +62,7 @@ class RunCommandTest extends AbstractConfigurationDB
             $this->expectExceptionMessageRegExp("|Access denied for user.*|");
         }
 
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -83,7 +83,7 @@ class RunCommandTest extends AbstractConfigurationDB
     */
     public function testExecuteWrongDriver()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -109,7 +109,7 @@ class RunCommandTest extends AbstractConfigurationDB
             $this->expectException("\Doctrine\DBAL\Exception\TableNotFoundException");
         }
 
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -126,7 +126,7 @@ class RunCommandTest extends AbstractConfigurationDB
 
     public function testExecuteErrorCode()
     {
-        $this->createPrimary();
+        $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
