@@ -190,10 +190,6 @@ class RunCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
-        if (!empty($input->getOption('bootstrap'))) {
-            FileLoader::checkAndLoad($input->getOption('bootstrap'));
-        }
-
         // Throw an exception immediately if we don't have the required DB parameter
         if (empty($input->getOption('db'))) {
             throw new \InvalidArgumentException('Database name is required (--db)');
@@ -236,6 +232,10 @@ class RunCommand extends Command
         $this->db->setMode($this->input->getOption('mode'));
         $this->db->setPretend($this->input->getOption('pretend'));
         $this->db->setReturnRes($this->input->getOption('sql'));
+
+        if (!empty($input->getOption('bootstrap'))) {
+            FileLoader::checkAndLoad($input->getOption('bootstrap'));
+        }
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Neuralyzer');
