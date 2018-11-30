@@ -83,11 +83,11 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->getDoctrine()->query("ALTER TABLE {$this->tableName} DROP COLUMN id");
             $this->getDoctrine()->query(
-                "ALTER TABLE {$this->tableName} ADD id INT IDENTITY CONSTRAINT id_pk PRIMARY KEY CLUSTERED"
+                "ALTER TABLE {$this->tableName} ADD id INT IDENTITY CONSTRAINT id_pk_g PRIMARY KEY CLUSTERED"
             );
             $this->getDoctrine()->query("ALTER TABLE people DROP COLUMN id");
             $this->getDoctrine()->query(
-                "ALTER TABLE people ADD id INT IDENTITY CONSTRAINT id_pk PRIMARY KEY CLUSTERED"
+                "ALTER TABLE people ADD id INT IDENTITY CONSTRAINT id_pk_p PRIMARY KEY CLUSTERED"
             );
             return;
         }
