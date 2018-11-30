@@ -324,7 +324,11 @@ class DBTest extends AbstractConfigurationDB
         // Make sure my insert was ok
         $this->assertSame(2003, $total);
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
-        $data = $queryBuilder->select('*')->from($this->tableName)->setMaxResults(2)->execute()->fetchAll();
+        $data = $queryBuilder
+            ->select('*')
+            ->from($this->tableName)
+            ->setMaxResults(2)
+            ->execute()->fetchAll();
         $this->assertInternalType('array', $data);
         $this->assertNotEmpty($data);
         // First line is correct

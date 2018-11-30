@@ -144,7 +144,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/../../_files/config.right.yaml',
             '--limit' => 1,
-            '--mode' => $this->mode
+            '--mode' => $this->mode,
+            '--table' => $this->tableName
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|1\/1 \[============================\] 100%|', $commandTester->getDisplay());
@@ -166,7 +167,8 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/../../_files/config.right.yaml',
             '--limit' => 100000,
-            '--mode' => $this->mode
+            '--mode' => $this->mode,
+            '--table' => $this->tableName
         ]);
         $this->assertRegExp('|Anonymizing guestbook|', $commandTester->getDisplay());
         $this->assertRegExp('|2\/2 \[============================\] 100%|', $commandTester->getDisplay());
