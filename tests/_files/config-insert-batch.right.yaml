@@ -15,3 +15,4 @@ entities:
             a_smallint: { method: randomNumber, params: [4] }
             a_float: { method: randomFloat, params: [2, 0, 999] }
             id: { method: emptyString }
+        limit: 10

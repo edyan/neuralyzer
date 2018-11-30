@@ -142,8 +142,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/../../_files/config.right.yaml',
-            '--limit' => 1,
+            '--config' => __DIR__ . '/../../_files/config.right.limit1.yaml',
             '--mode' => $this->mode,
             '--table' => $this->tableName
         ]);
@@ -165,8 +164,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--user' => getenv('DB_USER'),
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
-            '--config' => __DIR__ . '/../../_files/config.right.yaml',
-            '--limit' => 100000,
+            '--config' => __DIR__ . '/../../_files/config.right.limit100000.yaml',
             '--mode' => $this->mode,
             '--table' => $this->tableName
         ]);
@@ -189,7 +187,6 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             '--host' => getenv('DB_HOST'),
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/../../_files/' . $config,
-            '--limit' => 10,
             '--mode' => $this->mode
         ]);
 

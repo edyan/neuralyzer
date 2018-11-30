@@ -45,16 +45,14 @@ class ReaderTest extends TestCase
     {
         $reader = new Reader('_files/config.right.deleteone.yaml', [__DIR__ . '/..']);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
-        $this->assertArrayHasKey('pre_actions', $values);
-        $this->assertInternalType('array', $values['pre_actions']);
-        $this->assertArrayHasKey('post_actions', $values);
-        $this->assertInternalType('array', $values['post_actions']);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
+        $this->assertArrayHasKey('pre_actions', $values['entities']['guestbook']);
+        $this->assertInternalType('array', $values['entities']['guestbook']['pre_actions']);
+        $this->assertArrayHasKey('post_actions', $values['entities']['guestbook']);
+        $this->assertInternalType('array', $values['entities']['guestbook']['post_actions']);
 
         $entities = $reader->getEntities();
-        $this->assertInternalType('array', $entities);
         $this->assertContains('guestbook', $entities);
 
         return $reader;

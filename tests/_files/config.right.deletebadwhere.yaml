@@ -1,9 +1,9 @@
 guesser_version: 1.0.0b
-pre_actions:
-    - db.query("DELETE FROM guestbook WHERE badname = 'joe'")
 entities:
     guestbook:
         cols:
             username: { method: sentence, params: [8] }
             content: { method: sentence, params: [20] }
             created: { method: date, params: [Y-m-d] }
+        pre_actions:
+            - db.query("DELETE FROM guestbook WHERE badname = 'joe'")

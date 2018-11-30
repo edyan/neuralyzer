@@ -86,16 +86,6 @@ class Reader
     }
 
     /**
-     * Return the list of pre actions
-     *
-     * @return array
-     */
-    public function getPreActions(): array
-    {
-        return $this->configValues['pre_actions'];
-    }
-
-    /**
      * Return the list of entities
      *
      * @return array

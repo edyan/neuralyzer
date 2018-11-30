@@ -1,7 +1,6 @@
 guesser_version: '3.0'
 language: en_US
-pre_actions:
-    - db.query("DELETE FROM guestbook")
+
 entities:
     guestbook:
         action: insert
@@ -16,3 +15,5 @@ entities:
             a_smallint: { method: randomNumber, params: [4] }
             a_float: { method: randomFloat, params: [2, 0, 999] }
         delete: true # For depreciation notice
+        pre_actions:
+            - db.query("DELETE FROM guestbook")

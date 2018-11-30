@@ -204,7 +204,9 @@ class DB extends AbstractAnonymizer
             $this->setLimit($this->dbUtils->countResults($this->entity));
         }
 
-        $this->expression->evaluateExpressions($this->configuration->getPreActions());
+        $this->expression->evaluateExpressions(
+            $this->configEntities[$this->entity]['pre_actions']
+        );
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
@@ -238,7 +240,9 @@ class DB extends AbstractAnonymizer
             $this->loadDataInBatch('update');
         }
 
-        $this->expression->evaluateExpressions($this->configuration->getPostActions());
+        $this->expression->evaluateExpressions(
+            $this->configEntities[$this->entity]['post_actions']
+        );
     }
 
 
@@ -308,7 +312,9 @@ class DB extends AbstractAnonymizer
      */
     private function insertData($callback = null): void
     {
-        $this->expression->evaluateExpressions($this->configuration->getPreActions());
+        $this->expression->evaluateExpressions(
+            $this->configEntities[$this->entity]['pre_actions']
+        );
 
         for ($rowNum = 1; $rowNum <= $this->limit; $rowNum++) {
             // Call the right method according to the mode
@@ -324,7 +330,9 @@ class DB extends AbstractAnonymizer
             $this->loadDataInBatch('insert');
         }
 
-        $this->expression->evaluateExpressions($this->configuration->getPostActions());
+        $this->expression->evaluateExpressions(
+            $this->configEntities[$this->entity]['post_actions']
+        );
     }
 
 

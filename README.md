@@ -25,13 +25,13 @@ before launching the anonymization (see the config parameters `delete` and `dele
 
 Neuralyzer had an option to clean tables but it's now managed by pre and post actions : 
 ```yaml
-pre_actions: 
-    - db.query("DELETE FROM books")
 entities:
     books:
         cols:
             title: { method: sentence, params: [8] }
         action: update
+        pre_actions: 
+            - db.query("DELETE FROM books")
 post_actions:
     - db.query("DELETE FROM books WHERE title LIKE '%war%'")
 
@@ -91,16 +91,20 @@ entities:
             first_name: { method: firstName }
             last_name: { method: lastName }
         action: update # Will update existing data, "insert" would create new data
+        pre_actions: {  }
+        post_actions: {  }
+
     books:
         cols:
             name: { method: sentence, params: [8] }
             date_modified: { method: date, params: ['Y-m-d H:i:s', now] }
         action: update
+        pre_actions: {  }
+        post_actions: {  }
+        
 guesser: Edyan\Neuralyzer\Guesser
 guesser_version: '3.0'
 language: en_US
-pre_actions: {  }
-post_actions: {  }
 ```
 
 You have to modify the file to change its configuration. For example, if you need to remove data
@@ -115,21 +119,20 @@ language: fr_FR
 
 **INFO**: You can also use delete in standalone, without anonymizing anything. That will delete everything in books:
 ```yaml
-pre_actions: 
-    - db.query("DELETE FROM books")
 entities:
     authors:
         cols:
             first_name: { method: firstName }
             last_name: { method: lastName }
         action: update
+    books:
+        pre_actions: 
+            - db.query("DELETE FROM books")
 ```
 
-If you wanted to delete everything + insert new lines :
+If you wanted to delete everything then insert 1000 new books:
 ```yaml
 guesser_version: '3.0'
-pre_actions: 
-    - db.query("DELETE FROM books")
 entities:
     authors:
         cols:
@@ -140,6 +143,9 @@ entities:
         cols:
             name: { method: sentence, params: [8] }
         action: insert
+        pre_actions: 
+            - db.query("DELETE FROM books")
+        limit: 1000
 ```
 
 
@@ -157,7 +163,6 @@ Options:
         --pretend            Don't run the queries
     -s, --sql                Display the SQL
 
-    -l, --limit=LIMIT        Limit the number of written records (update or insert). 100 by default for insert
     -m, --mode=MODE          Set the mode : batch or queries [default: "batch"]
 ```
 #### Example
@@ -360,7 +365,7 @@ foreach ($tables as $table) {
 
 ## Pre and Post Actions
 You can set an array of `pre_actions` and `post_actions` that will be 
-executed *before* and *after* neuralyzer starts to anonymize entities.
+executed *before* and *after* neuralyzer starts to anonymize an entity.
 
 These actions are actually symfony expressions (see [Symfony Expression Language](https://)) 
 that rely on *Services*. These Services are loaded from the `Service/` directory.
@@ -383,10 +388,6 @@ config:
     # Faker's language, make sure all your methods have a translation
     language:             en_US
 
-
-    # The list of expressions language actions to executed before neuralyzing
-    # Be careful that "pretend" has no effect here.
-    pre_actions:          []
 
     # List all entities, theirs cols and actions
     entities:             # Required, Example: people
@@ -411,8 +412,18 @@ config:
                     method:               ~ # Required
                     params:               []
 
-    # The list of expressions language actions to executed after neuralyzing
-    post_actions:         []
+            # Limit the number of written records (update or insert). 
+            # 100 by default for insert
+            limit:                0
+
+            # The list of expressions language actions to executed before neuralyzing
+            # Be careful that "pretend" has no effect here.
+            pre_actions:          []
+        
+
+            # The list of expressions language actions to executed after neuralyzing
+            # Be careful that "pretend" has no effect here.
+            post_actions:         []
 
 ```
 

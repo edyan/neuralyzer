@@ -1,5 +1,5 @@
 guesser_version: 1.0.0b
-pre_actions:
-    - db.query("DELETE FROM guestbook")
 entities:
-    guestbook: ~
+    guestbook:
+        pre_actions:
+            - db.query("DELETE FROM guestbook")

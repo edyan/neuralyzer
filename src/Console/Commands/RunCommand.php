@@ -154,17 +154,12 @@ class RunCommand extends Command
                 'pretend',
                 null,
                 InputOption::VALUE_NONE,
-                "Don't run the queries"
+                "Don't run queries (pre and post actions will always be executed)"
             )->addOption(
                 'sql',
                 's',
                 InputOption::VALUE_NONE,
                 'Display the SQL'
-            )->addOption(
-                'limit',
-                'l',
-                InputOption::VALUE_REQUIRED,
-                'Limit the number of written records (update or insert). 100 by default for insert'
             )->addOption(
                 'mode',
                 'm',
@@ -318,8 +313,8 @@ class RunCommand extends Command
      */
     private function getTotal(string $table): int
     {
-        $limit = (int) $this->input->getOption('limit');
         $config = $this->reader->getEntityConfig($table);
+        $limit = (int)$config['limit'];
         if ($config['action'] === 'insert') {
             return empty($limit) ? 100 : $limit;
         }
