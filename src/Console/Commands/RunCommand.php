@@ -268,7 +268,7 @@ class RunCommand extends Command
         if ($total === 0) {
             $this->output->writeln("<info>$table is empty</info>");
 
-            return false;
+            return true;
         }
 
         $bar = new ProgressBar($this->output, $total);
