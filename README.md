@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/edyan/neuralyzer.svg?branch=master)](https://travis-ci.org/edyan/neuralyzer)
+[![Build Status](https://travis-ci.com/edyan/neuralyzer.svg?branch=master)](https://travis-ci.com/edyan/neuralyzer)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/edyan/neuralyzer/badges/build.png?b=master)](https://scrutinizer-ci.com/g/edyan/neuralyzer/build-status/master)
