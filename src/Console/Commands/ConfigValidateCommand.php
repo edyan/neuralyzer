@@ -21,6 +21,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Command to validate a config file
@@ -55,6 +56,11 @@ class ConfigValidateCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'File',
                 'neuralyzer.yml'
+            )->addOption(
+                'dump',
+                'D',
+                InputOption::VALUE_NONE,
+                'Dump full configuration'
             );
     }
 
@@ -86,5 +92,9 @@ class ConfigValidateCommand extends Command
         }
 
         $output->writeln("<info>Your config is valid !</info>");
+
+        if ($input->getOption('dump') === true) {
+            $output->writeln(Yaml::dump($reader->getConfigValues(), 4));
+        }
     }
 }

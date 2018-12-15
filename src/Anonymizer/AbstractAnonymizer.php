@@ -295,7 +295,7 @@ abstract class AbstractAnonymizer
      *
      * @return \Faker\Generator|\Faker\UniqueGenerator
      */
-    protected function getFakerObject($entityName, $colName, $colProps)
+    protected function getFakerObject(string $entityName, string $colName, array $colProps)
     {
         if (!isset($this->fakers[$entityName][$colName])) {
             $fakerClone = clone $this->faker;

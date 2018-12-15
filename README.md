@@ -28,7 +28,7 @@ Neuralyzer had an option to clean tables but it's now managed by pre and post ac
 entities:
     books:
         cols:
-            title: { method: sentence, params: [8] }
+            title: { method: sentence, params: [8], unique: true }
         action: update
         pre_actions: 
             - db.query("DELETE FROM books")
@@ -38,8 +38,8 @@ post_actions:
 ```
 
 
-## Installation as a library~
-```bash~
+## Installation as a library
+```bash
 composer require edyan/neuralyzer
 ```
 
@@ -58,7 +58,7 @@ $ neuralyzer
 The easiest way to use that tool is to start with the command line tool.
 After cloning the project and running a `composer install`, try:
 ```bash
-bin/neuralyzer
+$ bin/neuralyzer
 ```
 
 
@@ -88,8 +88,8 @@ That produces a file which looks like:
 entities:
     authors:
         cols:
-            first_name: { method: firstName }
-            last_name: { method: lastName }
+            first_name: { method: firstName, unique: false }
+            last_name: { method: lastName, unique: false }
         action: update # Will update existing data, "insert" would create new data
         pre_actions: {  }
         post_actions: {  }
@@ -122,8 +122,8 @@ language: fr_FR
 entities:
     authors:
         cols:
-            first_name: { method: firstName }
-            last_name: { method: lastName }
+            first_name: { method: firstName, unique: false }
+            last_name: { method: lastName, unique: false }
         action: update
     books:
         pre_actions: 
@@ -136,8 +136,8 @@ guesser_version: '3.0'
 entities:
     authors:
         cols:
-            first_name: { method: firstName }
-            last_name: { method: lastName }
+            first_name: { method: firstName, unique: false }
+            last_name: { method: lastName, unique: false }
         action: update
     books:
         cols:
@@ -388,7 +388,6 @@ config:
     # Faker's language, make sure all your methods have a translation
     language:             en_US
 
-
     # List all entities, theirs cols and actions
     entities:             # Required, Example: people
 
@@ -398,31 +397,38 @@ config:
             # Either "update" or "insert" data
             action:               update
 
-            # List of cols and methods
+            # Should we delete data with what is defined in "delete_where" ?
+            delete:               ~ # Deprecated (delete and delete_where have been deprecated. Use now pre and post_actions)
+
+            # Condition applied in a WHERE if delete is set to "true"
+            delete_where:         ~ # Deprecated (delete and delete_where have been deprecated. Use now pre and post_actions), Example: '1 = 1'
             cols:
 
                 # Examples:
-                first_name:
+                first_name:          
                     method:              firstName
-                last_name:
+                last_name:           
                     method:              lastName
 
                 # Prototype
                 -
+
+                    # Faker method to use, see doc : https://github.com/fzaninotto/Faker
                     method:               ~ # Required
+
+                    # Set this option to true to generate unique values for that field (see faker->unique() generator)
+                    unique:               false
+
+                    # Faker's parameters, see Faker's doc
                     params:               []
 
-            # Limit the number of written records (update or insert). 
-            # 100 by default for insert
+            # Limit the number of written records (update or insert). 100 by default for insert
             limit:                0
 
-            # The list of expressions language actions to executed before neuralyzing
-            # Be careful that "pretend" has no effect here.
+            # The list of expressions language actions to executed before neuralyzing. Be careful that "pretend" has no effect here.
             pre_actions:          []
-        
 
-            # The list of expressions language actions to executed after neuralyzing
-            # Be careful that "pretend" has no effect here.
+            # The list of expressions language actions to executed after neuralyzing. Be careful that "pretend" has no effect here.
             post_actions:         []
 
 ```
