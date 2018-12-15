@@ -502,4 +502,31 @@ class DBTest extends AbstractConfigurationDB
 
         $this->assertEquals($this->num, 2);
     }
+
+    public function testUniqueFakerObject()
+    {
+        $db = $this->getDB();
+        $db->setConfiguration(new Reader('_files/config.right.yaml', [__DIR__ . '/..']));
+
+        $class = new \ReflectionClass('\Edyan\Neuralyzer\Anonymizer\DB');
+        $class->newInstanceWithoutConstructor();
+        $method = $class->getMethod('getFakerObject');
+        $method->setAccessible(true);
+        $method->invokeArgs($db, ['Entity1', 'field1', ['unique' => true]]);
+        $method->invokeArgs($db, ['Entity1', 'field2', ['unique' => false]]);
+        $method->invokeArgs($db, ['Entity1', 'field3', ['unique' => true]]);
+
+        $prop = $class->getProperty('fakers');
+        $prop->setAccessible(true);
+        $fakers = $prop->getValue($db);
+
+        $this->assertCount(1, $fakers);
+        $this->assertCount(3, $fakers['Entity1']);
+
+        $this->assertInstanceOf(\Faker\UniqueGenerator::class, $fakers['Entity1']['field1']);
+        $this->assertInstanceOf(\Faker\Generator::class, $fakers['Entity1']['field2']);
+
+        //Unique faker object for each unique field
+        $this->assertNotSame($fakers['Entity1']['field1'], $fakers['Entity1']['field2']);
+    }
 }
