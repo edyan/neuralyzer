@@ -38,10 +38,11 @@ before_install:
   - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e \"SET GLOBAL sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'\"; fi"
 
 before_script:
+  - composer global require hirak/prestissimo
   - composer install --no-interaction --prefer-source
 
 script:
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=coverage.xml; fi
+  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=clover.xml; fi
   - if [[ "$TRAVIS_PHP_VERSION" != "7.3" || "$DB_DRIVER" != "pdo_mysql" ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --no-cover; fi
 
 after_script:

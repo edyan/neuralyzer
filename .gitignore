@@ -15,7 +15,7 @@
 /phpunit.xml
 /phpunit.*.xml
 /reports/
-/coverage.xml
+/clover.xml
 
 # Robo
 /robo.yml
