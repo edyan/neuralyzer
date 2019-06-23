@@ -1,5 +1,7 @@
 sudo: required
-dist: trusty
+dist: xenial
+git:
+  depth: 1
 
 language: php
 php:
@@ -23,13 +25,13 @@ env:
 
 before_install:
   # Set Coverage flag
-  - export COVERAGE=false
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then export COVERAGE=true; fi
+  - export COVERAGE=0
+  - if [[ "${TRAVIS_PHP_VERSION}" == "7.3" && "${DB_DRIVER}" == "pdo_mysql" ]]; then export COVERAGE=1; fi
 
   # Code Climate
-  - if [[ ${COVERAGE} == true  ]]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter; fi
-  - if [[ ${COVERAGE} == true  ]]; then chmod +x ./cc-test-reporter; fi
-  - if [[ ${COVERAGE} == true  ]]; then ./cc-test-reporter before-build; fi
+  - if [[ ${COVERAGE} -eq 1  ]]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter; fi
+  - if [[ ${COVERAGE} -eq 1  ]]; then chmod +x ./cc-test-reporter; fi
+  - if [[ ${COVERAGE} -eq 1  ]]; then ./cc-test-reporter before-build; fi
 
   # Postgres
   - if [[ "${DB_DRIVER}" == "pdo_pgsql" ]]; then psql -c "CREATE DATABASE test_db;" -U postgres; fi
@@ -46,13 +48,13 @@ before_script:
   - composer install --no-interaction --prefer-source
 
 script:
-  - if [[ ${COVERAGE} == true  ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=clover.xml; fi
-  - if [[ ${COVERAGE} == false ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --no-cover; fi
+  - if [[ ${COVERAGE} -eq 1 ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=clover.xml; fi
+  - if [[ ${COVERAGE} -eq 0 ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --no-cover; fi
 
 after_script:
   # Code Climate
-  - if [[ ${COVERAGE} == true  ]]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
+  - if [[ ${COVERAGE} -eq 1 ]]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
 
   # Scrutinizer
-  - if [[ ${COVERAGE} == true  ]]; then wget https://scrutinizer-ci.com/ocular.phar; fi
-  - if [[ ${COVERAGE} == true  ]]; then test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover clover.xml; fi
+  - if [[ ${COVERAGE} -eq 1 ]]; then wget https://scrutinizer-ci.com/ocular.phar; fi
+  - if [[ ${COVERAGE} -eq 1 ]]; then test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover clover.xml; fi
