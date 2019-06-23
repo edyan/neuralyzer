@@ -1,5 +1,7 @@
 sudo: required
 dist: trusty
+git:
+  depth: 1
 
 language: php
 php:
@@ -9,13 +11,13 @@ php:
 
 
 services:
-  #- mysql
+  - mysql
   - postgresql
 
 env:
   matrix:
-    #- DB_DRIVER=pdo_mysql DB_USER=root
-    - DB_DRIVER=pdo_pgsql DB_USER=phpunit DB_PASSWORD=phpunit
+    - DB_DRIVER=pdo_mysql DB_USER=root
+    #- DB_DRIVER=pdo_pgsql DB_USER=phpunit DB_PASSWORD=phpunit
   global:
     - TRAVIS_SECURE_ENV_VARS=true
     - secure: "D85mhHqlhgIZExOQMJCp3oxiYYAPLm2N9by9C1dw/q/GNWsWRy3sdVsTALSkhwFRRR1JiU3a0C0ExxrsrwGQ/Nk6j5gmdQNRlJCeHZ6jiLzpsW+fkma/Kh29+gz4ZGHtqi1FzwAV7RhzSWMmVvbbKId2qsbGCR+sWpxpZ+48jifGBHq4+VDk+tpSXh2SFOi3VR8tGeEiaUqYm79fLKkrtCZjHf2mvzv0epJcPzqIZVXytpypoL4NB1rpPOBMDj9iQDpbEkVbD0yt4zE26m7GWVJADniOUa/ZsFiFEFKz9TioeP36QEfykYHXq6pSqAwh4GAePn4ceLkRvorH3llh+DxTJU2o6+RxH8640Db1B169ewxUoj9dFuMaaEvojOk+ZfNg3aE3RW0xF6WY1oYJYkSDtmfFoavIf8WH5HuaqeBcVYKPcRcCRw88NJoG7QRIOyKk2g7Xy9N1fInYm+AZnO+nc02GcwKzJ2izScW65GOt8ceLq8Sy+8NvrxrT1VgpqDGOWnAX3iF2cYJ3ECvUTyoBen8qRrobW+YuchbNtXmy2Afus7Jmn21TtCSX1ekyqO43jSQExrNZJINhA0R9i89Jz7qwsMQQwEjsq620awN/nlXYCxnvrRHLozbe2616IKge81OFgy2xc/Ebi2xwOuSTz6YM+/EG4eWRI5nxvHA="
@@ -27,6 +29,7 @@ before_install:
   - echo ${TRAVIS_PHP_VERSION}
   - echo ${DB_DRIVER}
   - if [[ "${TRAVIS_PHP_VERSION}" == "7.3" && "${DB_DRIVER}" == "pdo_mysql" ]]; then export COVERAGE=1; fi
+  - echo ${COVERAGE}
 
   # Code Climate
   - if [[ ${COVERAGE} -eq 1  ]]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter; fi
