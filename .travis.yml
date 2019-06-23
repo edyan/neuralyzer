@@ -24,7 +24,7 @@ env:
 before_install:
   # Set Coverage flag
   - export COVERAGE=false
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; export COVERAGE=true; fi
+  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then export COVERAGE=true; fi
 
   # Code Climate
   - if [[ $COVERAGE == true  ]]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter; fi
