@@ -89,25 +89,7 @@ class RoboFile extends \Robo\Tasks
         $workDir = $collection->tmpDir();
         $buildDir = "$workDir/neuralyzer";
 
-        $prepTasks = $this->collectionBuilder();
-        $preparationResult = $prepTasks
-            ->taskFilesystemStack()
-                ->mkdir($workDir)
-                ->taskCopyDir([__DIR__ . '/src' => $buildDir . '/src'])
-            ->taskFilesystemStack()
-                ->copy(__DIR__ . '/bin/neuralyzer', $buildDir . '/bin/neuralyzer')
-                ->copy(__DIR__ . '/composer.json', $buildDir . '/composer.json')
-                ->copy(__DIR__ . '/composer.lock', $buildDir . '/composer.lock')
-                ->copy(__DIR__ . '/LICENSE', $buildDir . '/LICENSE')
-                ->copy(__DIR__ . '/README.md', $buildDir . '/README.md')
-
-            ->taskComposerInstall()
-                ->dir($buildDir)
-                ->noDev()
-                ->noScripts()
-                ->printOutput(true)
-                ->optimizeAutoloader()
-                ->run();
+        $preparationResult = $this->preparePharTask($workDir, $buildDir);
 
         // Exit if the preparation step failed
         if (!$preparationResult->wasSuccessful()) {
@@ -127,23 +109,6 @@ class RoboFile extends \Robo\Tasks
              ->to('if (count($this->files) > 1500)')
              ->run();
 
-
-        // Decide which files we're going to pack
-        $files = \Symfony\Component\Finder\Finder::create()
-            ->ignoreVCS(true)
-            ->files()
-            ->name('*.php')
-            ->name('*.exe') // for symfony/console/Resources/bin/hiddeninput.exe
-            ->path('src')
-            ->path('vendor')
-            ->notPath('docs')
-            ->notPath('/vendor\/.*\/[Tt]est/')
-            // incomplete and need to reduce for phar compression
-            //->notPath('ro_MD')
-            //->notPath('sr_Cyrl_RS')
-            //->notPath('sr_Latn_RS')
-            ->in(is_dir($buildDir) ? $buildDir : __DIR__);
-
         $fakerLang = \Symfony\Component\Finder\Finder::create()
             ->ignoreVCS(true)
             ->files()
@@ -157,7 +122,7 @@ class RoboFile extends \Robo\Tasks
                 ->compress()
                 ->addFile('bin/neuralyzer', 'bin/neuralyzer')
                 ->addFile('config/services.yml', 'config/services.yml')
-                ->addFiles($files)
+                ->addFiles($this->getFilesForPhar($buildDir))
                 ->addFiles($fakerLang)
                 ->executable('bin/neuralyzer')
             ->taskFilesystemStack()
@@ -356,5 +321,47 @@ class RoboFile extends \Robo\Tasks
         if (!empty($modifiedFiles->getMessage())) {
             throw new \RuntimeException('Your local repo is not up to date, run "git pull"');
         }
+    }
+
+    private function preparePharTask(string $workDir, string $buildDir)
+    {
+        $prepTasks = $this->collectionBuilder();
+        return $prepTasks
+            ->taskFilesystemStack()
+            ->mkdir($workDir)
+            ->taskCopyDir([__DIR__ . '/src' => $buildDir . '/src'])
+            ->taskFilesystemStack()
+            ->copy(__DIR__ . '/bin/neuralyzer', $buildDir . '/bin/neuralyzer')
+            ->copy(__DIR__ . '/composer.json', $buildDir . '/composer.json')
+            ->copy(__DIR__ . '/composer.lock', $buildDir . '/composer.lock')
+            ->copy(__DIR__ . '/LICENSE', $buildDir . '/LICENSE')
+            ->copy(__DIR__ . '/README.md', $buildDir . '/README.md')
+
+            ->taskComposerInstall()
+            ->dir($buildDir)
+            ->noDev()
+            ->noScripts()
+            ->printOutput(true)
+            ->optimizeAutoloader()
+            ->run();
+    }
+
+    private function getFilesForPhar(string $buildDir)
+    {
+        // Decide which files we're going to pack
+        return \Symfony\Component\Finder\Finder::create()
+            ->ignoreVCS(true)
+            ->files()
+            ->name('*.php')
+            ->name('*.exe') // for symfony/console/Resources/bin/hiddeninput.exe
+            ->path('src')
+            ->path('vendor')
+            ->notPath('docs')
+            ->notPath('/vendor\/.*\/[Tt]est/')
+            // incomplete and need to reduce for phar compression
+            //->notPath('ro_MD')
+            //->notPath('sr_Cyrl_RS')
+            //->notPath('sr_Latn_RS')
+            ->in(is_dir($buildDir) ? $buildDir : __DIR__);
     }
 }
