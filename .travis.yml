@@ -22,28 +22,38 @@ env:
 
 
 before_install:
+  # Set Coverage flag
+  - export COVERAGE=false
+  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; export COVERAGE=true; fi
+
   # Code Climate
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+  - if [[ $COVERAGE == true  ]]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter; fi
+  - if [[ $COVERAGE == true  ]]; then chmod +x ./cc-test-reporter; fi
+  - if [[ $COVERAGE == true  ]]; then ./cc-test-reporter before-build; fi
 
   # Postgres
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c 'CREATE DATABASE test_db;' -U postgres; fi"
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c \"CREATE USER phpunit WITH PASSWORD 'phpunit';\" -U postgres; fi"
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c \"GRANT ALL PRIVILEGES ON DATABASE test_db to phpunit;\" -U postgres; fi"
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then sudo sed -i 's/trust/md5/g' /etc/postgresql/*/main/pg_hba.conf; fi"
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then sudo /etc/init.d/postgresql restart; fi"
+  - if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c 'CREATE DATABASE test_db;' -U postgres; fi
+  - if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c \"CREATE USER phpunit WITH PASSWORD 'phpunit';\" -U postgres; fi
+  - if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then psql -c \"GRANT ALL PRIVILEGES ON DATABASE test_db to phpunit;\" -U postgres; fi
+  - if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then sudo sed -i 's/trust/md5/g' /etc/postgresql/*/main/pg_hba.conf; fi
+  - if [ '$DB_DRIVER' = 'pdo_pgsql' ]; then sudo /etc/init.d/postgresql restart; fi
+
   # Mysql
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS test_db;'; fi"
-  - sh -c "if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e \"SET GLOBAL sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'\"; fi"
+  - if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS test_db;'; fi
+  - if [ '$DB_DRIVER' = 'pdo_mysql' ]; then mysql -e \"SET GLOBAL sql_mode ='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'\"; fi
 
 before_script:
   - composer global require hirak/prestissimo
   - composer install --no-interaction --prefer-source
 
 script:
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=clover.xml; fi
-  - if [[ "$TRAVIS_PHP_VERSION" != "7.3" || "$DB_DRIVER" != "pdo_mysql" ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --no-cover; fi
+  - if [[ $COVERAGE == true  ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=clover.xml; fi
+  - if [[ $COVERAGE == false ]]; then vendor/bin/phpunit --configuration phpunit.xml.dist --no-cover; fi
 
 after_script:
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" && "$DB_DRIVER" == "pdo_mysql" ]]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
+  # Code Climate
+  - if [[ $COVERAGE == true  ]]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
+
+  # Scrutinizer
+  - if [[ $COVERAGE == true  ]]; then wget https://scrutinizer-ci.com/ocular.phar; fi
+  - if [[ $COVERAGE == true  ]]; then test -f ocular.phar && php ocular.phar code-coverage:upload --format=php-clover clover.xml; fi
