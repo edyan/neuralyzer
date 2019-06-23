@@ -30,7 +30,7 @@ jobs:
           - v1-dependencies-
 
       # Setup Composer
-      - run: php -r "copy('https://getcomposer.org/download/1.6.4/composer.phar', '/usr/local/bin/composer');"
+      - run: php -r "copy('https://getcomposer.org/download/1.8.6/composer.phar', '/usr/local/bin/composer');"
       - run: chmod +x /usr/local/bin/composer
       - run: composer self-update
 
