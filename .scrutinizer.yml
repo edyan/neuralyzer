@@ -1,19 +1,39 @@
 build:
-  nodes:
-    analysis:
-      tests:
-        override:
-          - php-scrutinizer-run  
   environment:
     php:
       version: 7.1
+    mysql: true
+    postgresql: false
+    mongodb: false
+    elasticsearch: false
+    redis: false
+    memcached: false
+    neo4j: false
+    rabbitmq: false
+
   project_setup:
     before:
       - mysql -e "CREATE DATABASE test_db"
 
+  nodes:
+    tests-and-coverage:
+      tests:
+        before:
+          - composer install
+        override:
+          - command: vendor/bin/phpunit --configuration phpunit.xml.dist --colors --coverage-clover=coverage.xml
+            coverage:
+              file: coverage.xml
+              format: clover
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
+
+
 filter:
   excluded_paths:
-    - RoboFile*
+    - RoboFile.php
     - tests/*
 checks:
   php:

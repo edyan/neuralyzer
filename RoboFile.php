@@ -63,7 +63,7 @@ class RoboFile extends \Robo\Tasks
         $this->taskDockerExec('robo_php')
             ->interactive()
             ->option('--user', 'www-data')
-            ->exec($this->taskExec('/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit"'))
+            ->exec($this->taskExec('/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit --coverage-clover=coverage.xml"'))
             ->run();
 
         if ($opts['keep-cts'] === false) {
