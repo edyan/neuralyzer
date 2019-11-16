@@ -202,6 +202,7 @@ class RoboFile extends \Robo\Tasks
 
         if ($this->dbType === 'mysql') {
             $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
+            $dbCt = $dbCt->exec('--default-authentication-plugin=mysql_native_password --enable-local-infile');
         } elseif ($this->dbType === 'pgsql') {
             $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
         } elseif ($this->dbType === 'sqlsrv') {

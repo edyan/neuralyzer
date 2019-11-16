@@ -468,7 +468,7 @@ Clone the project, run `composer install` then...
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.2 --wait 10 --db mysql --db-version 5
-$ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 5
+$ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 8
 ```
 #### With PostgreSQL 9, 10 and 11 (12 also works)
 ```bash
