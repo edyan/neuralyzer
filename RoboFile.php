@@ -216,8 +216,8 @@ class RoboFile extends \Robo\Tasks
     {
         $image = $this->dbType . ':' . $this->dbVersion;
         if ($this->dbType === 'sqlsrv') {
-            $dbVersion = $this->dbVersion === 'latest' ? '2017-latest' : $this->dbVersion;
-            $image = 'microsoft/mssql-server-linux:' . $dbVersion;
+            $dbVersion = $this->dbVersion === 'latest' ? '2017-latest-ubuntu' : $this->dbVersion;
+            $image = 'mcr.microsoft.com/mssql/server:' . $dbVersion;
         } elseif ($this->dbType === 'pgsql') {
             $image = 'postgres:' . $this->dbVersion;
         }
@@ -244,7 +244,7 @@ class RoboFile extends \Robo\Tasks
     private function startPHP(): void
     {
         if (!in_array($this->phpVersion, ['7.1', '7.2', '7.3'])) {
-            throw new \InvalidArgumentException('PHP Version must be 7.1 or 7.2');
+            throw new \InvalidArgumentException('PHP Version must be 7.1, 7.2 or 7.3');
         }
 
         $dbUser = 'root';
@@ -256,7 +256,6 @@ class RoboFile extends \Robo\Tasks
 
         $this->taskDockerRun('edyan/php:' . $this->phpVersion . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
-            ->env('FPM_UID', getmyuid())->env('FPM_GID', getmygid())
             ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $this->dbType)
             ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')

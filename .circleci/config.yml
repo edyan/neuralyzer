@@ -11,7 +11,7 @@ jobs:
       #   environment:
       #     MYSQL_ROOT_PASSWORD: fjkekI8IeufjI8Ue56
       #     MYSQL_DATABASE: test_db
-      - image: microsoft/mssql-server-linux:2017-latest
+      - image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
         name: sqlserver
         environment:
           ACCEPT_EULA: Y

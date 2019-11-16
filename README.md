@@ -21,16 +21,16 @@ databases. It's then supposed to be able to work with any database type.
 Currently it works (tested extensively) with MySQL, PostgreSQL and SQLServer.
 
 ~~Neuralyzer has an option to clean tables by injecting a `DELETE FROM` with a `WHERE` critera
-before launching the anonymization (see the config parameters `delete` and `delete_where`).~~ 
+before launching the anonymization (see the config parameters `delete` and `delete_where`).~~
 
-Neuralyzer had an option to clean tables but it's now managed by pre and post actions : 
+Neuralyzer had an option to clean tables but it's now managed by pre and post actions :
 ```yaml
 entities:
     books:
         cols:
             title: { method: sentence, params: [8], unique: true }
         action: update
-        pre_actions: 
+        pre_actions:
             - db.query("DELETE FROM books")
 post_actions:
     - db.query("DELETE FROM books WHERE title LIKE '%war%'")
@@ -101,7 +101,7 @@ entities:
         action: update
         pre_actions: {  }
         post_actions: {  }
-        
+
 guesser: Edyan\Neuralyzer\Guesser
 guesser_version: '3.0'
 language: en_US
@@ -126,7 +126,7 @@ entities:
             last_name: { method: lastName, unique: false }
         action: update
     books:
-        pre_actions: 
+        pre_actions:
             - db.query("DELETE FROM books")
 ```
 
@@ -143,7 +143,7 @@ entities:
         cols:
             name: { method: sentence, params: [8] }
         action: insert
-        pre_actions: 
+        pre_actions:
             - db.query("DELETE FROM books")
         limit: 1000
 ```
@@ -364,13 +364,13 @@ foreach ($tables as $table) {
 
 
 ## Pre and Post Actions
-You can set an array of `pre_actions` and `post_actions` that will be 
+You can set an array of `pre_actions` and `post_actions` that will be
 executed *before* and *after* neuralyzer starts to anonymize an entity.
 
-These actions are actually symfony expressions (see [Symfony Expression Language](https://)) 
+These actions are actually symfony expressions (see [Symfony Expression Language](https://))
 that rely on *Services*. These Services are loaded from the `Service/` directory.
 
-For now there is only one service : `Database` that contains a method `query` usable like that : 
+For now there is only one service : `Database` that contains a method `query` usable like that :
 `db.query("DELETE FROM table")`.
 
 
@@ -405,9 +405,9 @@ config:
             cols:
 
                 # Examples:
-                first_name:          
+                first_name:
                     method:              firstName
-                last_name:           
+                last_name:
                     method:              lastName
 
                 # Prototype
@@ -464,19 +464,17 @@ Clone the project, run `composer install` then...
 * Change the `--wait` option if you have a lot of errors because DB is not ready.
 * Change the `--php` option for `7.1` or `7.2`
 
-#### With MySQL 
+#### With MySQL
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.2 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 5
-$ vendor/bin/robo test --php 7.4 --wait 10 --db mysql --db-version 8
 ```
-#### With PostgreSQL 10 (9 is also working) 
+#### With PostgreSQL 10 (9 is also working)
 ```bash
 $ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql --db-version 9
 $ vendor/bin/robo test --php 7.2 --wait 10 --db pgsql --db-version 10
 $ vendor/bin/robo test --php 7.3 --wait 10 --db pgsql --db-version 11
-$ vendor/bin/robo test --php 7.4 --wait 10 --db pgsql --db-version 12
 ```
 #### With SQL Server
 **Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
