@@ -469,12 +469,14 @@ Clone the project, run `composer install` then...
 $ vendor/bin/robo test --php 7.1 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.2 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 5
+$ vendor/bin/robo test --php 7.4 --wait 10 --db mysql --db-version 8
 ```
 #### With PostgreSQL 10 (9 is also working) 
 ```bash
-$ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql --db-version 10
+$ vendor/bin/robo test --php 7.1 --wait 10 --db pgsql --db-version 9
 $ vendor/bin/robo test --php 7.2 --wait 10 --db pgsql --db-version 10
-$ vendor/bin/robo test --php 7.3 --wait 10 --db pgsql --db-version 10
+$ vendor/bin/robo test --php 7.3 --wait 10 --db pgsql --db-version 11
+$ vendor/bin/robo test --php 7.4 --wait 10 --db pgsql --db-version 12
 ```
 #### With SQL Server
 **Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
