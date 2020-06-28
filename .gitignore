@@ -12,10 +12,12 @@
 
 # PHPUnit/Phing/dev
 /.php_cs.cache
+/.phpunit.result.cache
 /phpunit.xml
 /phpunit.*.xml
 /reports/
 /clover.xml
+/coverage.xml
 
 # Robo
 /robo.yml

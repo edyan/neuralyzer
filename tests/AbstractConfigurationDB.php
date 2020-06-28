@@ -10,35 +10,21 @@ use Edyan\Neuralyzer\Utils\DBUtils;
 
 abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * Raw PDO Connection
-     */
     static protected $pdo = null;
 
     static protected $doctrine;
 
     protected $tableName = 'guestbook';
 
-    /**
-     * PDO Default DB Connection for PHPUnit
-     */
-    private $conn;
-
-
     private $dbName;
 
-    /**
-     * For PHPUnit to manage DataSets
-     */
     public function setUp(): void
     {
         $this->dbName = getenv('DB_NAME');
 
-        if (self::$pdo === null) {
-            $this->connectAndCreateDB();
-            $this->createTables();
-            $this->createFixtures();
-        }
+        $this->connectAndCreateDB();
+        $this->createTables();
+        $this->createFixtures();
     }
 
 
@@ -55,6 +41,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
     }
 
+
     protected function getActualDataInTable()
     {
         $qb = $this->getDoctrine()->createQueryBuilder();
@@ -63,7 +50,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function createPrimaries()
+    protected function createPrimaries()
     {
         $sm = $this->getDoctrine()->getSchemaManager();
 
@@ -90,7 +77,8 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function dropTables()
+
+    protected function dropTables()
     {
         $sm = $this->getDoctrine()->getSchemaManager();
 
@@ -114,14 +102,14 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function truncateTable()
+    protected function truncateTable()
     {
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $queryBuilder->delete($this->tableName)->execute();
     }
 
 
-    public function getDbParams()
+    protected function getDbParams()
     {
         return [
             'driver' => getenv('DB_DRIVER'),
@@ -131,6 +119,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
             'password' => getenv('DB_PASSWORD'),
         ];
     }
+
 
     protected function createContainer()
     {
@@ -149,10 +138,12 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         return $container;
     }
 
+
     protected function getDBUtils(): DBUtils
     {
         return $this->createContainer()->get('Edyan\Neuralyzer\Utils\DBUtils');
     }
+
 
     protected function getDB(): Db
     {
@@ -162,6 +153,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 
         return new Db($expression, $dbUtils);
     }
+
 
     protected function getApplication(): Application
     {
@@ -173,6 +165,7 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 
         return $application;
     }
+
 
     protected function getDoctrine()
     {
@@ -274,7 +267,8 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
     }
 
-    private function doctrineMigrate(Schema $fromSchema, Schema $toSchema)
+
+    protected function doctrineMigrate(Schema $fromSchema, Schema $toSchema)
     {
         $queries = $fromSchema->getMigrateToSql($toSchema, $this->getDoctrine()->getDatabasePlatform());
         if (empty($queries)) {
@@ -286,23 +280,26 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
     }
 
+
     /**
      * That method is used to create the DB if it does not exists
      * Useful for SQLServer
      */
-    private function connectAndCreateDB()
+    protected function connectAndCreateDB()
     {
-        return;
-        $driver = getenv('DB_DRIVER');
-        if (substr($driver, 0, 4) === 'pdo_') {
-            $driver = substr($driver, 4);
+        if (empty(self::$pdo)) {
+            $driver = getenv('DB_DRIVER');
+            if (substr($driver, 0, 4) === 'pdo_') {
+                $driver = substr($driver, 4);
+            }
+
+            $conString = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
+            if ($driver === 'sqlsrv') {
+                $conString = $driver . ':Server=' . getenv('DB_HOST');
+            }
+            self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
         }
 
-        $conString = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
-        if ($driver === 'sqlsrv') {
-            $conString = $driver . ':Server=' . getenv('DB_HOST');
-        }
-        self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
         try {
             self::$pdo->query('CREATE DATABASE test_db');
         } catch (\Exception $e) {

@@ -462,7 +462,8 @@ Clone the project, run `composer install` then...
 
 ### Run the tests
 * Change the `--wait` option if you have a lot of errors because DB is not ready.
-* Change the `--php` option for `7.1` or `7.2`
+* Change the `--php` option for `7.2` or `7.4`
+* Set `--no-coverage` if you want to disable PHPUnit Code Coverage.
 
 #### With MySQL
 ```bash
