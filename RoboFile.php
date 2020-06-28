@@ -228,7 +228,7 @@ class RoboFile extends \Robo\Tasks
     {
         $image = $this->dbType . ':' . $this->dbVersion;
         if ($this->dbType === 'sqlsrv') {
-            $dbVersion = $this->dbVersion === 'latest' ? '2017-latest-ubuntu' : $this->dbVersion;
+            $dbVersion = $this->dbVersion === 'latest' ? '2019-latest' : $this->dbVersion;
             $image = 'mcr.microsoft.com/mssql/server:' . $dbVersion;
         } elseif ($this->dbType === 'pgsql') {
             $image = 'postgres:' . $this->dbVersion;

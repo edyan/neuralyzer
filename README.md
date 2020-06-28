@@ -47,7 +47,7 @@ composer require edyan/neuralyzer
 ## Installation as an executable
 You can even download the executable directly (example with v3.1):
 ```bash
-$ wget https://github.com/edyan/neuralyzer/raw/v3.1.0/neuralyzer.phar
+$ wget https://github.com/edyan/neuralyzer/raw/v4.0/neuralyzer.phar
 $ sudo mv neuralyzer.phar /usr/local/bin/neuralyzer
 $ sudo chmod +x /usr/local/bin/neuralyzer
 $ neuralyzer
