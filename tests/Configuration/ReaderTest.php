@@ -4,24 +4,23 @@ namespace Edyan\Neuralyzer\Tests\Configuration;
 
 use Edyan\Neuralyzer\Configuration\Reader;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class ReaderTest extends TestCase
 {
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |.*does not exist.*|
-     */
     public function testReadConfigurationWrongFile()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches("|.*does not exist.*|");
+
         new Reader('_files/config.doesntexist.yaml', [__DIR__ . '/..']);
     }
 
-    /**
-     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
-     * @expectedExceptionMessageRegExp |.*must be configured|
-     */
     public function testReadConfigurationWrongConf()
     {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches("|.*must be configured|");
+
         new Reader('_files/config.wrong.yaml', [__DIR__ . '/..']);
     }
 
@@ -29,13 +28,13 @@ class ReaderTest extends TestCase
     {
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
+        $this->assertIsArray($values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
 
         $entities = $reader->getEntities();
-        $this->assertInternalType('array', $entities);
+        $this->assertIsArray($entities);
         $this->assertContains('guestbook', $entities);
 
         return $reader;
@@ -48,9 +47,9 @@ class ReaderTest extends TestCase
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('pre_actions', $values['entities']['guestbook']);
-        $this->assertInternalType('array', $values['entities']['guestbook']['pre_actions']);
+        $this->assertIsArray($values['entities']['guestbook']['pre_actions']);
         $this->assertArrayHasKey('post_actions', $values['entities']['guestbook']);
-        $this->assertInternalType('array', $values['entities']['guestbook']['post_actions']);
+        $this->assertIsArray($values['entities']['guestbook']['post_actions']);
 
         $entities = $reader->getEntities();
         $this->assertContains('guestbook', $entities);
@@ -58,12 +57,11 @@ class ReaderTest extends TestCase
         return $reader;
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |does_not_exist is not set in config|
-     */
     public function testGetEntityNotInConfig()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches("|does_not_exist is not set in config|");
+
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
         $reader->getEntityConfig('does_not_exist');
     }

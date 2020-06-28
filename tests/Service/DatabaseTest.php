@@ -24,11 +24,11 @@ class DatabaseTest extends AbstractConfigurationDB
     {
         $this->expectException("\Edyan\Neuralyzer\Exception\NeuralyzerException");
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
-            $this->expectExceptionMessageRegExp("|.*Incorrect syntax near the keyword 'AS'.*|");
+            $this->expectExceptionMessageMatches("|.*Incorrect syntax near the keyword 'AS'.*|");
         } else if (strpos(getenv('DB_DRIVER'), 'pgsql')) {
-            $this->expectExceptionMessageRegExp('| syntax error at or near "SELET"|');
+            $this->expectExceptionMessageMatches('| syntax error at or near "SELET"|');
         } else {
-            $this->expectExceptionMessageRegExp("|.*You have an error in your SQL syntax.*|");
+            $this->expectExceptionMessageMatches("|.*You have an error in your SQL syntax.*|");
         }
 
         $database = new Database($this->getDBUtils());

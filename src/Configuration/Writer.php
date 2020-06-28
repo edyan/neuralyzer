@@ -227,7 +227,7 @@ class Writer
 
             $colsInfo[] = [
                 'name' => $col->getName(),
-                'type' => strtolower((string) $col->getType()),
+                'type' => ltrim(strtolower((string)$col->getType()), '\\'),
                 'len' => $col->getLength(),
             ];
         }

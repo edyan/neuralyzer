@@ -1,6 +1,6 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests\Utils;
+namespace Edyan\Neuralyzer\Tests\Helper\DB;
 
 use Edyan\Neuralyzer\Helper\DB\MySQL;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
@@ -13,7 +13,7 @@ class MySQLTest extends AbstractConfigurationDB
             $this->markTestSkipped('No MySQL driver installed');
         }
         $options = MySQL::getDriverOptions();
-        $this->assertInternalType('array', $options);
+        $this->assertIsArray($options);
         $this->assertNotEmpty($options);
     }
 
@@ -29,8 +29,8 @@ class MySQLTest extends AbstractConfigurationDB
         $db->setPretend(true);
         $sql = $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
 
-        $this->assertContains("LOCAL INFILE 'monfichier'", $sql);
-        $this->assertContains('INTO TABLE matable', $sql);
-        $this->assertContains('(`field1`, `field2`)', $sql);
+        $this->assertStringContainsString("LOCAL INFILE 'monfichier'", $sql);
+        $this->assertStringContainsString('INTO TABLE matable', $sql);
+        $this->assertStringContainsString('(`field1`, `field2`)', $sql);
     }
 }

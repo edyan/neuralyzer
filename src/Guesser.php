@@ -134,7 +134,7 @@ class Guesser implements GuesserInterface
         // Try to find by fieldType
         $colsType = $this->getColsTypeMapping($len);
         if (!array_key_exists($type, $colsType)) {
-            $msg = "Can't guess the type $type ({$table}.{$name})";
+            $msg = "Can't guess the type $type ({$table}.{$name})" . print_r($colsType, true);
             throw new NeuralyzerGuesserException($msg);
         }
 

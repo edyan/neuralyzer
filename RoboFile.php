@@ -6,13 +6,15 @@
  */
 
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Process\Process;
 
 class RoboFile extends \Robo\Tasks
 {
-    private $phpVersion = 7.1;
+    private $phpVersion = 7.2;
     private $dbType = 'mysql';
     private $dbVersion = 'latest';
     private $dbWait = 10;
+    private $dbPass = 'rootRoot44root';
 
     /**
      * A test command just to make sure robo works on that computer
@@ -23,7 +25,7 @@ class RoboFile extends \Robo\Tasks
 
         $this->taskDockerStop('robo_test')->run();
 
-        $this->taskDockerRun('edyan/php:7.1')
+        $this->taskDockerRun('edyan/php:7.2')
              ->name('robo_test')
              ->detached()
              ->option('--rm')
@@ -34,7 +36,8 @@ class RoboFile extends \Robo\Tasks
              ->exec($this->taskExec('php -v'))
              ->run();
 
-        $this->taskDockerStop('robo_test')->run();
+        $this->taskDockerStop('robo_test')
+             ->run();
     }
 
 
@@ -43,11 +46,12 @@ class RoboFile extends \Robo\Tasks
      * @param  array  $opts
      */
     public function test($opts = [
-        'php' => '7.1',
+        'php' => '7.2',
         'db' => 'mysql',
         'keep-cts' => false,
-        'wait' => 5,
-        'db-version' => 'latest'
+        'wait' => 10,
+        'db-version' => 'latest',
+        'no-coverage' => false
     ]) : void
     {
         $this->stopOnFail(true);
@@ -56,14 +60,19 @@ class RoboFile extends \Robo\Tasks
         $this->dbType = $opts['db'];
         $this->dbVersion = $opts['db-version'];
         $this->dbWait = $opts['wait'];
+        $this->noCoverage = $opts['no-coverage'];
 
         $this->setupDocker();
+
+        $cmd = '/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit ';
+        $cmd.= $this->noCoverage === true ? '--no-coverage' : '--coverage-clover=coverage.xml';
+        $cmd.= '"';
 
         // Run the tests
         $this->taskDockerExec('robo_php')
             ->interactive()
             ->option('--user', 'www-data')
-            ->exec($this->taskExec('/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit --coverage-clover=coverage.xml"'))
+            ->exec($this->taskExec($cmd))
             ->run();
 
         if ($opts['keep-cts'] === false) {
@@ -201,12 +210,14 @@ class RoboFile extends \Robo\Tasks
                     ->option('--rm');
 
         if ($this->dbType === 'mysql') {
-            $dbCt = $dbCt->env('MYSQL_ROOT_PASSWORD', 'rootRoot44root')->env('MYSQL_DATABASE', 'test_db');
+            $dbCt = $dbCt
+                ->env('MYSQL_ROOT_PASSWORD', $this->dbPass)
+                ->env('MYSQL_DATABASE', 'test_db');
             $dbCt = $dbCt->exec('--default-authentication-plugin=mysql_native_password --enable-local-infile');
         } elseif ($this->dbType === 'pgsql') {
-            $dbCt = $dbCt->env('POSTGRES_PASSWORD', 'rootRoot44root')->env('POSTGRES_DB', 'test_db');
+            $dbCt = $dbCt->env('POSTGRES_PASSWORD', $this->dbPass)->env('POSTGRES_DB', 'test_db');
         } elseif ($this->dbType === 'sqlsrv') {
-            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', 'rootRoot44root');
+            $dbCt = $dbCt->env('ACCEPT_EULA', 'Y')->env('SA_PASSWORD', $this->dbPass);
         }
 
         $dbCt->run();
@@ -244,8 +255,8 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(): void
     {
-        if (!in_array($this->phpVersion, ['7.1', '7.2', '7.3'])) {
-            throw new \InvalidArgumentException('PHP Version must be 7.1, 7.2 or 7.3');
+        if (!in_array($this->phpVersion, ['7.2', '7.3', '7.4'])) {
+            throw new \InvalidArgumentException('PHP Version must be 7.2, 7.3 or 7.4');
         }
 
         $dbUser = 'root';
@@ -258,7 +269,7 @@ class RoboFile extends \Robo\Tasks
         $this->taskDockerRun('edyan/php:' . $this->phpVersion . '-sqlsrv')
             ->detached()->name('robo_php')->option('--rm')
             ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $this->dbType)
-            ->env('DB_PASSWORD', 'rootRoot44root')->env('DB_USER', $dbUser)
+            ->env('DB_PASSWORD', $this->dbPass)->env('DB_USER', $dbUser)
             ->volume(__DIR__, '/var/www/html')
             ->link('robo_db', 'robo_db')
             ->run();
@@ -276,10 +287,13 @@ class RoboFile extends \Robo\Tasks
 
     private function stopContainer(string $ct): void
     {
-        $process = new \Symfony\Component\Process\Process("docker ps | grep $ct | wc -l");
-        $process->run();
+        $dockerPs = new Process([
+            'docker', 'container', 'ps', '--format', '{{.ID}}', '--all', '--filter', "name=$ct"
+        ]);
+        $dockerPs->run();
 
-        if ((int)$process->getOutput() === 0) {
+        if (empty($dockerPs->getOutput())) {
+            $this->say('Container ' . $ct . ' does not exist');
             return;
         }
 

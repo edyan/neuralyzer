@@ -129,7 +129,7 @@ class ConfigGenerateCommand extends Command
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Throw an exception immediately if we don't have the required DB parameter
         if (empty($input->getOption('db'))) {
@@ -169,5 +169,7 @@ class ConfigGenerateCommand extends Command
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to '.$input->getOption('file').'</comment>');
+
+        return Command::SUCCESS;
     }
 }

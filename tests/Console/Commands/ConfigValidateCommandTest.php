@@ -3,6 +3,8 @@
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -21,12 +23,11 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
         $this->assertRegExp('|Your config is valid|', $commandTester->getDisplay());
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |The child node "entities" at path "config" must be configured|
-     */
     public function testExecuteNotWorking()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches('|The child node "entities" at path "config" must be configured|');
+
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:validate');
         $commandTester = new CommandTester($command);
@@ -39,12 +40,11 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
     }
 
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessageRegExp |The file ".*config.doesnotexist.yaml" does not exist.|
-     */
     public function testExecuteFileDoesNotExist()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessageMatches('|The file ".*config.doesnotexist.yaml" does not exist.|');
+
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:validate');
         $commandTester = new CommandTester($command);

@@ -3,17 +3,17 @@
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class ConfigGenerateCommandTest extends AbstractConfigurationDB
 {
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |Database name is required \(--db\)|
-     */
     public function testExecuteNoDB()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('|Database name is required \(--db\)|');
+
         $command = $this->getApplication()->find('config:generate');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
@@ -34,7 +34,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
             $exceptMsg = "|.*Login failed for user 'sa'.*|";
         }
         $this->expectException($except);
-        $this->expectExceptionMessageRegExp($exceptMsg);
+        $this->expectExceptionMessageMatches($exceptMsg);
 
         $this->createPrimaries();
         // We mock the DialogHelper
@@ -79,7 +79,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         // try to read the file with the reader
         $reader = new Reader($temp);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
+        $this->assertIsArray($values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
@@ -91,12 +91,11 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         unlink($temp);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |No tables to read in that database|
-     */
     public function testExecuteProtectTables()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches('|No tables to read in that database|');
+
         $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:generate');
@@ -152,7 +151,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         // try to read the file with the reader
         $reader = new Reader($temp);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
+        $this->assertIsArray($values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);
@@ -193,7 +192,7 @@ class ConfigGenerateCommandTest extends AbstractConfigurationDB
         // try to read the file with the reader
         $reader = new Reader($temp);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
+        $this->assertIsArray($values);
         $this->assertArrayHasKey('entities', $values);
         $this->assertArrayHasKey('guestbook', $values['entities']);
         $this->assertArrayHasKey('cols', $values['entities']['guestbook']);

@@ -19,21 +19,21 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $colsNameMapping = $guesser->getColsNameMapping();
-        $this->assertInternalType('array', $colsNameMapping);
+        $this->assertIsArray($colsNameMapping);
     }
 
     public function testGetColsTypeMapping()
     {
         $guesser = new Guesser;
         $colsTypeMapping = $guesser->getColsTypeMapping(null);
-        $this->assertInternalType('array', $colsTypeMapping);
+        $this->assertIsArray($colsTypeMapping);
     }
 
     public function testMapColByNameStreetName()
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'my_street_name', 'varchar', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('streetAddress', $mapping['method']);
     }
@@ -42,7 +42,7 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'email', 'varchar', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('email', $mapping['method']);
     }
@@ -51,7 +51,7 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'email_address', 'varchar', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('email', $mapping['method']);
     }
@@ -60,7 +60,7 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'first_name', 'string', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('firstName', $mapping['method']);
     }
@@ -69,7 +69,7 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'firstname', 'string', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals('firstName', $mapping['method']);
     }
@@ -78,38 +78,37 @@ class GuesserTest extends TestCase
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'nothingtocompare', 'string', '255');
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertArrayHasKey('params', $mapping);
         $this->assertEquals(255, $mapping['params'][0]);
 
         // check the version
         $version = $guesser->getVersion();
-        $this->assertInternalType('string', $version);
+        $this->assertIsString($version);
     }
 
     public function testMapColEnum()
     {
         $guesser = new Guesser;
         $mapping = $guesser->mapCol('test', 'nothingtocompare', 'enum', "'a','b','c'");
-        $this->assertInternalType('array', $mapping);
+        $this->assertIsArray($mapping);
         $this->assertArrayHasKey('method', $mapping);
         $this->assertEquals($mapping['method'], 'randomElement');
         $this->assertArrayHasKey('params', $mapping);
         $this->assertArrayHasKey(0, $mapping['params']);
-        $this->assertInternalType('array', $mapping['params'][0]);
+        $this->assertIsArray($mapping['params'][0]);
         $this->assertEquals('a,b,c', implode(',', $mapping['params'][0]));
 
         // check the version
         $version = $guesser->getVersion();
-        $this->assertInternalType('string', $version);
+        $this->assertIsString($version);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerGuesserException
-     */
     public function testMapColWrongType()
     {
+        $this->expectException(\Edyan\Neuralyzer\Exception\NeuralyzerGuesserException::class);
+
         $guesser = new Guesser;
         $guesser->mapCol('test', 'nothingtocompare', 'nothingtocompare', '255');
     }

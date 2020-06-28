@@ -75,7 +75,7 @@ class ConfigValidateCommand extends Command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $reader = new \Edyan\Neuralyzer\Configuration\Reader($input->getOption('file'));
@@ -96,5 +96,7 @@ class ConfigValidateCommand extends Command
         if ($input->getOption('dump') === true) {
             $output->writeln(Yaml::dump($reader->getConfigValues(), 4));
         }
+
+        return Command::SUCCESS;
     }
 }

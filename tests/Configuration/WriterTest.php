@@ -2,9 +2,10 @@
 
 namespace Edyan\Neuralyzer\Tests\Configuration;
 
+use Edyan\Neuralyzer\Guesser;
 use Edyan\Neuralyzer\Configuration\Writer;
 use Edyan\Neuralyzer\Configuration\Reader;
-use Edyan\Neuralyzer\Guesser;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 
 class WriterTest extends AbstractConfigurationDB
@@ -12,34 +13,31 @@ class WriterTest extends AbstractConfigurationDB
     private $protectedCols = ['.*\..*'];
     private $ignoredTables = ['guestbook', 'people'];
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |Can't work with .*, it has no primary key.|
-     */
     public function testGenerateConfNoPrimary()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|Can't work with .*, it has no primary key.|");
+
         $writer = new Writer;
         $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |No tables to read in that database|
-     */
     public function testGenerateConfNoTable()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|No tables to read in that database|");
+
         $this->dropTables();
 
         $writer = new Writer;
         $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |All tables or fields have been ignored|
-     */
     public function testGenerateConfIgnoreAllFields()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|All tables or fields have been ignored|");
+
         $this->createPrimaries();
 
         $writer = new Writer;
@@ -47,12 +45,11 @@ class WriterTest extends AbstractConfigurationDB
         $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |No tables to read in that database|
-     */
     public function testGenerateConfIgnoreAllTables()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|No tables to read in that database|");
+
         $this->createPrimaries();
 
         $writer = new Writer;
@@ -68,7 +65,7 @@ class WriterTest extends AbstractConfigurationDB
         $writer->setProtectedCols(['.*\..*']);
         $writer->protectCols(false);
         $entities = $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
-        $this->assertInternalType('array', $entities);
+        $this->assertIsArray($entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
 
@@ -98,7 +95,7 @@ class WriterTest extends AbstractConfigurationDB
         $this->assertEquals('randomFloat', $guestbook['cols']['a_float']['method']);
 
         $tablesInConf = $writer->getTablesInConf();
-        $this->assertInternalType('array', $tablesInConf);
+        $this->assertIsArray($tablesInConf);
         $this->assertContains('guestbook', $tablesInConf);
     }
 
@@ -110,7 +107,7 @@ class WriterTest extends AbstractConfigurationDB
         $writer->setProtectedCols(['.*\.username']);
         $writer->protectCols(true);
         $entities = $writer->generateConfFromDB($this->getDBUtils(), new Guesser);
-        $this->assertInternalType('array', $entities);
+        $this->assertIsArray($entities);
         $this->assertArrayHasKey('entities', $entities);
         $this->assertArrayHasKey('guestbook', $entities['entities']);
         $this->assertArrayHasKey('cols', $entities['entities']['guestbook']);
@@ -120,7 +117,7 @@ class WriterTest extends AbstractConfigurationDB
 
         // check the configuration for the date
         $created = $entities['entities']['guestbook']['cols']['created'];
-        $this->assertInternalType('array', $created);
+        $this->assertIsArray($created);
         $this->assertArrayHasKey('method', $created);
         $this->assertArrayHasKey('params', $created);
         $this->assertEquals('date', $created['method']);
@@ -134,19 +131,18 @@ class WriterTest extends AbstractConfigurationDB
         // try to read the file with the reader
         $reader = new Reader($temp);
         $values = $reader->getConfigValues();
-        $this->assertInternalType('array', $values);
+        $this->assertIsArray($values);
         $this->assertArrayHasKey('entities', $values);
 
         // delete it
         unlink($temp);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |/doesntexist is not writable.|
-     */
     public function testGenerateConfNotWritable()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|/doesntexist is not writable.|");
+
         $this->createPrimaries();
 
         $writer = new Writer;

@@ -183,7 +183,7 @@ class RunCommand extends Command
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Throw an exception immediately if we don't have the required DB parameter
         if (empty($input->getOption('db'))) {
@@ -252,7 +252,7 @@ class RunCommand extends Command
 
         $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
 
-        return $hasErrors ? 1 : 0;
+        return $hasErrors ? Command::FAILURE : Command::SUCCESS;
     }
 
     /**

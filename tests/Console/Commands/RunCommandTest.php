@@ -3,16 +3,16 @@
 namespace Edyan\Neuralyzer\Tests\Console\Commands;
 
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class RunCommandTest extends AbstractConfigurationDB
 {
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |Database name is required \(--db\)|
-     */
     public function testExecuteNoDB()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('|Database name is required \(--db\)|');
+
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -24,15 +24,15 @@ class RunCommandTest extends AbstractConfigurationDB
             '--password' => 'toto',
             '--config' => __DIR__ . '/../../_files/config.right.yaml'
         ]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
 
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessageRegExp |--mode could be only "queries" or "batch"|
-     */
     public function testExecuteBadMode()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('|--mode could be only "queries" or "batch"|');
+
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
         $commandTester = new CommandTester($command);
@@ -46,6 +46,7 @@ class RunCommandTest extends AbstractConfigurationDB
             '--db' => 'test_db',
             '--mode' => 'wrong'
         ]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
 
@@ -53,13 +54,13 @@ class RunCommandTest extends AbstractConfigurationDB
     {
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectException("\Doctrine\DBAL\Driver\PDOException");
-            $this->expectExceptionMessageRegExp("|Login failed for user 'sa'|");
+            $this->expectExceptionMessageMatches("|Login failed for user 'sa'|");
         } else if (strpos(getenv('DB_DRIVER'), 'pgsql')) {
             $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
-            $this->expectExceptionMessageRegExp("|password authentication failed for user|");
+            $this->expectExceptionMessageMatches("|password authentication failed for user|");
         } else {
             $this->expectException("\Doctrine\DBAL\Exception\ConnectionException");
-            $this->expectExceptionMessageRegExp("|Access denied for user.*|");
+            $this->expectExceptionMessageMatches("|Access denied for user.*|");
         }
 
         $this->createPrimaries();
@@ -75,14 +76,14 @@ class RunCommandTest extends AbstractConfigurationDB
             '--password' => 'toto',
             '--config' => __DIR__ . '/../../_files/config.right.yaml'
         ]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
-    /**
-    * @expectedException InvalidArgumentException
-    * @expectedExceptionMessageRegExp |wrong_driver unknown.*|
-    */
     public function testExecuteWrongDriver()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('|wrong_driver unknown.*|');
+
         $this->createPrimaries();
         // We mock the DialogHelper
         $command = $this->getApplication()->find('run');
@@ -96,13 +97,13 @@ class RunCommandTest extends AbstractConfigurationDB
             '--password' => 'toto',
             '--config' => __DIR__ . '/../../_files/config.right.yaml'
         ]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
-    /**
-     * @expectedExceptionMessageRegExp |An exception occurred while executing.*|
-     */
     public function testExecuteWrongTablePasswordOnCLI()
     {
+        $this->expectExceptionMessageMatches('|An exception occurred while executing.*|');
+        
         if (strpos(getenv('DB_DRIVER'), 'sqlsrv')) {
             $this->expectException("\Doctrine\DBAL\DBALException");
         } else {
@@ -122,6 +123,7 @@ class RunCommandTest extends AbstractConfigurationDB
             '--password' => getenv('DB_PASSWORD'),
             '--config' => __DIR__ . '/../../_files/config.right.notable.yaml'
         ]);
+        $this->assertSame(Command::SUCCESS, $commandTester->getStatusCode());
     }
 
     public function testExecuteErrorCode()
@@ -140,7 +142,6 @@ class RunCommandTest extends AbstractConfigurationDB
             '--config' => __DIR__ . '/../../_files/config.wrongfieldvalue.yaml',
             '--mode' => 'queries',
         ]);
-
-        $this->assertSame(1, $commandTester->getStatusCode());
+        $this->assertSame(Command::FAILURE, $commandTester->getStatusCode());
     }
 }

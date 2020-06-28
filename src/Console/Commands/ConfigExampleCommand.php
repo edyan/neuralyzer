@@ -59,7 +59,7 @@ class ConfigExampleCommand extends Command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $dumper = new \Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper;
         $config = $dumper->dump(
@@ -67,5 +67,7 @@ class ConfigExampleCommand extends Command
         );
 
         $output->writeLn($config);
+
+        return Command::SUCCESS;
     }
 }

@@ -2,8 +2,9 @@
 
 namespace Edyan\Neuralyzer\Tests\Utils;
 
-use Edyan\Neuralyzer\Utils\DBUtils;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
+use Edyan\Neuralyzer\Utils\DBUtils;
 
 class DBUtilsTest extends AbstractConfigurationDB
 {
@@ -13,22 +14,20 @@ class DBUtilsTest extends AbstractConfigurationDB
         $this->assertSame(2, $utils->countResults('guestbook'));
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Make sure you have called $dbUtils->configure($params) first
-     */
     public function testGetConnWithoutConfiguring()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Make sure you have called $dbUtils->configure($params) first');
+
         $utils = new DBUtils;
         $utils->getConn();
     }
 
-    /**
-     * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessage Can't find a primary key for 'guestbook'
-     */
     public function testGetPrimaryKeyError()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessage("Can't find a primary key for 'guestbook'");
+
         $utils = $this->getDBUtils();
         $this->assertSame('id', $utils->getPrimaryKey('guestbook'));
     }
@@ -47,7 +46,7 @@ class DBUtilsTest extends AbstractConfigurationDB
         $this->createPrimaries();
         $utils = $this->getDBUtils();
         $cols = $utils->getTableCols('guestbook');
-        $this->assertInternalType('array', $cols);
+        $this->assertIsArray($cols);
 
         $this->assertArrayHasKey('a_float', $cols);
         $this->assertArrayHasKey('length', $cols['a_float']);
@@ -104,12 +103,11 @@ class DBUtilsTest extends AbstractConfigurationDB
         $this->assertEquals("SELECT * FROM guestbook WHERE id = '1'", $sql);
     }
 
-    /**
-    * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
-    * @expectedExceptionMessage Table does_not_exists does not exist
-    */
     public function testAssertTableExistsKO()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessage('Table does_not_exists does not exist');
+
         $utils = $this->getDBUtils();
         $utils->assertTableExists('does_not_exists');
     }

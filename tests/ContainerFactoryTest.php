@@ -3,6 +3,7 @@
 namespace Edyan\Neuralyzer\Tests;
 
 use Edyan\Neuralyzer\ContainerFactory;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 class ContainerFactoryTest extends \PHPUnit\Framework\TestCase
 {
@@ -28,21 +29,19 @@ class ContainerFactoryTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * @expectedException Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-     * @expectedExceptionMessage You have requested a non-existent service "Edyan\Neuralyzer\Configuration\Reader"
-     */
     public function testCreateContainerNoConfiguration()
     {
+        $this->expectException(ServiceNotFoundException::class);
+        $this->expectExceptionMessage('You have requested a non-existent service "Edyan\Neuralyzer\Configuration\Reader"');
+
         ContainerFactory::createContainer()->get('Edyan\Neuralyzer\Configuration\Reader');
     }
 
-    /**
-     * @expectedException Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-     * @expectedExceptionMessage You have requested a non-existent service "Edyan\Neuralyzer\Anonymizer\DB"
-     */
     public function testCreateContainerNoAnonymizer()
     {
+        $this->expectException(ServiceNotFoundException::class);
+        $this->expectExceptionMessage('You have requested a non-existent service "Edyan\Neuralyzer\Anonymizer\DB"');
+
         ContainerFactory::createContainer()->get('Edyan\Neuralyzer\Anonymizer\DB');
     }
 }

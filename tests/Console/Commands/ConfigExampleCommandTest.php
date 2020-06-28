@@ -5,7 +5,7 @@ namespace Edyan\Neuralyzer\Tests\Console\Commands;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class ConfigExampleCommand extends AbstractConfigurationDB
+class ConfigExampleCommandTest extends AbstractConfigurationDB
 {
     public function testExecuteWorking()
     {

@@ -1,17 +1,16 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests\Utils;
+namespace Edyan\Neuralyzer\Tests\Helper\DB;
 
 use Edyan\Neuralyzer\Helper\DB\DriverGuesser;
 use PHPUnit\Framework\TestCase;
 
 class DriverGuesserTest extends TestCase
 {
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testWrongDriver()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         DriverGuesser::getDBHelper('toto');
     }
 

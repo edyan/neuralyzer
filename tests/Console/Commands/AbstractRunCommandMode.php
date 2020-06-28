@@ -80,7 +80,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             ->select('*')->from($this->tableName)
             ->orderBy('id')
             ->execute()->fetchAll();
-        $this->assertInternalType('array', $oldData);
+        $this->assertIsArray($oldData);
         $this->assertNotEmpty($oldData);
         $this->assertCount(2, $oldData);
 
@@ -111,7 +111,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
             ->select('*')->from($this->tableName)
             ->orderBy('id')
             ->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         $this->assertCount(2, $data);
 
@@ -198,7 +198,7 @@ abstract class AbstractRunCommandMode extends AbstractConfigurationDB
         // check we have the right number of lines
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         $this->assertCount(12, $data);
     }

@@ -12,12 +12,11 @@ class FileLoaderTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(__FILE__, $filepath);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessageRegExp |Cannot open file.*badext|
-     */
     public function testUnloadableFile()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('|Cannot open file.*badext|');
+
         FileLoader::checkAndLoad(__FILE__ . '.badext');
     }
 }

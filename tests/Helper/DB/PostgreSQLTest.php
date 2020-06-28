@@ -1,6 +1,6 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests\Utils;
+namespace Edyan\Neuralyzer\Tests\Helper\DB;
 
 use Edyan\Neuralyzer\Helper\DB\PostgreSQL;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
@@ -10,7 +10,7 @@ class PostgreSQLTest extends AbstractConfigurationDB
     public function testDriverOptions()
     {
         $options = PostgreSQL::getDriverOptions();
-        $this->assertInternalType('array', $options);
+        $this->assertIsArray($options);
         $this->assertEmpty($options);
     }
 
@@ -26,8 +26,8 @@ class PostgreSQLTest extends AbstractConfigurationDB
         $db->setPretend(true);
         $sql = $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
 
-        $this->assertContains("FROM 'monfichier'", $sql);
-        $this->assertContains('COPY matable', $sql);
-        $this->assertContains('(field1, field2)', $sql);
+        $this->assertStringContainsString("FROM 'monfichier'", $sql);
+        $this->assertStringContainsString('COPY matable', $sql);
+        $this->assertStringContainsString('(field1, field2)', $sql);
     }
 }

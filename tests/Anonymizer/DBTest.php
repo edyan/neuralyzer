@@ -3,18 +3,19 @@
 namespace Edyan\Neuralyzer\Tests\Anonymizer;
 
 use Edyan\Neuralyzer\Configuration\Reader;
+use Edyan\Neuralyzer\Exception\NeuralyzerException;
+use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
 
 class DBTest extends AbstractConfigurationDB
 {
     private $num;
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessageRegExp |Can't find a primary key for 'guestbook'|
-     */
     public function testWithoutPrimary()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessage("Can't find a primary key for 'guestbook'");
+
         $reader = new Reader('_files/config.right.yaml', [__DIR__ . '/..']);
 
         $db = $this->getDB();
@@ -22,22 +23,20 @@ class DBTest extends AbstractConfigurationDB
         $db->processEntity($this->tableName);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessage Mode could be only queries or batch
-     */
     public function testWrongMode()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessage("Mode could be only queries or batch");
+
         $db = $this->getDB();
         $db->setMode('wrong');
     }
 
-    /**
-    * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
-    * @expectedExceptionMessage Table guestook does not exist
-     */
     public function testWrongTableName()
     {
+        $this->expectException(NeuralyzerException::class);
+        $this->expectExceptionMessage("Table guestook does not exist");
+
         $this->dropTables();
 
         $reader = new Reader('_files/config.right.badtablename.yaml', [__DIR__ . '/..']);
@@ -47,24 +46,22 @@ class DBTest extends AbstractConfigurationDB
         $db->processEntity('guestook');
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |No entities found. Have you loaded a configuration file ?|
-     */
     public function testWithPrimaryNoConf()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|No entities found. Have you loaded a configuration file ?|");
+
         $this->createPrimaries();
 
         $db = $this->getDB();
         $db->processEntity($this->tableName);
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |No configuration for that entity.*|
-     */
     public function testWithPrimaryConfWrongTable()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|No configuration for that entity.*|");
+
         $this->createPrimaries();
 
         $reader = new Reader('_files/config.right.notable.yaml', [__DIR__ . '/..']);
@@ -78,7 +75,7 @@ class DBTest extends AbstractConfigurationDB
     public function testWithPrimaryConfWrongWhere()
     {
         $this->expectException("Edyan\Neuralyzer\Exception\NeuralyzerException");
-        $this->expectExceptionMessageRegExp("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
+        $this->expectExceptionMessageMatches("|.*DELETE FROM guestbook WHERE badname = 'joe'.*|");
 
         $this->createPrimaries();
 
@@ -110,14 +107,15 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
         $queries = $db->processEntity($this->tableName);
         // Check I have the queries returned
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertNotEmpty($queries);
+        $this->assertCount(2, $queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
         // check no data changed
-        $expectedDataSet = $this->createFlatXmlDataSet(__DIR__ . '/../_files/dataset.xml');
-        $queryTable = $this->getConnection()->createDataSet([$this->tableName]);
-
-        $this->assertDataSetsEqual($expectedDataSet, $queryTable);
+        $this->assertEquals(
+            $this->getDataSet(),
+            $this->getActualDataInTable()
+        );
     }
 
 /**
@@ -141,7 +139,7 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
         $queries = $db->processEntity($this->tableName);
         // Check I have the queries returned
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook SET username', $queries[0]);
         // check no data changed
@@ -186,7 +184,7 @@ class DBTest extends AbstractConfigurationDB
         // Get Old Data
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $oldData = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $oldData);
+        $this->assertIsArray($oldData);
         $this->assertCount(2, $oldData);
 
         $db = $this->getDB();
@@ -225,12 +223,11 @@ class DBTest extends AbstractConfigurationDB
     }
 
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessage Col usernamez does not exist
-     */
     public function testWithPrimaryConfWrongField()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessage("Col usernamez does not exist");
+
         $this->createPrimaries();
 
         $reader = new Reader('_files/config.wrongfield.yaml', [__DIR__ . '/..']);
@@ -243,12 +240,11 @@ class DBTest extends AbstractConfigurationDB
     }
 
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessage You must use faker methods that generate strings: 'datetime' forbidden
-     */
     public function testWithPrimaryConfBadFakerType()
     {
+        $this->expectException(NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessage("You must use faker methods that generate strings: 'datetime' forbidden");
+
         $this->createPrimaries();
 
         $reader = new Reader('_files/config.datetime-forbidden.yaml', [__DIR__ . '/..']);
@@ -272,14 +268,14 @@ class DBTest extends AbstractConfigurationDB
         $db->setPretend(false);
         $db->setReturnRes(true);
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook', $queries[0]);
 
         // check no data changed
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->setMaxResults(1)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         $this->assertArrayHasKey(0, $data);
         $data = $data[0];
@@ -329,7 +325,7 @@ class DBTest extends AbstractConfigurationDB
             ->from($this->tableName)
             ->setMaxResults(2)
             ->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         // First line is correct
         $this->assertArrayHasKey(0, $data);
@@ -342,14 +338,14 @@ class DBTest extends AbstractConfigurationDB
 
         // Process and check I have the right number of queries
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertCount(2003, $queries);
 
         // check all data changed, one by one
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $rows = $queryBuilder->select('id', 'username', 'content')->from($this->tableName)->execute();
         foreach ($rows as $row) {
-            $this->assertInternalType('array', $row);
+            $this->assertIsArray($row);
             $this->assertArrayHasKey('username', $row);
             $this->assertNotEquals('TestPHPUnit', $row['username'], "ID {$row['id']} is not correct");
             $this->assertNotEmpty($row['username']);
@@ -371,14 +367,14 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
 
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('UPDATE guestbook SET username', $queries[0]);
 
         // check that I have only one record remaining
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertEquals(1, count($data));
         $this->assertArrayHasKey(0, $data);
 
@@ -405,13 +401,13 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
 
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertEmpty($queries);
 
         // check that I have only one record remaining
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
@@ -434,14 +430,14 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(true);
 
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertNotEmpty($queries);
         $this->assertStringStartsWith('INSERT INTO guestbook', $queries[0]);
 
         // check no data changed
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         $this->assertCount(20, $data);
         $this->assertArrayHasKey(0, $data);
@@ -470,13 +466,13 @@ class DBTest extends AbstractConfigurationDB
         $db->setReturnRes(false);
 
         $queries = $db->processEntity($this->tableName);
-        $this->assertInternalType('array', $queries);
+        $this->assertIsArray($queries);
         $this->assertEmpty($queries);
 
         // check no data changed
         $queryBuilder = $this->getDoctrine()->createQueryBuilder();
         $data = $queryBuilder->select('*')->from($this->tableName)->execute()->fetchAll();
-        $this->assertInternalType('array', $data);
+        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
         $this->assertCount(22, $data);
     }

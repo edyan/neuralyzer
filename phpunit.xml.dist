@@ -3,7 +3,11 @@
     bootstrap="vendor/autoload.php"
     colors="true"
     processIsolation="false"
-    stopOnError="true">
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    stopOnError="true"
+    stopOnFailure="true">
     <php>
         <env name='DB_DRIVER' value='pdo_mysql'/>
         <env name='DB_USER' value='root'/>

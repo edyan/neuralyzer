@@ -186,7 +186,7 @@ class DBUtils
      */
     public function getCondition(string $field, array $fieldConf): string
     {
-        $type = strtolower($fieldConf['type']);
+        $type = ltrim(strtolower((string)$fieldConf['type']), '\\');
         $unsigned = $fieldConf['unsigned'];
 
         $integerCast = $this->getIntegerCast($unsigned);

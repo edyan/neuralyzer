@@ -19,7 +19,7 @@ class ExpressionTest extends AbstractConfigurationDB
     {
         $expression = new Expression($this->createContainer());
         $res = $expression->evaluateExpressions(['2+2', '2*4']);
-        $this->assertInternalType('array', $res);
+        $this->assertIsArray($res);
         $this->assertArrayHasKey(0, $res);
         $this->assertArrayHasKey(1, $res);
         $this->assertCount(2, $res);
@@ -47,7 +47,7 @@ class ExpressionTest extends AbstractConfigurationDB
 
         $expression = new Expression($this->createContainer());
         $rows = $expression->evaluateExpression("db.query(\"{$query}\")");
-        $this->assertInternalType('array', $rows);
+        $this->assertIsArray($rows);
 
         $worked = false;
         foreach ($rows as $row) {

@@ -10,7 +10,7 @@ class CSVWriterTest extends TestCase
     public function testTempFileName()
     {
         $writer = new CSVWriter;
-        $this->assertContains(sys_get_temp_dir(), $writer->getRealPath());
+        $this->assertStringContainsString(sys_get_temp_dir(), $writer->getRealPath());
     }
 
     public function testWriteLineWithPipeDelimiter()

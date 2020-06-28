@@ -13,22 +13,21 @@
     "minimum-stability": "stable",
     "bin": ["bin/neuralyzer"],
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.2.5",
         "ext-pdo": "*",
         "doctrine/dbal": "^2",
         "fzaninotto/faker": "^1",
         "symfony/config": "^4",
-        "symfony/console": "^4",
+        "symfony/console": "^5",
         "symfony/dependency-injection": "^4",
-        "symfony/expression-language": "^4",
-        "symfony/finder": "^4",
-        "symfony/stopwatch": "^4",
+        "symfony/expression-language": "^5",
+        "symfony/finder": "^5",
+        "symfony/stopwatch": "^5",
         "symfony/yaml": "^4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^7",
-        "phpunit/dbunit": "^4",
-        "consolidation/robo": "^1"
+        "phpunit/phpunit": "^8",
+        "consolidation/robo": "^2"
     },
     "config": {
         "optimize-autoloader": true

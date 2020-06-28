@@ -10,8 +10,6 @@ use Edyan\Neuralyzer\Utils\DBUtils;
 
 abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
 {
-    use \PHPUnit\DbUnit\TestCaseTrait;
-
     /**
      * Raw PDO Connection
      */
@@ -32,46 +30,36 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     /**
      * For PHPUnit to manage DataSets
      */
-    final public function getConnection()
+    public function setUp(): void
     {
         $this->dbName = getenv('DB_NAME');
 
-        $driver = getenv('DB_DRIVER');
-        if (substr($driver, 0, 4) === 'pdo_') {
-            $driver = substr($driver, 4);
+        if (self::$pdo === null) {
+            $this->connectAndCreateDB();
+            $this->createTables();
+            $this->createFixtures();
         }
-
-        $conString = $conString2 = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
-        if ($driver === 'sqlsrv') {
-            $conString = $driver . ':Database=' . $this->dbName . ';Server=' . getenv('DB_HOST');
-            $conString2 = $driver . ':Server=' . getenv('DB_HOST');
-        }
-
-        // From : https://phpunit.de/manual/current/en/database.html#database.implementing-getdataset
-        // Conn does not contain the defaultDbConnection
-        if ($this->conn === null) {
-            // Pdo has never been initialized
-            if (self::$pdo == null) {
-                // first connection without db to create DB
-                $this->connectAndCreateDB($conString2);
-                // Second connection
-                self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
-            }
-            $this->conn = $this->createDefaultDBConnection(self::$pdo);
-        }
-
-        return $this->conn;
     }
 
 
-    /**
-     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
-     */
-    public function getDataSet()
+    protected function createFixtures()
     {
-        $this->createTables();
+        foreach ($this->getDataSet() as $row) {
+            $qb = $this->getDoctrine()->createQueryBuilder();
+            $qb = $qb->insert($this->tableName);
+            foreach ($row as $field => $value) {
+                $qb = $qb->setValue($field, ":$field");
+                $qb = $qb->setParameter(":$field", $value);
+            }
+            $qb->execute();
+        }
+    }
 
-        return $this->createFlatXmlDataSet(__DIR__ . '/_files/dataset.xml');
+    protected function getActualDataInTable()
+    {
+        $qb = $this->getDoctrine()->createQueryBuilder();
+        $res = $qb->select('*')->from($this->tableName)->execute();
+        return $res->fetchAll();
     }
 
 
@@ -243,7 +231,40 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
     }
 
 
-    protected function tearDown()
+    protected function getDataSet(): array
+    {
+        return [
+            [
+                'id' => 1,
+                'content' => 'Hello buddy!',
+                'username' => 'joe',
+                'created' => '2010-04-24',
+                'a_bigint' => 1111111111111,
+                'a_datetime' => '2010-01-09 04:02:03',
+                'a_time' => '12:14:02',
+                'a_decimal' => '3.454',
+                'an_integer' => -123,
+                'a_smallint' => 12,
+                'a_float' => '3.569',
+                'content' => null,
+            ], [
+                'id' => 2,
+                'username' => 'nancy',
+                'created' => '2010-04-26',
+                'a_bigint' => 2222222222222222222,
+                'a_datetime' => '2010-01-07 14:12:57',
+                'a_time' => '09:14:04',
+                'a_decimal' => '7.551',
+                'an_integer' => 23,
+                'a_smallint' => 1,
+                'a_float' => '12.501',
+                'content' => null,
+            ]
+        ];
+    }
+
+
+    protected function tearDown(): void
     {
         $finder = new \Symfony\Component\Finder\Finder;
         $files = $finder
@@ -265,15 +286,27 @@ abstract class AbstractConfigurationDB extends \PHPUnit\Framework\TestCase
         }
     }
 
-    private function connectAndCreateDB(string $conString)
+    /**
+     * That method is used to create the DB if it does not exists
+     * Useful for SQLServer
+     */
+    private function connectAndCreateDB()
     {
-        $pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
+        return;
+        $driver = getenv('DB_DRIVER');
+        if (substr($driver, 0, 4) === 'pdo_') {
+            $driver = substr($driver, 4);
+        }
+
+        $conString = $driver . ':dbname=' . $this->dbName . ';host=' . getenv('DB_HOST');
+        if ($driver === 'sqlsrv') {
+            $conString = $driver . ':Server=' . getenv('DB_HOST');
+        }
+        self::$pdo = new \PDO($conString, getenv('DB_USER'), getenv('DB_PASSWORD'));
         try {
-            $pdo->query('CREATE DATABASE test_db');
+            self::$pdo->query('CREATE DATABASE test_db');
         } catch (\Exception $e) {
             // Nothing, it's to avoid creating the DB if it exists
         }
-        $pdo = null;
-        unset($pdo);
     }
 }

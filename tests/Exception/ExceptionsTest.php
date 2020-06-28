@@ -8,30 +8,27 @@ use PHPUnit\Framework\TestCase;
 class ExceptionsTest extends TestCase
 {
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
-     * @expectedExceptionMessageRegExp |test|
-     */
     public function testNeuralyzerConfigurationException()
     {
+        $this->expectException(NeuralyzerExceptions\NeuralyzerConfigurationException::class);
+        $this->expectExceptionMessageMatches("|test|");
+
         throw new NeuralyzerExceptions\NeuralyzerConfigurationException('test');
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerGuesserException
-     * @expectedExceptionMessageRegExp |test|
-     */
     public function testNeuralyzerGuesserException()
     {
+        $this->expectException(NeuralyzerExceptions\NeuralyzerGuesserException::class);
+        $this->expectExceptionMessageMatches("|test|");
+
         throw new NeuralyzerExceptions\NeuralyzerGuesserException('test');
     }
 
-    /**
-     * @expectedException Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessageRegExp |test|
-     */
     public function testNeuralyzerException()
     {
+        $this->expectException(NeuralyzerExceptions\NeuralyzerException::class);
+        $this->expectExceptionMessageMatches("|test|");
+
         throw new NeuralyzerExceptions\NeuralyzerException('test');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Edyan\Neuralyzer\Tests\Utils;
+namespace Edyan\Neuralyzer\Tests\Helper\DB;
 
 use Edyan\Neuralyzer\Helper\DB\SQLServer;
 use Edyan\Neuralyzer\Tests\AbstractConfigurationDB;
@@ -10,7 +10,7 @@ class SQLServerTest extends AbstractConfigurationDB
     public function testDriverOptions()
     {
         $options = SQLServer::getDriverOptions();
-        $this->assertInternalType('array', $options);
+        $this->assertIsArray($options);
         $this->assertEmpty($options);
     }
 
@@ -32,17 +32,16 @@ class SQLServerTest extends AbstractConfigurationDB
         $db->setPretend(true);
         $sql = $db->loadData('matable', 'monfichier', ['field1', 'field2'], 'update');
 
-        $this->assertContains("FROM 'monfichier'", $sql);
-        $this->assertContains('BULK INSERT matable', $sql);
-        $this->assertNotContains('field2', $sql);
+        $this->assertStringContainsString("FROM 'monfichier'", $sql);
+        $this->assertStringContainsString('BULK INSERT matable', $sql);
+        $this->assertStringNotContainsString('field2', $sql);
     }
 
-    /**
-     * @expectedException \Edyan\Neuralyzer\Exception\NeuralyzerException
-     * @expectedExceptionMessage SQL Server must be on the same host than PHP
-     */
     public function testLoadDataOtherHost()
     {
+        $this->expectException(\Edyan\Neuralyzer\Exception\NeuralyzerException::class);
+        $this->expectExceptionMessage('SQL Server must be on the same host than PHP');
+
         $params = $this->getDbParams();
         $params['host'] = '8.8.8.8';
         $conn = \Doctrine\DBAL\DriverManager::getConnection(
