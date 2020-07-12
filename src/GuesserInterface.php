@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -33,6 +37,7 @@ interface GuesserInterface
      * Returns an array of fieldType => Faker method
      *
      * @param  mixed $length  Field's length
+     *
      * @return array
      */
     public function getColsTypeMapping($length): array;
@@ -41,19 +46,12 @@ interface GuesserInterface
      * Will map cols first by looking for field name then by looking for field type
      * if the first returned nothing
      *
-     * @param string $table
-     * @param string $name
-     * @param string $type
-     * @param string $len
-     *
      * @return array
      */
-    public function mapCol(string $table, string $name, string $type, string $len = null): array;
+    public function mapCol(string $table, string $name, string $type, ?string $len = null): array;
 
     /**
      * Returns the Guesser version
-     *
-     * @return string
      */
     public function getVersion(): string;
 }

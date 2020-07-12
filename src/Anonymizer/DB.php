@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -21,8 +25,8 @@ use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
 use Edyan\Neuralyzer\Exception\NeuralyzerException;
 use Edyan\Neuralyzer\Helper\DB\AbstractDBHelper;
 use Edyan\Neuralyzer\Utils\CSVWriter;
-use Edyan\Neuralyzer\Utils\Expression;
 use Edyan\Neuralyzer\Utils\DBUtils;
+use Edyan\Neuralyzer\Utils\Expression;
 
 /**
  * Implement AbstractAnonymizer for DB, to read and write data via Doctrine DBAL
@@ -98,11 +102,8 @@ class DB extends AbstractAnonymizer
         'batch' => 'doBatchInsert',
     ];
 
-
     /**
      * DB constructor.
-     * @param Expression $expression
-     * @param DBUtils $dbUtils
      */
     public function __construct(Expression $expression, DBUtils $dbUtils)
     {
@@ -114,7 +115,6 @@ class DB extends AbstractAnonymizer
 
     /**
      * Returns the dependency
-     * @return DBUtils
      */
     public function getDbUtils(): DBUtils
     {
@@ -124,13 +124,11 @@ class DB extends AbstractAnonymizer
     /**
      * Set the mode for update / insert
      *
-     * @param string $mode
      * @throws NeuralyzerException
-     * @return DB
      */
     public function setMode(string $mode): DB
     {
-        if (!in_array($mode, ['queries', 'batch'])) {
+        if (! in_array($mode, ['queries', 'batch'])) {
             throw new NeuralyzerException('Mode could be only queries or batch');
         }
 
@@ -139,16 +137,14 @@ class DB extends AbstractAnonymizer
         return $this;
     }
 
-
     /**
      * Process an entity by reading / writing to the DB
      *
-     * @param string        $entity
-     * @param callable|null $callback
      * @throws \Exception
+     *
      * @return array
      */
-    public function processEntity(string $entity, callable $callback = null): array
+    public function processEntity(string $entity, ?callable $callback = null): array
     {
         $this->dbUtils->assertTableExists($entity);
 
@@ -189,15 +185,48 @@ class DB extends AbstractAnonymizer
         return $this->queries;
     }
 
+    /**
+     * Generate fake data for an entity and return it as an Array
+     *
+     * @return array
+     *
+     * @throws NeuralyzerConfigurationException
+     */
+    protected function generateFakeData(): array
+    {
+        $this->checkEntityIsInConfig();
+
+        $colsInConfig = $this->configEntities[$this->entity]['cols'];
+        $row = [];
+        foreach ($colsInConfig as $colName => $colProps) {
+            $this->checkColIsInEntity($colName);
+
+            $data = \call_user_func_array(
+                [$this->getFakerObject($this->entity, $colName, $colProps), $colProps['method']],
+                $colProps['params']
+            );
+
+            if (! is_scalar($data)) {
+                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
+                throw new NeuralyzerConfigurationException($msg);
+            }
+
+            $row[$colName] = trim($data);
+
+            $colLength = $this->entityCols[$colName]['length'];
+            // Cut the value if too long ...
+            if (! empty($colLength) && \strlen($row[$colName]) > $colLength) {
+                $row[$colName] = substr($row[$colName], 0, $colLength - 1);
+            }
+        }
+
+        return $row;
+    }
 
     /**
      * Update data of db table.
-     *
-     * @param  callable $callback
-     *
-     * @return void
      */
-    private function updateData($callback = null): void
+    private function updateData(?callable $callback = null): void
     {
         $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         if ($this->limit === 0) {
@@ -245,12 +274,13 @@ class DB extends AbstractAnonymizer
         );
     }
 
-
     /**
      * Execute the Update with Doctrine QueryBuilder
+     *
      * @SuppressWarnings("unused") - Used dynamically
      *
      * @param  array $row Full row
+     *
      * @throws NeuralyzerConfigurationException
      */
     private function doUpdateByQueries(array $row): void
@@ -266,7 +296,7 @@ class DB extends AbstractAnonymizer
 
             $condition = $this->dbUtils->getCondition($field, $this->entityCols[$field]);
             $queryBuilder = $queryBuilder->set($field, $condition);
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+            $queryBuilder = $queryBuilder->setParameter(":${field}", $value);
         }
         $queryBuilder = $queryBuilder->where("{$this->priKey} = :{$this->priKey}");
         $queryBuilder = $queryBuilder->setParameter(":{$this->priKey}", $row[$this->priKey]);
@@ -280,12 +310,13 @@ class DB extends AbstractAnonymizer
         }
     }
 
-
     /**
      * Write the line required for a later LOAD DATA (or \copy)
+     *
      * @SuppressWarnings("unused") - Used dynamically
      *
      * @param  array $row Full row
+     *
      * @throws NeuralyzerConfigurationException
      */
     private function doBatchUpdate(array $row): void
@@ -296,7 +327,7 @@ class DB extends AbstractAnonymizer
         foreach (array_keys($this->entityCols) as $field) {
             // First take the fake data
             $data[$field] = $row[$field];
-            if (!empty($row[$field]) && array_key_exists($field, $fakeData)) {
+            if (! empty($row[$field]) && array_key_exists($field, $fakeData)) {
                 $data[$field] = $fakeData[$field];
             }
         }
@@ -304,13 +335,10 @@ class DB extends AbstractAnonymizer
         $this->csv->write($data);
     }
 
-
     /**
      * Insert data into table
-     *
-     * @param  callable $callback
      */
-    private function insertData($callback = null): void
+    private function insertData(?callable $callback = null): void
     {
         $this->expression->evaluateExpressions(
             $this->configEntities[$this->entity]['pre_actions']
@@ -320,7 +348,7 @@ class DB extends AbstractAnonymizer
             // Call the right method according to the mode
             $this->{$this->insertMode[$this->mode]}($rowNum);
 
-            if (!is_null($callback)) {
+            if (! is_null($callback)) {
                 $callback($rowNum);
             }
         }
@@ -335,9 +363,9 @@ class DB extends AbstractAnonymizer
         );
     }
 
-
     /**
      * Execute an INSERT with Doctrine QueryBuilder
+     *
      * @SuppressWarnings("unused") - Used dynamically
      */
     private function doInsertByQueries(): void
@@ -347,8 +375,8 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $this->dbUtils->getConn()->createQueryBuilder();
         $queryBuilder = $queryBuilder->insert($this->entity);
         foreach ($data as $field => $value) {
-            $queryBuilder = $queryBuilder->setValue($field, ":$field");
-            $queryBuilder = $queryBuilder->setParameter(":$field", $value);
+            $queryBuilder = $queryBuilder->setValue($field, ":${field}");
+            $queryBuilder = $queryBuilder->setParameter(":${field}", $value);
         }
 
         $this->returnRes === true ?
@@ -360,9 +388,9 @@ class DB extends AbstractAnonymizer
         }
     }
 
-
     /**
      * Write the line required for a later LOAD DATA (or \copy)
+     *
      * @SuppressWarnings("unused") - Used dynamically
      */
     private function doBatchInsert(): void
@@ -371,9 +399,9 @@ class DB extends AbstractAnonymizer
         $this->csv->write($data);
     }
 
-
     /**
      * If a file has been created for the batch mode, destroy it
+     *
      * @SuppressWarnings("unused") - Used dynamically
      *
      * @param string $mode "update" or "insert"
@@ -395,42 +423,5 @@ class DB extends AbstractAnonymizer
 
         // Destroy the file
         unlink($this->csv->getRealPath());
-    }
-
-    /**
-     * Generate fake data for an entity and return it as an Array
-     *
-     * @return array
-     * @throws NeuralyzerConfigurationException
-     */
-    protected function generateFakeData(): array
-    {
-        $this->checkEntityIsInConfig();
-
-        $colsInConfig = $this->configEntities[$this->entity]['cols'];
-        $row = [];
-        foreach ($colsInConfig as $colName => $colProps) {
-            $this->checkColIsInEntity($colName);
-
-            $data = \call_user_func_array(
-                [$this->getFakerObject($this->entity, $colName, $colProps), $colProps['method']],
-                $colProps['params']
-            );
-
-            if (!is_scalar($data)) {
-                $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
-                throw new NeuralyzerConfigurationException($msg);
-            }
-
-            $row[$colName] = trim($data);
-
-            $colLength = $this->entityCols[$colName]['length'];
-            // Cut the value if too long ...
-            if (!empty($colLength) && \strlen($row[$colName]) > $colLength) {
-                $row[$colName] = substr($row[$colName], 0, $colLength - 1);
-            }
-        }
-
-        return $row;
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -24,11 +28,8 @@ use Edyan\Neuralyzer\Exception\NeuralyzerGuesserException;
  */
 class Guesser implements GuesserInterface
 {
-
     /**
      * Returns the version of your guesser
-     *
-     * @return string
      */
     public function getVersion(): string
     {
@@ -45,30 +46,30 @@ class Guesser implements GuesserInterface
         // can contain regexp
         return [
             // Internet
-            '.*email.*'                  => ['method' => 'email'],
-            '.*url'                      => ['method' => 'url'],
+            '.*email.*' => ['method' => 'email'],
+            '.*url' => ['method' => 'url'],
 
             // Address and coordinates
-            '.*address.*'                => ['method' => 'streetAddress'],
-            '.*street.*'                 => ['method' => 'streetAddress'],
-            '.*postalcode.*'             => ['method' => 'postcode'],
-            '.*city.*'                   => ['method' => 'city'],
-            '.*state.*'                  => ['method' => 'state'],
-            '.*country.*'                => ['method' => 'country'],
-            '.*phone.*'                  => ['method' => 'phoneNumber'],
+            '.*address.*' => ['method' => 'streetAddress'],
+            '.*street.*' => ['method' => 'streetAddress'],
+            '.*postalcode.*' => ['method' => 'postcode'],
+            '.*city.*' => ['method' => 'city'],
+            '.*state.*' => ['method' => 'state'],
+            '.*country.*' => ['method' => 'country'],
+            '.*phone.*' => ['method' => 'phoneNumber'],
 
             // Text
             '.*\.(comments|description)' => ['method' => 'sentence', 'params' => [20]],
 
             // Person
-            '.*first_?name'              => ['method' => 'firstName'],
-            '.*last_?name'               => ['method' => 'lastName'],
+            '.*first_?name' => ['method' => 'firstName'],
+            '.*last_?name' => ['method' => 'lastName'],
         ];
     }
 
-
     /**
      * Returns an array of fieldType => Faker method
+     *
      * @param  mixed $length  Field's length
      *
      * @return array
@@ -77,26 +78,26 @@ class Guesser implements GuesserInterface
     {
         return [
             // Strings
-            'string'     => ['method' => 'sentence', 'params' => [$length]],
+            'string' => ['method' => 'sentence', 'params' => [$length]],
 
             // Text & Blobs
-            'text'       => ['method' => 'sentence', 'params' => [20]],
-            'blob'       => ['method' => 'sentence', 'params' => [20]],
+            'text' => ['method' => 'sentence', 'params' => [20]],
+            'blob' => ['method' => 'sentence', 'params' => [20]],
 
             // DateTime
-            'date'       => ['method' => 'date',     'params' => ['Y-m-d']],
-            'datetime'   => ['method' => 'date',     'params' => ['Y-m-d H:i:s']],
-            'time'       => ['method' => 'time',     'params' => ['H:i:s']],
+            'date' => ['method' => 'date',     'params' => ['Y-m-d']],
+            'datetime' => ['method' => 'date',     'params' => ['Y-m-d H:i:s']],
+            'time' => ['method' => 'time',     'params' => ['H:i:s']],
 
             // Integer
-            'boolean'    => ['method' => 'boolean',      'params' => [4]],
-            'smallint'   => ['method' => 'randomNumber', 'params' => [4]],
-            'integer'    => ['method' => 'randomNumber', 'params' => [9]],
-            'bigint'     => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
+            'boolean' => ['method' => 'boolean',      'params' => [4]],
+            'smallint' => ['method' => 'randomNumber', 'params' => [4]],
+            'integer' => ['method' => 'randomNumber', 'params' => [9]],
+            'bigint' => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
 
             // Decimal
-            'float'      => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
-            'decimal'    => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'float' => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'decimal' => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
         ];
     }
 
@@ -104,21 +105,19 @@ class Guesser implements GuesserInterface
      * Will map cols first by looking for field name then by looking for field type
      * if the first returned nothing
      *
-     * @param string $table
-     * @param string $name
-     * @param string $type
      * @param mixed $len Used to get options from enum (stored in length)
      *
      * @return array
+     *
      * @throws NeuralyzerGuesserException
      */
-    public function mapCol(string $table, string $name, string $type, string $len = null): array
+    public function mapCol(string $table, string $name, string $type, ?string $len = null): array
     {
         // Try to find by colsName
         $colsName = $this->getColsNameMapping();
         foreach ($colsName as $colRegex => $params) {
-            preg_match("/^$colRegex\$/i", $table. '.' . $name, $matches);
-            if (!empty($matches)) {
+            preg_match("/^${colRegex}\$/i", $table. '.' . $name, $matches);
+            if (! empty($matches)) {
                 return $params;
             }
         }
@@ -127,14 +126,14 @@ class Guesser implements GuesserInterface
         if ($type === 'enum') {
             return [
                 'method' => 'randomElement',
-                'params' => [explode("','", substr($len, 1, -1))]
+                'params' => [explode("','", substr($len, 1, -1))],
             ];
         }
 
         // Try to find by fieldType
         $colsType = $this->getColsTypeMapping($len);
-        if (!array_key_exists($type, $colsType)) {
-            $msg = "Can't guess the type $type ({$table}.{$name})" . print_r($colsType, true);
+        if (! array_key_exists($type, $colsType)) {
+            $msg = "Can't guess the type ${type} ({$table}.{$name})" . print_r($colsType, true);
             throw new NeuralyzerGuesserException($msg);
         }
 

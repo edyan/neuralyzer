@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Edyan\Neuralyzer\Service;
 
 use Edyan\Neuralyzer\Exception\NeuralyzerException;
@@ -17,8 +19,6 @@ class Database implements ServiceInterface
 
     /**
      * Used for auto wiring
-     *
-     * @param DBUtils $dbUtils
      */
     public function __construct(DBUtils $dbUtils)
     {
@@ -27,8 +27,6 @@ class Database implements ServiceInterface
 
     /**
      * Returns service's name
-     *
-     * @return string
      */
     public function getName(): string
     {
@@ -36,8 +34,6 @@ class Database implements ServiceInterface
     }
 
     /**
-     * @param string $sql
-     *
      * @throws NeuralyzerException
      *
      * @return array

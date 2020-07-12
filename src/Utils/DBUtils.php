@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -43,13 +47,11 @@ class DBUtils
      */
     private $dbHelper;
 
-
     /**
      * Set the connection (dependency)
      *
      * @param array $params
      *
-     * @return void
      * @throws \Doctrine\DBAL\DBALException
      */
     public function configure(array $params): void
@@ -64,9 +66,6 @@ class DBUtils
         $this->dbHelper = new $dbHelperClass($this->conn);
     }
 
-    /**
-     * @return DBHelper\AbstractDBHelper
-     */
     public function getDBHelper(): DBHelper\AbstractDBHelper
     {
         return $this->dbHelper;
@@ -74,8 +73,6 @@ class DBUtils
 
     /**
      * Get Doctrine Connection
-     *
-     * @return Connection
      */
     public function getConn(): Connection
     {
@@ -87,10 +84,6 @@ class DBUtils
 
     /**
      * Do a simple count for a table
-     *
-     * @param  string $table
-     *
-     * @return int
      */
     public function countResults(string $table): int
     {
@@ -100,13 +93,9 @@ class DBUtils
         return (int) $rows->fetch(\Doctrine\DBAL\FetchMode::NUMERIC)[0];
     }
 
-
     /**
      * Identify the primary key for a table
      *
-     * @param string $table
-     *
-     * @return string
      * @throws NeuralyzerException
      */
     public function getPrimaryKey(string $table): string
@@ -120,11 +109,8 @@ class DBUtils
         return $tableDetails->getPrimaryKey()->getColumns()[0];
     }
 
-
     /**
      * Retrieve columns list for a table with type and length
-     *
-     * @param  string $table
      *
      * @return array $cols
      */
@@ -144,19 +130,14 @@ class DBUtils
         return $cols;
     }
 
-
     /**
      * To debug, build the final SQL (can be approximate)
-     *
-     * @param  QueryBuilder $queryBuilder
-     *
-     * @return string
      */
-    public function getRawSQL(QueryBuilder $queryBuilder)
+    public function getRawSQL(QueryBuilder $queryBuilder): string
     {
         $sql = $queryBuilder->getSQL();
         foreach ($queryBuilder->getParameters() as $parameter => $value) {
-            $sql = str_replace($parameter, "'$value'", $sql);
+            $sql = str_replace($parameter, "'${value}'", $sql);
         }
 
         return $sql;
@@ -166,32 +147,29 @@ class DBUtils
      * Make sure a table exists
      *
      * @param  string $table [description]
+     *
      * @throws NeuralyzerException
      */
     public function assertTableExists(string $table): void
     {
         if ($this->conn->getSchemaManager()->tablesExist([$table]) === false) {
-            throw new NeuralyzerException("Table $table does not exist");
+            throw new NeuralyzerException("Table ${table} does not exist");
         }
     }
-
 
     /**
      * Build the condition by casting the value if needed
      *
-     * @param  string $field
      * @param  array  $fieldConf Various values about the field
-     *
-     * @return string
      */
     public function getCondition(string $field, array $fieldConf): string
     {
-        $type = ltrim(strtolower((string)$fieldConf['type']), '\\');
+        $type = ltrim(strtolower((string) $fieldConf['type']), '\\');
         $unsigned = $fieldConf['unsigned'];
 
         $integerCast = $this->getIntegerCast($unsigned);
 
-        $condition = "(CASE $field WHEN NULL THEN NULL ELSE :$field END)";
+        $condition = "(CASE ${field} WHEN NULL THEN NULL ELSE :${field} END)";
 
         $typeToCast = [
             'date' => 'DATE',
@@ -205,18 +183,15 @@ class DBUtils
         ];
 
         // No cast required
-        if (!array_key_exists($type, $typeToCast)) {
+        if (! array_key_exists($type, $typeToCast)) {
             return $condition;
         }
 
-        return "CAST($condition AS {$typeToCast[$type]})";
+        return "CAST(${condition} AS {$typeToCast[$type]})";
     }
-
 
     /**
      * Gives an empty value according to the field (example : numeric = 0)
-     *
-     * @param  string $type
      *
      * @return mixed
      */
@@ -235,20 +210,15 @@ class DBUtils
         ];
 
         // Value is simply an empty string
-        if (!array_key_exists($type, $typeToValue)) {
+        if (! array_key_exists($type, $typeToValue)) {
             return '';
         }
 
         return $typeToValue[$type];
     }
 
-
     /**
      * Get the right CAST for an INTEGER
-     *
-     * @param  bool $unsigned
-     *
-     * @return string
      */
     private function getIntegerCast(bool $unsigned): string
     {

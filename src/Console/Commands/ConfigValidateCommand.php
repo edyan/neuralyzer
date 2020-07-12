@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -35,11 +39,8 @@ class ConfigValidateCommand extends Command
      */
     protected $command = 'config:validate';
 
-
     /**
      * Configure the command
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -67,9 +68,6 @@ class ConfigValidateCommand extends Command
     /**
      * Execute the command
      *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
      *
@@ -85,13 +83,13 @@ class ConfigValidateCommand extends Command
             throw new \Edyan\Neuralyzer\Exception\NeuralyzerException($e->getMessage());
         }
 
-        if (!empty($reader->getDepreciationMessages())) {
+        if (! empty($reader->getDepreciationMessages())) {
             foreach ($reader->getDepreciationMessages() as $message) {
-                $output->writeln("<comment>WARNING : $message</comment>");
+                $output->writeln("<comment>WARNING : ${message}</comment>");
             }
         }
 
-        $output->writeln("<info>Your config is valid !</info>");
+        $output->writeln('<info>Your config is valid !</info>');
 
         if ($input->getOption('dump') === true) {
             $output->writeln(Yaml::dump($reader->getConfigValues(), 4));

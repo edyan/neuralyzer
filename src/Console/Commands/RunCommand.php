@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -20,8 +24,8 @@ namespace Edyan\Neuralyzer\Console\Commands;
 use Edyan\Neuralyzer\Anonymizer\DB;
 use Edyan\Neuralyzer\Configuration\Reader;
 use Edyan\Neuralyzer\Utils\DBUtils;
-use Edyan\Neuralyzer\Utils\FileLoader;
 use Edyan\Neuralyzer\Utils\Expression;
+use Edyan\Neuralyzer\Utils\FileLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -86,9 +90,6 @@ class RunCommand extends Command
 
     /**
      * RunCommand constructor.
-     *
-     * @param DBUtils $dbUtils
-     * @param Expression $expression
      */
     public function __construct(DBUtils $dbUtils, Expression $expression)
     {
@@ -100,8 +101,6 @@ class RunCommand extends Command
 
     /**
      * Configure the command
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -179,7 +178,8 @@ class RunCommand extends Command
      * @param InputInterface $input Symfony's Input Class for parameters and options
      * @param OutputInterface $output Symfony's Output Class to display info
      *
-     * @return null|int null or 0 if everything went fine, or an error code
+     * @return int|null null or 0 if everything went fine, or an error code
+     *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
      */
@@ -191,12 +191,12 @@ class RunCommand extends Command
         }
 
         // Throw an exception immediately if we don't have the right mode
-        if (!in_array($input->getOption('mode'), ['queries', 'batch'])) {
+        if (! in_array($input->getOption('mode'), ['queries', 'batch'])) {
             throw new \InvalidArgumentException('--mode could be only "queries" or "batch"');
         }
 
         $password = $input->getOption('password');
-        if (null === $password) {
+        if ($password === null) {
             $question = new Question('Password: ');
             $question->setHidden(true)->setHiddenFallback(false);
 
@@ -208,9 +208,9 @@ class RunCommand extends Command
 
         // Anon READER
         $this->reader = new Reader($input->getOption('config'));
-        if (!empty($this->reader->getDepreciationMessages())) {
+        if (! empty($this->reader->getDepreciationMessages())) {
             foreach ($this->reader->getDepreciationMessages() as $message) {
-                $output->writeLn("<comment>WARNING : $message</comment>");
+                $output->writeLn("<comment>WARNING : ${message}</comment>");
             }
         }
 
@@ -228,7 +228,7 @@ class RunCommand extends Command
         $this->db->setPretend($this->input->getOption('pretend'));
         $this->db->setReturnRes($this->input->getOption('sql'));
 
-        if (!empty($input->getOption('bootstrap'))) {
+        if (! empty($input->getOption('bootstrap'))) {
             FileLoader::checkAndLoad($input->getOption('bootstrap'));
         }
 
@@ -239,7 +239,7 @@ class RunCommand extends Command
         $tables = empty($table) ? $this->reader->getEntities() : [$table];
         $hasErrors = false;
         foreach ($tables as $table) {
-            if (!$this->anonymizeTable($table)) {
+            if (! $this->anonymizeTable($table)) {
                 $hasErrors = true;
             }
         }
@@ -248,25 +248,21 @@ class RunCommand extends Command
         $event = $stopwatch->stop('Neuralyzer');
         $memory = round($event->getMemory() / 1024 / 1024, 2);
         $time = round($event->getDuration() / 1000, 2);
-        $time = ($time > 180 ? round($time / 60, 2).'min' : "$time sec");
+        $time = ($time > 180 ? round($time / 60, 2).'min' : "${time} sec");
 
-        $output->writeln("<info>Done in $time using $memory Mb of memory</info>");
+        $output->writeln("<info>Done in ${time} using ${memory} Mb of memory</info>");
 
         return $hasErrors ? Command::FAILURE : Command::SUCCESS;
     }
 
     /**
      * Anonymize a specific table and display info about the job
-     *
-     * @param  string $table
-     *
-     * @return bool
      */
     private function anonymizeTable(string $table): bool
     {
         $total = $this->getTotal($table);
         if ($total === 0) {
-            $this->output->writeln("<info>$table is empty</info>");
+            $this->output->writeln("<info>${table} is empty</info>");
 
             return true;
         }
@@ -274,18 +270,18 @@ class RunCommand extends Command
         $bar = new ProgressBar($this->output, $total);
         $bar->setRedrawFrequency($total > 100 ? 100 : 0);
 
-        $this->output->writeln("<info>Anonymizing $table</info>");
+        $this->output->writeln("<info>Anonymizing ${table}</info>");
 
         try {
             $queries = $this->db->setLimit($total)->processEntity(
                 $table,
-                function () use ($bar) {
+                static function () use ($bar): void {
                     $bar->advance();
                 }
             );
             // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
-            $msg = "<error>Error anonymizing $table. Message was : " . $e->getMessage() . "</error>";
+            $msg = "<error>Error anonymizing ${table}. Message was : " . $e->getMessage() . '</error>';
             $this->output->writeln(PHP_EOL . $msg . PHP_EOL);
 
             return false;
@@ -303,18 +299,13 @@ class RunCommand extends Command
         return true;
     }
 
-
     /**
      * Define the total number of records to process for progress bar
-     *
-     * @param  string $table
-     *
-     * @return int
      */
     private function getTotal(string $table): int
     {
         $config = $this->reader->getEntityConfig($table);
-        $limit = (int)$config['limit'];
+        $limit = (int) $config['limit'];
         if ($config['action'] === 'insert') {
             return empty($limit) ? 100 : $limit;
         }
@@ -324,7 +315,7 @@ class RunCommand extends Command
             return $rows;
         }
 
-        if (!empty($limit) && $limit > $rows) {
+        if (! empty($limit) && $limit > $rows) {
             return $rows;
         }
 

@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -23,7 +27,6 @@ class PostgreSQL extends AbstractDBHelper
 {
     /**
      * Set the right enclosure
-     * @return string
      */
     public function getEnclosureForCSV(): string
     {
@@ -45,8 +48,8 @@ class PostgreSQL extends AbstractDBHelper
             $pdo->pgsqlCopyFromFile($table, $fname, '|', '\\\\N', $fields);
         }
 
-        $sql = "COPY {$table} ($fields) FROM '{$fname}' ";
-        $sql.= '... Managed by pgsqlCopyFromFile';
+        $sql = "COPY {$table} (${fields}) FROM '{$fname}' ";
+        $sql .= '... Managed by pgsqlCopyFromFile';
 
         return $sql;
     }

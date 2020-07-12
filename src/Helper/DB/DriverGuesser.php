@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -24,30 +28,26 @@ class DriverGuesser
     /**
      * Find the right local driver from a php extension
      *
-     * @param  string $driver
-     *
      * @throws \InvalidArgumentException
-     *
-     * @return string
      */
     public static function getDBHelper(string $driver): string
     {
         $drivers = [
-            'pdo_mysql'  => MySQL::class,
-            'mysql'      => MySQL::class,
-            'mysql2'     => MySQL::class,
+            'pdo_mysql' => MySQL::class,
+            'mysql' => MySQL::class,
+            'mysql2' => MySQL::class,
 
-            'pdo_pgsql'  => PostgreSQL::class,
-            'pgsql'      => PostgreSQL::class,
-            'postgres'   => PostgreSQL::class,
+            'pdo_pgsql' => PostgreSQL::class,
+            'pgsql' => PostgreSQL::class,
+            'postgres' => PostgreSQL::class,
             'postgresql' => PostgreSQL::class,
 
             'pdo_sqlsrv' => SQLServer::class,
-            'mssql'      => SQLServer::class,
+            'mssql' => SQLServer::class,
         ];
 
-        if (!array_key_exists($driver, $drivers)) {
-            throw new \InvalidArgumentException("$driver unknown");
+        if (! array_key_exists($driver, $drivers)) {
+            throw new \InvalidArgumentException("${driver} unknown");
         }
 
         return $drivers[$driver];

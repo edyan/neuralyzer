@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -25,7 +29,6 @@ class Base extends BaseProvider
 {
     /**
      * Simply generate an empty string
-     * @return string
      */
     public static function emptyString(): string
     {

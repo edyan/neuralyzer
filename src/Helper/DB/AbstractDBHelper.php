@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -25,21 +29,20 @@ abstract class AbstractDBHelper
 {
     /**
      * Execute (or not) queries
+     *
      * @var bool
      */
     public $pretend = false;
 
     /**
      * DBAL connection
+     *
      * @var Connection
      */
     public $conn = null;
 
-
     /**
      * Requires a connection to work
-     *
-     * @param Connection $conn
      */
     public function __construct(Connection $conn)
     {
@@ -48,10 +51,6 @@ abstract class AbstractDBHelper
 
     /**
      * Set Pretend to true to simulate queries, false to execute interface
-     *
-     * @param bool $pretend
-     *
-     * @return AbstractDBHelper
      */
     public function setPretend(bool $pretend): AbstractDBHelper
     {
@@ -72,7 +71,6 @@ abstract class AbstractDBHelper
 
     /**
      * Set the right enclosure
-     * @return string
      */
     public function getEnclosureForCSV(): string
     {
@@ -81,8 +79,6 @@ abstract class AbstractDBHelper
 
     /**
      * Register doctrine custom types for driver
-     *
-     * @return void
      */
     public function registerCustomTypes(): void
     {
@@ -91,12 +87,8 @@ abstract class AbstractDBHelper
     /**
      * Load Data from a CSV
      *
-     * @param  string  $table
      * @param  string  $fname File's name
      * @param  array   $fields
-     * @param  string  $mode
-     *
-     * @return string
      */
     abstract public function loadData(string $table, string $fname, array $fields, string $mode): string;
 }

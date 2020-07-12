@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -45,8 +49,6 @@ class ConfigGenerateCommand extends Command
 
     /**
      * RunCommand constructor.
-     *
-     * @param DBUtils $dbUtils
      */
     public function __construct(DBUtils $dbUtils)
     {
@@ -57,8 +59,6 @@ class ConfigGenerateCommand extends Command
 
     /**
      * Configure the command
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -122,10 +122,8 @@ class ConfigGenerateCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
      * @return void
+     *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      */
@@ -137,7 +135,7 @@ class ConfigGenerateCommand extends Command
         }
 
         $password = $input->getOption('password');
-        if (null === $password) {
+        if ($password === null) {
             $question = new Question('Password: ');
             $question->setHidden(true)->setHiddenFallback(false);
 
@@ -145,7 +143,6 @@ class ConfigGenerateCommand extends Command
         }
 
         $ignoreFields = $input->getOption('ignore-field');
-
 
         $this->dbUtils->configure([
             'driver' => $input->getOption('driver'),
@@ -155,17 +152,17 @@ class ConfigGenerateCommand extends Command
             'password' => $password,
         ]);
 
-        $writer = new \Edyan\Neuralyzer\Configuration\Writer;
+        $writer = new \Edyan\Neuralyzer\Configuration\Writer();
         $writer->protectCols($input->getOption('protect'));
 
         // Override the protection if fields are defined
-        if (!empty($ignoreFields)) {
+        if (! empty($ignoreFields)) {
             $writer->protectCols(true);
             $writer->setProtectedCols($ignoreFields);
         }
 
         $writer->setIgnoredTables($input->getOption('ignore-table'));
-        $data = $writer->generateConfFromDB($this->dbUtils, new \Edyan\Neuralyzer\Guesser);
+        $data = $writer->generateConfFromDB($this->dbUtils, new \Edyan\Neuralyzer\Guesser());
         $writer->save($data, $input->getOption('file'));
 
         $output->writeln('<comment>Configuration written to '.$input->getOption('file').'</comment>');

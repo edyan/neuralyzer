@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author    Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -21,8 +25,5 @@ namespace Edyan\Neuralyzer\Service;
  */
 interface ServiceInterface
 {
-    /**
-     * @return string
-     */
     public function getName(): string;
 }

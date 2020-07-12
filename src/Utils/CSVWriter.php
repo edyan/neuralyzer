@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -32,19 +36,19 @@ class CSVWriter extends \SplFileObject
 
     /**
      * Write a CSV line either by PHP standard or manually when no $enclosure
+     *
      * @param  array  $fields
-     * @return int
      */
     public function write(array $fields): int
     {
         $options = $this->getCsvControl();
         $delimiter = $options[0];
         $enclosure = $options[1];
-        if (!empty($enclosure)) {
+        if (! empty($enclosure)) {
             return $this->fputcsv($fields, $delimiter, $enclosure);
         }
 
-        $fields = array_map(function ($field) use ($delimiter) {
+        $fields = array_map(static function ($field) use ($delimiter) {
             return str_replace([$delimiter, PHP_EOL], ['', ''], $field);
         }, $fields);
 

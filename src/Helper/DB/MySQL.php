@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -33,11 +37,9 @@ class MySQL extends AbstractDBHelper
             [];
     }
 
-
     /**
      * Add a custom enum type
      *
-     * @return void
      * @throws \Doctrine\DBAL\DBALException
      */
     public function registerCustomTypes(): void
@@ -58,16 +60,15 @@ class MySQL extends AbstractDBHelper
         $platform->registerDoctrineTypeMapping('bit', 'boolean');
     }
 
-
     /**
      * {@inheritdoc}
      */
     public function loadData(string $table, string $fname, array $fields, string $mode): string
     {
-        $sql ="LOAD DATA LOCAL INFILE '{$fname}'
+        $sql = "LOAD DATA LOCAL INFILE '{$fname}'
      REPLACE INTO TABLE {$table}
      FIELDS TERMINATED BY '|' ENCLOSED BY '\"' LINES TERMINATED BY '" . PHP_EOL . "'
-     (`" . implode("`, `", $fields) . "`)";
+     (`" . implode('`, `', $fields) . '`)';
         // Run the query if asked
         if ($this->pretend === false) {
             $this->conn->query($sql);

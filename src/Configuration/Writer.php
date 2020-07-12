@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -8,7 +11,9 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
+ *
  * @license GNU General Public License v2.0
  *
  * @link https://github.com/edyan/neuralyzer
@@ -24,6 +29,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Configuration Writer
+ *
  * @package edyan/neuralyzer
  */
 class Writer
@@ -38,7 +44,7 @@ class Writer
     /**
      * Should I protect the cols ? That will also protect the Primary Keys
      *
-     * @var boolean
+     * @var bool
      */
     protected $protectCols = true;
 
@@ -58,17 +64,16 @@ class Writer
 
     /**
      * Doctrine connexion handler
+     *
      * @var \Doctrine\DBAL\Connection
      */
     private $conn;
 
-
     /**
      * Generate the configuration by reading tables + cols
      *
-     * @param  DBUtils $dbUtils
-     * @param  GuesserInterface $guesser
      * @return array
+     *
      * @throws NeuralyzerConfigurationException
      */
     public function generateConfFromDB(DBUtils $dbUtils, GuesserInterface $guesser): array
@@ -98,14 +103,13 @@ class Writer
         }
 
         $config = [
-            'entities' => $data
+            'entities' => $data,
         ];
 
         $processor = new Processor();
 
-        return $processor->processConfiguration(new ConfigDefinition, [$config]);
+        return $processor->processConfiguration(new ConfigDefinition(), [$config]);
     }
-
 
     /**
      * Get Tables List added to the conf
@@ -117,12 +121,8 @@ class Writer
         return $this->tablesInConf;
     }
 
-
     /**
      * Set a flat to protect cols (Primary Key is protected by default)
-     *
-     * @param  bool   $protectCols
-     * @return Writer
      */
     public function protectCols(bool $protectCols): Writer
     {
@@ -131,29 +131,26 @@ class Writer
         return $this;
     }
 
-
     /**
      * Save the data to the file as YAML
      *
      * @param array $data
-     * @param string $filename
+     *
      * @throws NeuralyzerConfigurationException
      */
-    public function save(array $data, string $filename)
+    public function save(array $data, string $filename): void
     {
-        if (!is_writeable(dirname($filename))) {
+        if (! is_writeable(dirname($filename))) {
             throw new NeuralyzerConfigurationException(dirname($filename) . ' is not writable.');
         }
 
         file_put_contents($filename, Yaml::dump($data, 4));
     }
 
-
     /**
      * Set protected cols
      *
      * @param array $ignoredTables
-     * @return Writer
      */
     public function setIgnoredTables(array $ignoredTables): Writer
     {
@@ -162,12 +159,10 @@ class Writer
         return $this;
     }
 
-
     /**
      * Set protected cols
      *
      * @param array $protectedCols
-     * @return Writer
      */
     public function setProtectedCols(array $protectedCols): Writer
     {
@@ -176,13 +171,8 @@ class Writer
         return $this;
     }
 
-
     /**
      * Check if that col has to be ignored
-     *
-     * @param  string $table
-     * @param  string $col
-     * @return bool
      */
     protected function colIgnored(string $table, string $col): bool
     {
@@ -191,7 +181,7 @@ class Writer
         }
 
         foreach ($this->protectedCols as $protectedCol) {
-            if (preg_match("/^$protectedCol\$/", $table . '.' . $col)) {
+            if (preg_match("/^${protectedCol}\$/", $table . '.' . $col)) {
                 return true;
             }
         }
@@ -199,12 +189,11 @@ class Writer
         return false;
     }
 
-
     /**
      * Get the cols lists from a connection + table
      *
-     * @param  string $table
      * @return array
+     *
      * @throws NeuralyzerConfigurationException
      */
     protected function getColsList(string $table): array
@@ -213,7 +202,7 @@ class Writer
         $tableDetails = $schema->listTableDetails($table);
         // No primary ? Exception !
         if ($tableDetails->hasPrimaryKey() === false) {
-            throw new NeuralyzerConfigurationException("Can't work with $table, it has no primary key.");
+            throw new NeuralyzerConfigurationException("Can't work with ${table}, it has no primary key.");
         }
         $primaryKey = $tableDetails->getPrimaryKey()->getColumns()[0];
 
@@ -227,14 +216,13 @@ class Writer
 
             $colsInfo[] = [
                 'name' => $col->getName(),
-                'type' => ltrim(strtolower((string)$col->getType()), '\\'),
+                'type' => ltrim(strtolower((string) $col->getType()), '\\'),
                 'len' => $col->getLength(),
             ];
         }
 
         return $colsInfo;
     }
-
 
     /**
      * Get the table lists from a connection
@@ -258,13 +246,11 @@ class Writer
         return array_values($tables);
     }
 
-
     /**
      * Guess the cols with the guesser
      *
-     * @param  string           $table
      * @param  array            $cols
-     * @param  GuesserInterface $guesser
+     *
      * @return array
      */
     protected function guessColsAnonType(string $table, array $cols, GuesserInterface $guesser): array
@@ -277,17 +263,13 @@ class Writer
         return $mapping;
     }
 
-
     /**
      * Check if that table has to be ignored
-     *
-     * @param  string $table
-     * @return bool
      */
     protected function tableIgnored(string $table): bool
     {
         foreach ($this->ignoredTables as $ignoredTable) {
-            if (preg_match("/^$ignoredTable\$/", $table)) {
+            if (preg_match("/^${ignoredTable}\$/", $table)) {
                 return true;
             }
         }

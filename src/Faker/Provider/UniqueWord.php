@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author    Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -31,14 +35,10 @@ class UniqueWord extends Base
      */
     private $language;
 
-
     private static $dictionary = [];
 
     /**
      * UniqueWord constructor.
-     *
-     * @param Generator $generator
-     * @param string    $language
      */
     public function __construct(Generator $generator, string $language = 'en_US')
     {
@@ -48,8 +48,6 @@ class UniqueWord extends Base
 
     /**
      * If not already done, load the file in memory as an array, then shuffle it
-     *
-     * @return string
      */
     public function uniqueWord(): string
     {
@@ -67,7 +65,7 @@ class UniqueWord extends Base
     private function loadFullDictionary(): void
     {
         $file = __DIR__ . '/../Dictionary/' . $this->language;
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             $file = __DIR__ . '/../Dictionary/en_US';
         }
 
@@ -75,7 +73,6 @@ class UniqueWord extends Base
     }
 
     /**
-     * @return string
      * @throws \RuntimeException
      */
     private function extractARowFromDictionary(): string

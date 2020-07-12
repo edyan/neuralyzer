@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -25,8 +29,6 @@ class SQLServer extends AbstractDBHelper
 {
     /**
      * Set the right enclosure
-     *
-     * @return string
      */
     public function getEnclosureForCSV(): string
     {
@@ -42,7 +44,7 @@ class SQLServer extends AbstractDBHelper
             throw new NeuralyzerException('SQL Server must be on the same host than PHP');
         }
 
-        $sql ="BULK INSERT {$table} FROM '{$fname}' WITH (
+        $sql = "BULK INSERT {$table} FROM '{$fname}' WITH (
             FIELDTERMINATOR = '|', DATAFILETYPE = 'widechar', ROWTERMINATOR = '" . PHP_EOL . "'
         )";
 

@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
  * PHP Version 7.1
  *
  * @author    Emmanuel Dyan
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -18,16 +22,13 @@ namespace Edyan\Neuralyzer\Utils;
 
 /**
  * Class FileLoader
+ *
  * @package edyan/neuralyzer
  */
 class FileLoader
 {
     /**
      * Checks if a PHP source file is readable and loads it.
-     *
-     * @param string $filename
-     *
-     * @return string
      *
      * @throws \Exception
      */
@@ -43,7 +44,7 @@ class FileLoader
 
         $isReadable = @\fopen($includePathFilename, 'r') !== false;
 
-        if (!$includePathFilename || !$isReadable || $includePathFilename === $localFile) {
+        if (! $includePathFilename || ! $isReadable || $includePathFilename === $localFile) {
             throw new \Exception(\sprintf('Cannot open file "%s".' . "\n", $filename));
         }
 

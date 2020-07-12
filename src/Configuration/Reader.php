@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -40,11 +44,9 @@ class Reader
      */
     private $depreciationMessages = [];
 
-
     /**
      * Set a few properties, open the config file and parse it
      *
-     * @param string $configFileName
      * @param array  $configDirectories
      */
     public function __construct(string $configFileName, array $configDirectories = ['.'])
@@ -56,7 +58,6 @@ class Reader
         $this->registerDepreciationMessages($config);
     }
 
-
     /**
      * Getter
      *
@@ -67,19 +68,17 @@ class Reader
         return $this->configValues;
     }
 
-
     /**
      * Get config values for an entity
      *
-     * @param  string $entity
-     *
      * @throws \InvalidArgumentException
+     *
      * @return array            Config Values
      */
     public function getEntityConfig(string $entity): array
     {
-        if (!array_key_exists($entity, $this->configValues['entities'])) {
-            throw new \InvalidArgumentException("$entity is not set in config");
+        if (! array_key_exists($entity, $this->configValues['entities'])) {
+            throw new \InvalidArgumentException("${entity} is not set in config");
         }
 
         return $this->configValues['entities'][$entity];
@@ -121,7 +120,7 @@ class Reader
     protected function parseAndValidateConfig(?array $config): void
     {
         $configDefinition = new ConfigDefinition();
-        $this->configValues = (new Processor)->processConfiguration($configDefinition, [$config]);
+        $this->configValues = (new Processor())->processConfiguration($configDefinition, [$config]);
     }
 
     /**

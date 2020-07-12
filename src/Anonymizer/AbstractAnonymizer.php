@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author    Emmanuel Dyan
  * @author    Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -24,7 +28,6 @@ use Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException;
  * Abstract Anonymizer, that can be implemented as DB Anonymizer for example
  * Its goal is only to anonymize any data, from a simple array
  * not to write or read it from anywhere
- *
  */
 abstract class AbstractAnonymizer
 {
@@ -62,7 +65,7 @@ abstract class AbstractAnonymizer
     /**
      * List of used fakers
      *
-     * @var \Faker\Generator[]|\Faker\UniqueGenerator[]
+     * @var array<\Faker\Generator>|array<\Faker\UniqueGenerator>
      */
     protected $fakers = [];
 
@@ -116,14 +119,11 @@ abstract class AbstractAnonymizer
      */
     abstract public function processEntity(
         string $entity,
-        callable $callback = null
+        ?callable $callback = null
     ): array;
-
 
     /**
      * Set the configuration
-     *
-     * @param Reader $configuration
      */
     public function setConfiguration(Reader $configuration): void
     {
@@ -132,11 +132,8 @@ abstract class AbstractAnonymizer
         $this->initFaker();
     }
 
-
     /**
      * Limit of fake generated records for updates and creates
-     *
-     * @param int $limit
      *
      * @return mixed
      */
@@ -150,11 +147,8 @@ abstract class AbstractAnonymizer
         return $this;
     }
 
-
     /**
      * Activate or deactivate the pretending mode (dry run)
-     *
-     * @param  bool $pretend
      *
      * @return mixed
      */
@@ -165,12 +159,9 @@ abstract class AbstractAnonymizer
         return $this;
     }
 
-
     /**
      * Return or not a result (like an SQL Query that has
      * been generated with fake data)
-     *
-     * @param  bool $returnRes
      *
      * @return mixed
      */
@@ -181,11 +172,9 @@ abstract class AbstractAnonymizer
         return $this;
     }
 
-
     /**
      * Evaluate, from the configuration if I have to update or Truncate the table
      *
-     * @return int
      * @throws NeuralyzerConfigurationException
      */
     protected function whatToDoWithEntity(): int
@@ -213,6 +202,7 @@ abstract class AbstractAnonymizer
      * Generate fake data for an entity and return it as an Array
      *
      * @return array
+     *
      * @throws NeuralyzerConfigurationException
      */
     protected function generateFakeData(): array
@@ -226,21 +216,20 @@ abstract class AbstractAnonymizer
                 [$this->getFakerObject($this->entity, $colName, $colProps), $colProps['method']],
                 $colProps['params']
             );
-            if (!is_scalar($data)) {
+            if (! is_scalar($data)) {
                 $msg = "You must use faker methods that generate strings: '{$colProps['method']}' forbidden";
                 throw new NeuralyzerConfigurationException($msg);
             }
             $row[$colName] = trim($data);
             $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...
-            if (!empty($colLength) && \strlen($row[$colName]) > $colLength) {
+            if (! empty($colLength) && \strlen($row[$colName]) > $colLength) {
                 $row[$colName] = substr($row[$colName], 0, $colLength - 1);
             }
         }
 
         return $row;
     }
-
 
     /**
      * Make sure that entity is defined in the configuration
@@ -254,7 +243,7 @@ abstract class AbstractAnonymizer
                 'No entities found. Have you loaded a configuration file ?'
             );
         }
-        if (!array_key_exists($this->entity, $this->configEntities)) {
+        if (! array_key_exists($this->entity, $this->configEntities)) {
             throw new NeuralyzerConfigurationException(
                 "No configuration for that entity ({$this->entity})"
             );
@@ -264,14 +253,12 @@ abstract class AbstractAnonymizer
     /**
      * Verify a column is defined in the real entityCols
      *
-     * @param string $colName
-     *
      * @throws NeuralyzerConfigurationException
      */
     protected function checkColIsInEntity(string $colName): void
     {
-        if (!array_key_exists($colName, $this->entityCols)) {
-            throw new NeuralyzerConfigurationException("Col $colName does not exist");
+        if (! array_key_exists($colName, $this->entityCols)) {
+            throw new NeuralyzerConfigurationException("Col ${colName} does not exist");
         }
     }
 
@@ -289,15 +276,13 @@ abstract class AbstractAnonymizer
     /**
      * Get the faker object for a entity column
      *
-     * @param string $entityName
-     * @param string $colName
      * @param array  $colProps
      *
      * @return \Faker\Generator|\Faker\UniqueGenerator
      */
     protected function getFakerObject(string $entityName, string $colName, array $colProps)
     {
-        if (!isset($this->fakers[$entityName][$colName])) {
+        if (! isset($this->fakers[$entityName][$colName])) {
             $fakerClone = clone $this->faker;
             $this->fakers[$entityName][$colName] = isset($colProps['unique']) && $colProps['unique'] === true ? $fakerClone->unique() : $fakerClone;
         }

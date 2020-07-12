@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
@@ -6,6 +9,7 @@
  *
  * @author Emmanuel Dyan
  * @author Rémi Sauvat
+ *
  * @copyright 2018 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
@@ -33,11 +37,8 @@ class ConfigExampleCommand extends Command
      */
     protected $command = 'config:example';
 
-
     /**
      * Configure the command
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -54,16 +55,13 @@ class ConfigExampleCommand extends Command
     /**
      * Execute the command
      *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
      * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $dumper = new \Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper;
+        $dumper = new \Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper();
         $config = $dumper->dump(
-            new \Edyan\Neuralyzer\Configuration\ConfigDefinition
+            new \Edyan\Neuralyzer\Configuration\ConfigDefinition()
         );
 
         $output->writeLn($config);
