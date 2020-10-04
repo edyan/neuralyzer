@@ -15,7 +15,7 @@
     "require": {
         "php": ">=7.2.5",
         "ext-pdo": "*",
-        "doctrine/dbal": "^2",
+        "doctrine/dbal": "2.10.*",
         "fzaninotto/faker": "^1",
         "symfony/config": "^5",
         "symfony/console": "^5",
