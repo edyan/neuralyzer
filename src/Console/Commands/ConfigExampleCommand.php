@@ -37,9 +37,6 @@ class ConfigExampleCommand extends Command
      */
     protected $command = 'config:example';
 
-    /**
-     * Configure the command
-     */
     protected function configure(): void
     {
         // First command : Test the DB Connexion
@@ -52,11 +49,6 @@ class ConfigExampleCommand extends Command
             );
     }
 
-    /**
-     * Execute the command
-     *
-     * @return void
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $dumper = new \Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper();

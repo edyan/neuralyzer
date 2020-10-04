@@ -62,7 +62,7 @@ class RoboFile extends \Robo\Tasks
         $this->phpVersion = $opts['php'];
         $this->dbType = $opts['db'];
         $this->dbVersion = $opts['db-version'];
-        $this->dbWait = $opts['wait'];
+        $this->dbWait = (int)$opts['wait'];
         $this->noCoverage = $opts['no-coverage'];
 
         $this->setupDocker();

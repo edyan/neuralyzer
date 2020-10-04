@@ -39,9 +39,6 @@ class ConfigValidateCommand extends Command
      */
     protected $command = 'config:validate';
 
-    /**
-     * Configure the command
-     */
     protected function configure(): void
     {
         // First command : Test the DB Connexion
@@ -70,8 +67,6 @@ class ConfigValidateCommand extends Command
      *
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerException
-     *
-     * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

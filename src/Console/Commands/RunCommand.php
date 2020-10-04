@@ -88,9 +88,6 @@ class RunCommand extends Command
      */
     private $expression;
 
-    /**
-     * RunCommand constructor.
-     */
     public function __construct(DBUtils $dbUtils, Expression $expression)
     {
         parent::__construct();
@@ -99,9 +96,6 @@ class RunCommand extends Command
         $this->expression = $expression;
     }
 
-    /**
-     * Configure the command
-     */
     protected function configure(): void
     {
         // First command : Test the DB Connexion

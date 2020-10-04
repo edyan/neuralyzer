@@ -494,3 +494,9 @@ $ php -d phar.readonly=0 vendor/bin/robo release
 ```bash
 $ php -d phar.readonly=0 vendor/bin/robo phar
 ```
+
+
+### Improve code quality with phpinsights
+```bash
+docker run -it --rm -v $(pwd):/app nunomaduro/phpinsights analyse --fix
+```

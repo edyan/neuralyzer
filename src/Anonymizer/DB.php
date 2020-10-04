@@ -211,7 +211,7 @@ class DB extends AbstractAnonymizer
                 throw new NeuralyzerConfigurationException($msg);
             }
 
-            $row[$colName] = trim($data);
+            $row[$colName] = is_string($data) ? trim($data) : $data;
 
             $colLength = $this->entityCols[$colName]['length'];
             // Cut the value if too long ...

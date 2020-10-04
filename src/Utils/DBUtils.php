@@ -223,7 +223,8 @@ class DBUtils
     private function getIntegerCast(bool $unsigned): string
     {
         $driver = $this->conn->getDriver();
-        if (strpos($driver->getName(), 'mysql')) {
+        die (get_class($driver) . PHP_EOL);
+        if (get_class($driver) === 'Doctrine\DBAL\Driver\PDOMySql\Driver') {
             return $unsigned === true ? 'UNSIGNED' : 'SIGNED';
         }
 

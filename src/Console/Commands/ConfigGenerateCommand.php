@@ -47,9 +47,6 @@ class ConfigGenerateCommand extends Command
      */
     private $dbUtils;
 
-    /**
-     * RunCommand constructor.
-     */
     public function __construct(DBUtils $dbUtils)
     {
         parent::__construct();
@@ -57,9 +54,6 @@ class ConfigGenerateCommand extends Command
         $this->dbUtils = $dbUtils;
     }
 
-    /**
-     * Configure the command
-     */
     protected function configure(): void
     {
         // First command : Test the DB Connexion
@@ -122,7 +116,6 @@ class ConfigGenerateCommand extends Command
     }
 
     /**
-     * @return void
      *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException
