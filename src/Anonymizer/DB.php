@@ -291,7 +291,7 @@ class DB extends AbstractAnonymizer
         $queryBuilder = $queryBuilder->update($this->entity);
         foreach ($data as $field => $value) {
             $value = empty($row[$field]) ?
-                $this->dbUtils->getEmptyValue($this->entityCols[$field]['type']) :
+                $this->dbUtils->getEmptyValue($this->entityCols[$field]['type']->getName()) :
                 $value;
 
             $condition = $this->dbUtils->getCondition($field, $this->entityCols[$field]);
@@ -415,7 +415,7 @@ class DB extends AbstractAnonymizer
         }
 
         // Load the data from the helper, only if pretend is false
-        $filename = $this->csv->getRealPath();
+        $filename = $this->csv->getPathName();
         $this->dbHelper->setPretend($this->pretend);
         $sql = $this->dbHelper->loadData($this->entity, $filename, $fields, $mode);
 

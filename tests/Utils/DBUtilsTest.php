@@ -130,7 +130,7 @@ class DBUtilsTest extends AbstractConfigurationDB
         $condition = $utils->getCondition('a_smallint', $cols['a_smallint']);
         $expected = 'CAST((CASE a_smallint WHEN NULL THEN NULL ELSE :a_smallint END) AS INTEGER)';
         if (strpos(getenv('DB_DRIVER'), 'mysql')) {
-            $expected = 'CAST((CASE a_smallint WHEN NULL THEN NULL ELSE :a_smallint END) AS UNSIGNED)';
+            $expected = 'CAST((CASE a_smallint WHEN NULL THEN NULL ELSE :a_smallint END) AS UNSIGNED INTEGER)';
         }
         $this->assertEquals($expected, $condition);
     }
@@ -156,7 +156,7 @@ class DBUtilsTest extends AbstractConfigurationDB
         $condition = $utils->getCondition('an_integer', $cols['an_integer']);
         $expected = 'CAST((CASE an_integer WHEN NULL THEN NULL ELSE :an_integer END) AS INTEGER)';
         if (strpos(getenv('DB_DRIVER'), 'mysql')) {
-            $expected = 'CAST((CASE an_integer WHEN NULL THEN NULL ELSE :an_integer END) AS SIGNED)';
+            $expected = 'CAST((CASE an_integer WHEN NULL THEN NULL ELSE :an_integer END) AS SIGNED INTEGER)';
         }
         $this->assertEquals($expected, $condition);
     }

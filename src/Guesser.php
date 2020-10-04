@@ -93,7 +93,7 @@ class Guesser implements GuesserInterface
             'boolean' => ['method' => 'boolean',      'params' => [4]],
             'smallint' => ['method' => 'randomNumber', 'params' => [4]],
             'integer' => ['method' => 'randomNumber', 'params' => [9]],
-            'bigint' => ['method' => 'randomNumber', 'params' => [strlen(mt_getrandmax()) - 1]],
+            'bigint' => ['method' => 'randomNumber', 'params' => [strlen(strval(mt_getrandmax())) - 1]],
 
             // Decimal
             'float' => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],

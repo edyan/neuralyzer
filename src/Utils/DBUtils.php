@@ -195,7 +195,7 @@ class DBUtils
      *
      * @return mixed
      */
-    public function getEmptyValue(string $type)
+    public function getEmptyValue( $type)
     {
         $type = strtolower($type);
         $typeToValue = [
@@ -222,10 +222,9 @@ class DBUtils
      */
     private function getIntegerCast(bool $unsigned): string
     {
-        $driver = $this->conn->getDriver();
-        die (get_class($driver) . PHP_EOL);
-        if (get_class($driver) === 'Doctrine\DBAL\Driver\PDOMySql\Driver') {
-            return $unsigned === true ? 'UNSIGNED' : 'SIGNED';
+        $driver = $this->conn->getDriver()->getName();
+        if ($driver === 'pdo_mysql') {
+            return $unsigned === true ? 'UNSIGNED INTEGER' : 'SIGNED INTEGER';
         }
 
         return 'INTEGER';

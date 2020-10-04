@@ -55,6 +55,7 @@ class RoboFile extends \Robo\Tasks
         'wait' => 10,
         'db-version' => 'latest',
         'no-coverage' => false,
+        'file' => '',
     ]): void
     {
         $this->stopOnFail(true);
@@ -68,8 +69,8 @@ class RoboFile extends \Robo\Tasks
         $this->setupDocker();
 
         $cmd = '/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit ';
-        $cmd .= $this->noCoverage === true ? '--no-coverage' : '--coverage-clover=coverage.xml';
-        $cmd .= '"';
+        $cmd .= $this->noCoverage === true ? '--no-coverage ' : '--coverage-clover=coverage.xml ';
+        $cmd .= $opts['file'] . '"';
 
         // Run the tests
         $this->taskDockerExec('robo_php')
