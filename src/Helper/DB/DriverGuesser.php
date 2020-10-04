@@ -5,11 +5,11 @@ declare(strict_types=1);
 /**
  * neuralyzer : Data Anonymization Library and CLI Tool
  *
- * PHP Version 7.1
+ * PHP Version 7.2
  *
  * @author Emmanuel Dyan
  *
- * @copyright 2018 Emmanuel Dyan
+ * @copyright 2020 Emmanuel Dyan
  *
  * @package edyan/neuralyzer
  *
