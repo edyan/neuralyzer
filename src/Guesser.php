@@ -79,6 +79,7 @@ class Guesser implements GuesserInterface
         return [
             // Strings
             'string' => ['method' => 'sentence', 'params' => [$length]],
+            'enum' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'ENUM', 'VALUES', 'HERE']]],
 
             // Text & Blobs
             'text' => ['method' => 'sentence', 'params' => [20]],
@@ -122,8 +123,9 @@ class Guesser implements GuesserInterface
             }
         }
 
-        // Hardcoded types
-        if ($type === 'enum') {
+        // Hardcoded type, we have an enum with values
+        // into the len
+        if ($type === 'enum' && !is_null($len)) {
             return [
                 'method' => 'randomElement',
                 'params' => [explode("','", substr($len, 1, -1))],

@@ -144,6 +144,8 @@ class ConfigGenerateCommand extends Command
             'user' => $input->getOption('user'),
             'password' => $password,
         ]);
+        // register custom types such as enum for mysql
+        $this->dbUtils->getDBHelper()->registerCustomTypes();
 
         $writer = new \Edyan\Neuralyzer\Configuration\Writer();
         $writer->protectCols($input->getOption('protect'));
