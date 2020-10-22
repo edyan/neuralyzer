@@ -270,6 +270,7 @@ abstract class AbstractAnonymizer
         $language = $this->configuration->getConfigValues()['language'];
         $this->faker = \Faker\Factory::create($language);
         $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Base($this->faker));
+        $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\Json($this->faker));
         $this->faker->addProvider(new \Edyan\Neuralyzer\Faker\Provider\UniqueWord($this->faker, $language));
     }
 

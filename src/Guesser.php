@@ -79,25 +79,27 @@ class Guesser implements GuesserInterface
         return [
             // Strings
             'string' => ['method' => 'sentence', 'params' => [$length]],
-            'enum' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'ENUM', 'VALUES', 'HERE']]],
+            'enum' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]],
+            'simplearray' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]],
 
             // Text & Blobs
-            'text' => ['method' => 'sentence', 'params' => [20]],
-            'blob' => ['method' => 'sentence', 'params' => [20]],
+            'text' => ['method' => 'sentence',        'params' => [20]],
+            'blob' => ['method' => 'sentence',        'params' => [20]],
+            'json' => ['method' => 'jsonWordsObject', 'params' => [5]],
 
             // DateTime
             'date' => ['method' => 'date',     'params' => ['Y-m-d']],
-            'datetime' => ['method' => 'date',     'params' => ['Y-m-d H:i:s']],
+            'datetime' => ['method' => 'date', 'params' => ['Y-m-d H:i:s']],
             'time' => ['method' => 'time',     'params' => ['H:i:s']],
 
             // Integer
-            'boolean' => ['method' => 'boolean',      'params' => [4]],
+            'boolean' => ['method' => 'randomElement',  'params' => [[0, 1]]],
             'smallint' => ['method' => 'randomNumber', 'params' => [4]],
-            'integer' => ['method' => 'randomNumber', 'params' => [9]],
-            'bigint' => ['method' => 'randomNumber', 'params' => [strlen(strval(mt_getrandmax())) - 1]],
+            'integer' => ['method' => 'randomNumber',  'params' => [9]],
+            'bigint' => ['method' => 'randomNumber',   'params' => [strlen(strval(mt_getrandmax())) - 1]],
 
             // Decimal
-            'float' => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
+            'float' => ['method' => 'randomFloat',   'params' => [2, 0, 999999]],
             'decimal' => ['method' => 'randomFloat', 'params' => [2, 0, 999999]],
         ];
     }
@@ -112,7 +114,7 @@ class Guesser implements GuesserInterface
      *
      * @throws NeuralyzerGuesserException
      */
-    public function mapCol(string $table, string $name, string $type, ?string $len = null): array
+    public function mapCol(string $table, string $name, string $type, $len = null): array
     {
         // Try to find by colsName
         $colsName = $this->getColsNameMapping();
@@ -125,7 +127,7 @@ class Guesser implements GuesserInterface
 
         // Hardcoded type, we have an enum with values
         // into the len
-        if ($type === 'enum' && !is_null($len)) {
+        if ($type === 'enum' && is_string($len)) {
             return [
                 'method' => 'randomElement',
                 'params' => [explode("','", substr($len, 1, -1))],
@@ -135,7 +137,7 @@ class Guesser implements GuesserInterface
         // Try to find by fieldType
         $colsType = $this->getColsTypeMapping($len);
         if (! array_key_exists($type, $colsType)) {
-            $msg = "Can't guess the type ${type} ({$table}.{$name})" . print_r($colsType, true);
+            $msg = "Can't guess the type ${type} ({$table}.{$name})" . PHP_EOL . print_r($colsType, true);
             throw new NeuralyzerGuesserException($msg);
         }
 

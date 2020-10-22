@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: Emmanuel
- * Date: 11/11/18
- * Time: 17:08
- */
 
 namespace Edyan\Neuralyzer\Tests\Faker\Provider;
 
