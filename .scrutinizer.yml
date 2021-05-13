@@ -25,6 +25,7 @@ build:
 filter:
   excluded_paths:
     - RoboFile.php
+    - phpinsights.php
     - tests/*
 checks:
   php:

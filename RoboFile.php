@@ -15,6 +15,7 @@ use Symfony\Component\Process\Process;
 class RoboFile extends \Robo\Tasks
 {
     private $phpVersion = 7.2;
+    private $composer = '/usr/local/bin/composer';
     private $dbType = 'mysql';
     private $dbVersion = 'latest';
     private $dbWait = 10;
@@ -80,6 +81,11 @@ class RoboFile extends \Robo\Tasks
         $this->noCoverage = $opts['no-coverage'];
 
         $this->setupDocker();
+
+        // Install composer and do a composer install to make sure
+        // dependencies are compatible with that PHP version
+        $this->installComposer();
+        $this->doComposerInstall();
 
         $cmd = '/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit ';
         $coverageOpt = '--no-coverage ';
@@ -223,6 +229,35 @@ class RoboFile extends \Robo\Tasks
         $this->say('Release ready, you can push');
     }
 
+    /**
+     * Do a composer update with the minimum PHP version
+     */
+    public function composerUpdate(): void
+    {
+        $this->io()->title('Do a composer update');
+
+        $this->stopContainer('robo_php');
+
+        $this
+            ->taskDockerRun('edyan/php:' . $this->phpVersion)
+            ->printOutput(false)
+            ->printMetadata(false)
+            ->detached()->name('robo_php')->option('--rm')
+            ->volume(__DIR__, '/var/www/html')
+            ->run();
+
+        $this->installComposer();
+
+        $cmd = "php {$this->composer} --prefer-dist --no-progress -o update";
+        $this
+            ->taskDockerExec('robo_php')
+            ->printMetadata(false)
+            ->option('--user', 'www-data')
+            ->exec($this->taskExec("/bin/bash -c 'cd /var/www/html ; $cmd'"))
+            ->run();
+
+    }
+
     private function setupDocker(): void
     {
         $this->destroyDocker();
@@ -333,6 +368,30 @@ class RoboFile extends \Robo\Tasks
 
         $this->say('Destroying container ' . $ct);
         $this->taskDockerStop($ct)->silent(true)->run();
+    }
+
+    private function installComposer(): void
+    {
+        $this->say('Install composer');
+        $url = 'https://getcomposer.org/download/latest-stable/composer.phar';
+        $this
+            ->taskDockerExec('robo_php')
+            ->printMetadata(false)
+            ->exec($this->taskExec("php -r \"copy('$url', '{$this->composer}');\""))
+            ->run();
+    }
+
+    private function doComposerInstall(): void
+    {
+        $this->say('Do a composer install');
+
+        $cmd = "php {$this->composer} --dry-run --quiet --no-autoloader --no-progress install";
+        $this
+            ->taskDockerExec('robo_php')
+            ->printMetadata(false)
+            ->option('--user', 'www-data')
+            ->exec($this->taskExec("/bin/bash -c 'cd /var/www/html ; $cmd'"))
+            ->run();
     }
 
     private function gitVerifyBranchIsMaster(): void

@@ -470,12 +470,14 @@ Clone the project, run `composer install` then...
 $ vendor/bin/robo test --php 7.2 --wait 10 --db mysql --db-version 5
 $ vendor/bin/robo test --php 7.3 --wait 10 --db mysql --db-version 8
 $ vendor/bin/robo test --php 7.4 --wait 10 --db mysql --db-version 8
+$ vendor/bin/robo test --php 8.0 --wait 10 --db mysql --db-version 8
 ```
 #### With PostgreSQL 9, 10 and 11 (12 also works)
 ```bash
 $ vendor/bin/robo test --php 7.2 --wait 10 --db pgsql --db-version 10
 $ vendor/bin/robo test --php 7.3 --wait 10 --db pgsql --db-version 11
 $ vendor/bin/robo test --php 7.4 --wait 10 --db pgsql --db-version 12
+$ vendor/bin/robo test --php 8.0 --wait 10 --db pgsql --db-version 13
 ```
 #### With SQL Server
 **Warning** : 2 tests *fail*, because of strange behaviors of SQL Server ... or Doctrine / Dbal. PHPUnit can't compare 2 Datasets because the fields are not in the same order.
@@ -483,6 +485,7 @@ $ vendor/bin/robo test --php 7.4 --wait 10 --db pgsql --db-version 12
 $ vendor/bin/robo test --php 7.2 --wait 15 --db sqlsrv
 $ vendor/bin/robo test --php 7.3 --wait 15 --db sqlsrv
 $ vendor/bin/robo test --php 7.4 --wait 15 --db sqlsrv
+$ vendor/bin/robo test --php 8.0 --wait 15 --db sqlsrv
 ```
 
 ### Build a release (with a phar and a git tag)
@@ -499,4 +502,9 @@ $ php -d phar.readonly=0 vendor/bin/robo phar
 ### Improve code quality with phpinsights
 ```bash
 docker run -it --rm -v $(pwd):/app nunomaduro/phpinsights analyse --fix
+```
+
+### Update dependencies to make sure it'll work with PHP 7.2
+```bash
+vendor/bin/robo composer:update
 ```
