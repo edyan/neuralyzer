@@ -10,7 +10,7 @@ edyan/neuralyzer
 
 ## Summary
 This project is a library and a command line tool that **anonymizes** a database by updating data
-or generating fake data (update vs insert). It uses [Faker](https://github.com/fzaninotto/Faker)
+or generating fake data (update vs insert). It uses [Faker](https://github.com/fakerphp/faker)
 to generate data from rules defined in a configuration file.
 
 As it can do row per row or use batch mechanisms, you can load tables with
@@ -109,11 +109,11 @@ language: en_US
 
 You have to modify the file to change its configuration. For example, if you need to remove data
 while anonymizing and change the language
-(see [Faker's doc](https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider) for available languages), do :
+(see [Faker's doc](https://fakerphp.github.io/) for available languages), do :
 
 ```yaml
 # be careful that some languages have only a few methods.
-# Example : https://github.com/fzaninotto/Faker/tree/master/src/Faker/Provider/fr_FR
+# Example : https://github.com/FakerPHP/Faker/tree/v1.14.1/src/Faker/Provider/fr_FR
 language: fr_FR
 ```
 
@@ -413,7 +413,7 @@ config:
                 # Prototype
                 -
 
-                    # Faker method to use, see doc : https://github.com/fzaninotto/Faker
+                    # Faker method to use, see doc : https://fakerphp.github.io/
                     method:               ~ # Required
 
                     # Set this option to true to generate unique values for that field (see faker->unique() generator)

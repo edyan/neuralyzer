@@ -16,7 +16,7 @@
         "php": ">=7.2.5",
         "ext-pdo": "*",
         "doctrine/dbal": "^2",
-        "fzaninotto/faker": "^1",
+        "fakerphp/faker": "^1",
         "symfony/config": "^5",
         "symfony/console": "^5",
         "symfony/dependency-injection": "^5",
