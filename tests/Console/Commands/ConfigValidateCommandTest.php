@@ -26,7 +26,7 @@ class ConfigValidateCommandTest extends AbstractConfigurationDB
     public function testExecuteNotWorking()
     {
         $this->expectException(NeuralyzerConfigurationException::class);
-        $this->expectExceptionMessageMatches('|The child node "entities" at path "config" must be configured|');
+        $this->expectExceptionMessageMatches('|The child config "entities" under "config" must be configured|');
 
         // We mock the DialogHelper
         $command = $this->getApplication()->find('config:validate');

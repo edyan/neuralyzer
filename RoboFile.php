@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Process;
 
 class RoboFile extends \Robo\Tasks
@@ -24,22 +25,34 @@ class RoboFile extends \Robo\Tasks
      */
     public function dockertest(): void
     {
+        $this->io()->title('Run various docker commands to make sur it works on that computer');
+
+        $this->say('Will try to stop an existing container if we find it');
+        $this->stopContainer('robo_test');
+
         $this->stopOnFail(true);
 
-        $this->taskDockerStop('robo_test')->run();
-
-        $this->taskDockerRun('edyan/php:7.2')
+        $this
+            ->taskDockerRun('edyan/php:7.2')
+            ->printOutput(false)
+            ->printMetadata(false)
             ->name('robo_test')
             ->detached()
             ->option('--rm')
             ->run();
 
-        $this->taskDockerExec('robo_test')
+        $this
+            ->taskDockerExec('robo_test')
+            ->printOutput(true)
+            ->printMetadata(true)
             ->interactive()
             ->exec($this->taskExec('php -v'))
             ->run();
 
-        $this->taskDockerStop('robo_test')
+        $this
+            ->taskDockerStop('robo_test')
+            ->printOutput(false)
+            ->printMetadata(false)
             ->run();
     }
 
@@ -69,14 +82,21 @@ class RoboFile extends \Robo\Tasks
         $this->setupDocker();
 
         $cmd = '/bin/bash -c "cd /var/www/html ; vendor/bin/phpunit ';
-        $cmd .= $this->noCoverage === true ? '--no-coverage ' : '--coverage-clover=coverage.xml ';
-        $cmd .= $opts['file'] . '"';
+        $coverageOpt = '--no-coverage ';
 
         // Run the tests
-        $this->taskDockerExec('robo_php')
+        $task = $this
+            ->taskDockerExec('robo_php')
             ->interactive()
-            ->option('--user', 'www-data')
-            ->exec($this->taskExec($cmd))
+            ->option('--user', 'www-data');
+
+        if ($this->noCoverage === false) {
+            $task = $task->option('--env', 'XDEBUG_MODE=coverage');
+            $coverageOpt = '--coverage-clover=coverage.xml ';
+        }
+
+        $task
+            ->exec($this->taskExec($cmd . $coverageOpt . $opts['file'] . '"'))
             ->run();
 
         if ($opts['keep-cts'] === false) {
@@ -87,14 +107,17 @@ class RoboFile extends \Robo\Tasks
     /**
      * Build an executable phar
      */
-    public function phar($opts = ['neuralyzer-version' => 'dev'])
+    public function phar($opts = ['neuralyzer-version' => 'dev']): \Robo\Result
     {
-        if ((int) ini_get('phar.readonly') === 1) {
+        $this->io()->title('Build neuralyzer.phar');
+
+        if ((int)ini_get('phar.readonly') === 1) {
             throw new \RuntimeException(
                 'You must have phar.readonly = 1 or run' . PHP_EOL .
                 'php -d phar.readonly=0 vendor/bin/robo (phar|release)'
             );
         }
+
         // Create a collection builder to hold the temporary
         // directory until the pack phar task runs.Call to undefined method RoboFile::startProgressIndicator()
         $collection = $this->collectionBuilder();
@@ -110,18 +133,20 @@ class RoboFile extends \Robo\Tasks
 
         $currentVersion = \Edyan\Neuralyzer\Console\Application::VERSION;
         $this->say("Setting version number to {$opts['neuralyzer-version']}");
-        $this->taskReplaceInFile($buildDir . '/src/Console/Application.php')
+        $this
+            ->taskReplaceInFile($buildDir . '/src/Console/Application.php')
             ->from("const VERSION = '${currentVersion}';")
             ->to("const VERSION = '{$opts['neuralyzer-version']}';")
             ->run();
 
         $this->say('Force Robo to compress up to 1500 files in a phar');
-        $this->taskReplaceInFile(__DIR__ . '/vendor/consolidation/robo/src/Task/Development/PackPhar.php')
+        $this
+            ->taskReplaceInFile(__DIR__ . '/vendor/consolidation/robo/src/Task/Development/PackPhar.php')
             ->from('if (count($this->files) > 1000)')
             ->to('if (count($this->files) > 1500)')
             ->run();
 
-        $fakerLang = \Symfony\Component\Finder\Finder::create()
+        $fakerLang = Finder::create()
             ->ignoreVCS(true)
             ->files()
             ->name('*')
@@ -142,8 +167,19 @@ class RoboFile extends \Robo\Tasks
             ->run();
     }
 
+    /**
+     * Create a GitHub release
+     */
     public function release(): void
     {
+        $this->io()->title('Create a GitHub release');
+
+        if (empty(\Robo\Robo::config()->get('settings.github_token'))) {
+            throw new \RuntimeException(
+                'You must set a github token in robo config (settings.github_token)'
+            );
+        }
+
         $this->stopOnFail(true);
 
         $this->gitVerifyEverythingIsCommited();
@@ -205,6 +241,7 @@ class RoboFile extends \Robo\Tasks
     {
         $dbCt = $this
             ->taskDockerRun($this->getDBImageName())
+            ->printOutput(false)
             ->detached()
             ->name('robo_db')
             ->option('--rm');
@@ -252,8 +289,8 @@ class RoboFile extends \Robo\Tasks
 
     private function startPHP(): void
     {
-        if (! in_array($this->phpVersion, ['7.2', '7.3', '7.4'])) {
-            throw new \InvalidArgumentException('PHP Version must be 7.2, 7.3 or 7.4');
+        if (! in_array($this->phpVersion, ['7.2', '7.3', '7.4', '8.0'])) {
+            throw new \InvalidArgumentException('PHP Version must be 7.2, 7.3, 7.4 or 8.0');
         }
 
         $dbUser = 'root';
@@ -263,7 +300,9 @@ class RoboFile extends \Robo\Tasks
             $dbUser = 'sa';
         }
 
-        $this->taskDockerRun('edyan/php:' . $this->phpVersion . '-sqlsrv')
+        $this
+            ->taskDockerRun('edyan/php:' . $this->phpVersion . '-sqlsrv')
+            ->printOutput(false)
             ->detached()->name('robo_php')->option('--rm')
             ->env('DB_HOST', 'robo_db')->env('DB_DRIVER', 'pdo_' . $this->dbType)
             ->env('DB_PASSWORD', $this->dbPass)->env('DB_USER', $dbUser)
@@ -293,7 +332,7 @@ class RoboFile extends \Robo\Tasks
         }
 
         $this->say('Destroying container ' . $ct);
-        $this->taskDockerStop($ct)->run();
+        $this->taskDockerStop($ct)->silent(true)->run();
     }
 
     private function gitVerifyBranchIsMaster(): void
@@ -329,7 +368,7 @@ class RoboFile extends \Robo\Tasks
         }
     }
 
-    private function preparePharTask(string $workDir, string $buildDir)
+    private function preparePharTask(string $workDir, string $buildDir): \Robo\Result
     {
         $prepTasks = $this->collectionBuilder();
         return $prepTasks
@@ -352,10 +391,10 @@ class RoboFile extends \Robo\Tasks
             ->run();
     }
 
-    private function getFilesForPhar(string $buildDir)
+    private function getFilesForPhar(string $buildDir): Finder
     {
         // Decide which files we're going to pack
-        return \Symfony\Component\Finder\Finder::create()
+        return Finder::create()
             ->ignoreVCS(true)
             ->files()
             ->name('*.php')
