@@ -116,6 +116,7 @@ class ConfigGenerateCommand extends Command
     }
 
     /**
+     * Execute command
      *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Edyan\Neuralyzer\Exception\NeuralyzerConfigurationException

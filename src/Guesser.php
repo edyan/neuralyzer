@@ -79,8 +79,14 @@ class Guesser implements GuesserInterface
         return [
             // Strings
             'string' => ['method' => 'sentence', 'params' => [$length]],
-            'enum' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]],
-            'simplearray' => ['method' => 'randomElement', 'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]],
+            'enum' => [
+                'method' => 'randomElement',
+                'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]
+            ],
+            'simplearray' => [
+                'method' => 'randomElement',
+                'params' => [['SET', 'YOUR', 'VALUES', 'HERE']]
+            ],
 
             // Text & Blobs
             'text' => ['method' => 'sentence',        'params' => [20]],
@@ -96,7 +102,10 @@ class Guesser implements GuesserInterface
             'boolean' => ['method' => 'randomElement',  'params' => [[0, 1]]],
             'smallint' => ['method' => 'randomNumber', 'params' => [4]],
             'integer' => ['method' => 'randomNumber',  'params' => [9]],
-            'bigint' => ['method' => 'randomNumber',   'params' => [strlen(strval(mt_getrandmax())) - 1]],
+            'bigint' => [
+                'method' => 'randomNumber',
+                'params' => [strlen(strval(mt_getrandmax())) - 1]
+            ],
 
             // Decimal
             'float' => ['method' => 'randomFloat',   'params' => [2, 0, 999999]],
@@ -137,7 +146,8 @@ class Guesser implements GuesserInterface
         // Try to find by fieldType
         $colsType = $this->getColsTypeMapping($len);
         if (! array_key_exists($type, $colsType)) {
-            $msg = "Can't guess the type ${type} ({$table}.{$name})" . PHP_EOL . print_r($colsType, true);
+            $msg = "Can't guess the type ${type} ({$table}.{$name})" . PHP_EOL;
+            $msg .= print_r($colsType, true);
             throw new NeuralyzerGuesserException($msg);
         }
 

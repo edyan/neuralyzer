@@ -20,7 +20,6 @@ declare(strict_types=1);
 
 namespace Edyan\Neuralyzer\Faker\Provider;
 
-use Faker\Generator;
 use Faker\Provider\Lorem;
 
 /**
@@ -28,38 +27,40 @@ use Faker\Provider\Lorem;
  */
 class Json extends Lorem
 {
-      /**
-       * Generate a json list containing words
-       *
-       * @example ["ut", "eaque", "rerum", "voluptatem"]
-       * @param  integer      $nb     how many words to return
-       * @return array|string
-       */
-      public static function jsonWordsList($nb = 3)
-      {
-          $words = [];
-          for ($i=0; $i < $nb; $i++) {
-              $words []= static::word();
-          }
+    /**
+     * Generate a json list containing words
+     *
+     * @example ["ut", "eaque", "rerum", "voluptatem"]
+     * @param  int      $nb     how many words to return
+     *
+     * @return array|string
+     */
+    public static function jsonWordsList($nb = 3)
+    {
+        $words = [];
+        for ($i = 0; $i < $nb; $i++) {
+            $words[] = static::word();
+        }
 
-          return json_encode($words);
-      }
+        return json_encode($words);
+    }
 
-      /**
-       * Generate a json containing words as an object
-       *
-       * @example ["ut", "eaque", "rerum", "voluptatem"]
-       * @param  integer      $nb     how many words to return
-       * @return array|string
-       */
-      public static function jsonWordsObject($nb = 3)
-      {
-          $words = [];
-          for ($i=0; $i < $nb; $i++) {
-              $word = static::word();
-              $words [\substr($word, 1, 1) . $i] = $word;
-          }
+    /**
+     * Generate a json containing words as an object
+     *
+     * @example ["ut", "eaque", "rerum", "voluptatem"]
+     * @param  int      $nb     how many words to return
+     *
+     * @return array|string
+     */
+    public static function jsonWordsObject($nb = 3)
+    {
+        $words = [];
+        for ($i = 0; $i < $nb; $i++) {
+            $word = static::word();
+            $words[\substr($word, 1, 1) . $i] = $word;
+        }
 
-          return json_encode($words);
-      }
+        return json_encode($words);
+    }
 }

@@ -47,7 +47,8 @@ class ConfigDefinition implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('config');
-        $treeBuilder->getRootNode()
+        $treeBuilder
+        ->getRootNode()
             ->children()
                 ->scalarNode('guesser')
                     ->info('Set the guesser class')
@@ -129,10 +130,10 @@ class ConfigDefinition implements ConfigurationInterface
                     ->info('The list of expressions language actions to executed after neuralyzing. Be careful that "pretend" has no effect here.')
                     ->prototype('scalar')->end()
                 ->end()
-                ->end()
-                ->end()
-                ->end()
             ->end()
+            ->end()
+            ->end()
+        ->end()
         ;
 
         return $treeBuilder;

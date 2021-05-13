@@ -76,7 +76,7 @@ class RoboFile extends \Robo\Tasks
         $this->phpVersion = $opts['php'];
         $this->dbType = $opts['db'];
         $this->dbVersion = $opts['db-version'];
-        $this->dbWait = (int)$opts['wait'];
+        $this->dbWait = (int) $opts['wait'];
         $this->noCoverage = $opts['no-coverage'];
 
         $this->setupDocker();
@@ -111,7 +111,7 @@ class RoboFile extends \Robo\Tasks
     {
         $this->io()->title('Build neuralyzer.phar');
 
-        if ((int)ini_get('phar.readonly') === 1) {
+        if ((int) ini_get('phar.readonly') === 1) {
             throw new \RuntimeException(
                 'You must have phar.readonly = 1 or run' . PHP_EOL .
                 'php -d phar.readonly=0 vendor/bin/robo (phar|release)'

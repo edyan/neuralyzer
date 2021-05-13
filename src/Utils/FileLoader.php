@@ -35,10 +35,12 @@ class FileLoader
     public static function checkAndLoad(string $filename): string
     {
         $includePathFilename = \stream_resolve_include_path($filename);
-        // As a fallback, PHP looks in the directory of the file executing the stream_resolve_include_path function.
+        // As a fallback, PHP looks in the directory of the file executing the
+        // stream_resolve_include_path function.
+        //
         // We don't want to load the Test.php file here, so skip it if it found that.
-        // PHP prioritizes the include_path setting, so if the current directory is in there, it will first look in the
-        // current working directory.
+        // PHP prioritizes the include_path setting, so if the current directory is in there,
+        // it will first look in the current working directory.
         $localFile = __DIR__ . DIRECTORY_SEPARATOR . $filename;
 
         $isReadable = true;

@@ -90,5 +90,10 @@ abstract class AbstractDBHelper
      * @param  string  $fname File's name
      * @param  array   $fields
      */
-    abstract public function loadData(string $table, string $fname, array $fields, string $mode): string;
+    abstract public function loadData(
+        string $table,
+        string $fname,
+        array $fields,
+        string $mode
+    ): string;
 }

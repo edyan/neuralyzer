@@ -77,7 +77,8 @@ class DBUtils
     public function getConn(): Connection
     {
         if (empty($this->conn)) {
-            throw new \RuntimeException('Make sure you have called $dbUtils->configure($params) first');
+            $msg = 'Make sure you have called $dbUtils->configure($params) first';
+            throw new \RuntimeException($msg);
         }
         return $this->conn;
     }
@@ -195,7 +196,7 @@ class DBUtils
      *
      * @return mixed
      */
-    public function getEmptyValue( $type)
+    public function getEmptyValue($type)
     {
         $type = strtolower($type);
         $typeToValue = [

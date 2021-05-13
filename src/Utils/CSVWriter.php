@@ -49,7 +49,7 @@ class CSVWriter extends \SplFileObject
         }
 
         $fields = array_map(static function ($field) use ($delimiter) {
-            return str_replace([$delimiter, PHP_EOL], ['', ''], (string)$field);
+            return str_replace([$delimiter, PHP_EOL], ['', ''], (string) $field);
         }, $fields);
 
         return $this->fwrite(implode($delimiter, $fields) . PHP_EOL);

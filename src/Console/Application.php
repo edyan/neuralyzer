@@ -28,5 +28,5 @@ use Symfony\Component\Console\Application as BaseApplication;
  */
 class Application extends BaseApplication
 {
-    const VERSION = 'v3.1.1';
+    public const VERSION = 'v3.1.1';
 }
