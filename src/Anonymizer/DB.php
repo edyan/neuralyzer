@@ -239,31 +239,35 @@ class DB extends AbstractAnonymizer
 
         $startAt = 0; // The first part of the limit (offset)
         $num = 0; // The number of rows updated
-        while ($num < $this->limit) {
-            $rows = $queryBuilder
-                ->select('*')->from($this->entity)
-                ->setFirstResult($startAt)->setMaxResults($this->batchSize)
-                ->orderBy($this->priKey)
-                ->execute();
+        $colsInConfig = $this->configEntities[$this->entity]['cols'];
+        if (!empty($colsInConfig)) {
+            while ($num < $this->limit) {
+                $rows = $queryBuilder
+                    ->select('*')->from($this->entity)
+                    ->setFirstResult($startAt)->setMaxResults($this->batchSize)
+                    ->orderBy($this->priKey)
+                    ->execute();
 
-            // I need to read line by line if I have to update the table
-            // to make sure I do update by update (slower but no other choice for now)
-            foreach ($rows as $row) {
-                // Call the right method according to the mode
-                $this->{$this->updateMode[$this->mode]}($row);
+                // I need to read line by line if I have to update the table
+                // to make sure I do update by update (slower but no other choice for now)
+                foreach ($rows as $row) {
+                    // Call the right method according to the mode
+                    $this->{$this->updateMode[$this->mode]}($row);
 
-                if ($callback !== null) {
-                    $callback(++$num);
+                    if ($callback !== null) {
+                        $callback(++$num);
+                    }
+                    // Have to exit now as we have reached the max
+                    if ($num >= $this->limit) {
+                        break 2;
+                    }
                 }
-                // Have to exit now as we have reached the max
-                if ($num >= $this->limit) {
-                    break 2;
-                }
+                // Move the offset
+                // Make sure the loop ends if we have nothing to process
+                $num = $startAt += $this->batchSize;
             }
-            // Move the offset
-            // Make sure the loop ends if we have nothing to process
-            $num = $startAt += $this->batchSize;
         }
+
         // Run a final method if defined
         if ($this->mode === 'batch') {
             $this->loadDataInBatch('update');
